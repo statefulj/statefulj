@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+    xmlns:context="http://www.springframework.org/schema/context" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+
+    <context:property-placeholder location="classpath:test.database.properties" ignore-unresolvable="true"/>
+    <import resource="classpath:statefulj-persistence-jpa-test-db.xml" />
+    
+    <bean id="stateA" class="org.statefulj.fsm.model.impl.StateImpl">
+    	<property name="name" value="stateA"/>
+    </bean>
+
+    <bean id="stateB" class="org.statefulj.fsm.model.impl.StateImpl">
+    	<property name="name" value="stateB"/>
+    </bean>
+
+    <bean id="stateC" class="org.statefulj.fsm.model.impl.StateImpl">
+    	<property name="name" value="stateC"/>
+    </bean>
+
+    <bean id="jpaPersister" class="org.statefulj.persistence.jpa.JPAPerister">
+    	<constructor-arg name="clazz" value="org.statefulj.persistence.jpa.Order"/>
+    	<constructor-arg name="start" ref="stateA"/>
+    	<constructor-arg name="states">
+		    <util:list>
+		    	<ref bean="stateA"/>
+		    	<ref bean="stateB"/>
+		    	<ref bean="stateC"/>
+		    </util:list>
+    	</constructor-arg>
+    </bean>
+
+</beans>
+    
