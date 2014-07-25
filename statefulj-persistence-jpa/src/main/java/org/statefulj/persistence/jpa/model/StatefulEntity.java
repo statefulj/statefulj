@@ -19,7 +19,7 @@ public abstract class StatefulEntity {
 	 * Read only field - this field is updated directly by the JPAPersister
 	 */
 	@State
-	@Column(updatable=false)
+	@Column(insertable=true, updatable=false)
 	private String state;
 	
 	public String getState() {

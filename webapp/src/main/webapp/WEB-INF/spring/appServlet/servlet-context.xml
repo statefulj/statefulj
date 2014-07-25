@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/mvc"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+ 	<context:component-scan base-package="org.statefulj.webapp" />
+    <tx:annotation-driven mode="proxy" transaction-manager="transactionManager"/>
 	
 	<!-- Enables the Spring MVC @Controller programming model -->
-	<annotation-driven />
+	<annotation-driven/>
 
 	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
 	<resources mapping="/resources/**" location="/resources/" />
@@ -21,9 +25,12 @@
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 	
-	<context:component-scan base-package="org.fsm.webapp" />
-	
-	<beans:bean id="builder" class="org.fsm.webapp.Builder" />
-	
-	
+	<beans:bean id="domainClassConverter" class="org.springframework.data.repository.support.DomainClassConverter">
+	  	<beans:constructor-arg>
+	  		<beans:bean class="org.springframework.format.support.DefaultFormattingConversionService" />
+	  	</beans:constructor-arg>
+	</beans:bean>
+
+ 	<beans:bean id="builder" class="org.statefulj.webapp.Builder" />
+
 </beans:beans>

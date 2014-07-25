@@ -1,4 +1,4 @@
-package org.fsm.webapp;
+package org.statefulj.webapp;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

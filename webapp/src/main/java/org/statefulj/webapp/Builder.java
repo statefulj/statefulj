@@ -1,4 +1,4 @@
-package org.fsm.webapp;
+package org.statefulj.webapp;
 
 import java.beans.Introspector;
 import java.lang.reflect.InvocationTargetException;
@@ -50,9 +50,12 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.beans.factory.support.AbstractBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,7 +64,9 @@ import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.impl.DeterministicTransitionImpl;
 import org.statefulj.fsm.model.impl.StateImpl;
+import org.statefulj.persistence.jpa.JPAPerister;
 import org.statefulj.persistence.memory.MemoryPersisterImpl;
+import org.statefulj.webapp.model.User;
 
 public class Builder implements BeanDefinitionRegistryPostProcessor {
 	
@@ -124,8 +129,10 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 		String mvcProxyid = Introspector.decapitalize(clazz.getSimpleName() + MVC_SUFFIX);
 		reg.registerBeanDefinition(mvcProxyid, def);
 		
+		// Build the FSM infrastructure in the parent
 		// Build out a set of States
 		//
+		List<RuntimeBeanReference> stateBeans = new ManagedList<RuntimeBeanReference>();
 		for(String state : states) {
 			String stateId = stateBeanId(clazz, state);
 			BeanDefinition stateBean = BeanDefinitionBuilder
@@ -133,6 +140,7 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 					.getBeanDefinition();
 			stateBean.getPropertyValues().add("name", state);
 			reg.registerBeanDefinition(stateId, stateBean);
+			stateBeans.add(new RuntimeBeanReference(stateId));
 		}
 		
 		// Build out the Action classes and the Transitions
@@ -189,11 +197,12 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 		
 		String persisterId = Introspector.decapitalize(clazz.getSimpleName() + ".persister");
 		BeanDefinition persisterBean = BeanDefinitionBuilder
-				.genericBeanDefinition(MemoryPersisterImpl.class)
+				.genericBeanDefinition(JPAPerister.class)
 				.getBeanDefinition();
 		ConstructorArgumentValues args = persisterBean.getConstructorArgumentValues();
-		args.addIndexedArgumentValue(0, new RuntimeBeanReference(statefulObjId));
+		args.addIndexedArgumentValue(0, stateBeans);
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(startStateId));
+		args.addIndexedArgumentValue(2, User.class);
 		reg.registerBeanDefinition(persisterId, persisterBean);
 
 		// Build the FSM
@@ -491,7 +500,7 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 	private Annotation[] addIdParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, CannotCompileException {
 		// Clone the parameter Class
 		//
-		CtClass ctParm = cp.getCtClass(String.class.getName());
+		CtClass ctParm = cp.getCtClass(Long.class.getName());
 		
 		// Add the parameter to the method
 		//

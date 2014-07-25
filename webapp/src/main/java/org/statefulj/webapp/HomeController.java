@@ -1,4 +1,4 @@
-package org.fsm.webapp;
+package org.statefulj.webapp;
 
 import java.text.DateFormat;
 import java.util.Date;

@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Id;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +71,7 @@ public class JPAPerister<T> implements Persister<T> {
 		State<T> state = null;
 		try {
 			String stateKey = this.getState(stateful);
-			state = this.states.get(stateKey);
+			state = (stateKey == null ) ? this.start : this.states.get(stateKey);
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		} catch (SecurityException e) {
@@ -126,54 +127,67 @@ public class JPAPerister<T> implements Persister<T> {
 	 */
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
-			Number id = getId(stateful);
-			String where = (current.equals(this.start)) 
-					?
-					String.format(
-							"%s=%s and (%s='%s' or %s is null)",
-							this.idField.getName(),
-							id,
-							this.stateField.getName(), 
-							current.getName(),
-							this.stateField.getName()) 
-					:
-					String.format(
-							"%s=%s and %s='%s'",
-							this.idField.getName(),
-							id,
-							this.stateField.getName(), 
-							current.getName());
-			
-			String update = String.format(
-					"update %s set %s='%s' where %s", 
-					this.clazz, 
-					this.stateField.getName(), 
-					next.getName(),
-					where);
-			
-			// Successful update?
-			//
-			if (entityManager.createQuery(update).executeUpdate() == 0) {
+			if (entityManager.contains(stateful)) {
+				Number id = getId(stateful);
+				String where = (current.equals(this.start)) 
+						?
+						String.format(
+								"%s=%s and (%s='%s' or %s is null)",
+								this.idField.getName(),
+								id,
+								this.stateField.getName(), 
+								current.getName(),
+								this.stateField.getName()) 
+						:
+						String.format(
+								"%s=%s and %s='%s'",
+								this.idField.getName(),
+								id,
+								this.stateField.getName(), 
+								current.getName());
 				
-				// If we aren't able to update - it's most likely that we are out of sync.
-				// So, fetch the latest value and update the stateful object.  Then throw a RetryException
-				// This will cause the event to be reprocessed by the FSM
-				//
-				String query = String.format(
-						"select %s from %s where %s=%s", 
+				String update = String.format(
+						"update %s set %s='%s' where %s", 
+						this.clazz, 
 						this.stateField.getName(), 
-						this.clazz,
-						this.idField.getName(),
-						id);
-				String state = (String)entityManager.createQuery(query).getSingleResult();
-				setState(stateful, state);
-				String err = String.format(
-						"Unable to update state, entity.state=%s, db.state=%s",
-						current.getName(),
-						next.getName());
-				throw new StaleStateException(err);
+						next.getName(),
+						where);
+				
+				// Successful update?
+				//
+				if (entityManager.createQuery(update).executeUpdate() == 0) {
+					
+					// If we aren't able to update - it's most likely that we are out of sync.
+					// So, fetch the latest value and update the stateful object.  Then throw a RetryException
+					// This will cause the event to be reprocessed by the FSM
+					//
+					String query = String.format(
+							"select %s from %s where %s=%s", 
+							this.stateField.getName(), 
+							this.clazz,
+							this.idField.getName(),
+							id);
+					String state = this.start.getName();
+					try {
+						state = (String)entityManager.createQuery(query).getSingleResult();
+					} catch(NoResultException nre) {
+						// If it hasn't been 
+					}
+					setState(stateful, state);
+					throwStaleState(current, next);
+				}
+				setState(stateful, next.getName());
+			} else {
+				synchronized(stateful) {
+					String state = this.getState(stateful);
+					state = (state == null) ? this.start.getName() : state;
+					if (state.equals(current.getName())) {
+						setState(stateful, next.getName());
+					} else {
+						throwStaleState(current, next);
+					}
+				}
 			}
-			setState(stateful, next.getName());
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		} catch (SecurityException e) {
@@ -186,11 +200,11 @@ public class JPAPerister<T> implements Persister<T> {
 	}
 	
 	private Field getAnnotatedField(
-			@SuppressWarnings("rawtypes") Class clazz,
+			Class<?> clazz,
 			Class<? extends Annotation> annotationClass) {
 		Field match = null;
 		if (clazz != null) {
-			match = this.getAnnotatedField(clazz.getSuperclass(), annotationClass);
+			match = getAnnotatedField(clazz.getSuperclass(), annotationClass);
 			if (match == null) {
 				for(Field field : clazz.getDeclaredFields()) {
 					if (field.isAnnotationPresent(annotationClass)) {
@@ -204,7 +218,7 @@ public class JPAPerister<T> implements Persister<T> {
 		
 		return match;
 	}
-
+	
 	private Number getId(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		return (Number)this.idField.get(obj);
 	}
@@ -217,5 +231,12 @@ public class JPAPerister<T> implements Persister<T> {
 		state = (state == null) ? this.start.getName() : state;
 		this.stateField.set(obj, state);
 	}
-	
+
+	private void throwStaleState(State current, State next) throws StaleStateException {
+		String err = String.format(
+				"Unable to update state, entity.state=%s, db.state=%s",
+				current.getName(),
+				next.getName());
+		throw new StaleStateException(err);
+	}
 }
