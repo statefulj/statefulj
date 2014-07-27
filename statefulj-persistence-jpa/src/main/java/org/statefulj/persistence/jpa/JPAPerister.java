@@ -199,6 +199,13 @@ public class JPAPerister<T> implements Persister<T> {
 		}
 	}
 	
+	/**
+	 * Return a field by an Annotation
+	 * 
+	 * @param clazz
+	 * @param annotationClass
+	 * @return
+	 */
 	private Field getAnnotatedField(
 			Class<?> clazz,
 			Class<? extends Annotation> annotationClass) {
@@ -232,7 +239,7 @@ public class JPAPerister<T> implements Persister<T> {
 		this.stateField.set(obj, state);
 	}
 
-	private void throwStaleState(State current, State next) throws StaleStateException {
+	private void throwStaleState(State<T> current, State<T> next) throws StaleStateException {
 		String err = String.format(
 				"Unable to update state, entity.state=%s, db.state=%s",
 				current.getName(),

@@ -25,21 +25,13 @@ public class FSMHarness {
 
 	private FSM<Object> fsm;
 	
-	private Object stateful = new Object();
-
-	public FSMHarness(FSM<Object> fsm, Object stateful) {
+	private Class<?> clazz;
+	
+	public FSMHarness(FSM<Object> fsm, Class<?> clazz) {
 		this.fsm = fsm;
-		this.stateful = stateful;
+		this.clazz = clazz;
 	}
 	
-	public FSM<Object> getFsm() {
-		return fsm;
-	}
-
-	public void setFsm(FSM<Object> fsm) {
-		this.fsm = fsm;
-	}
-
 	public Object onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException {
 		
 		// Remove the first parameter from the parms - is the Id of the Entity Object
@@ -48,10 +40,9 @@ public class FSMHarness {
 		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length);
 		Object id = parmList.remove(0);
 		
-		Object obj = this.domainClassConverter.convert(id, TypeDescriptor.forObject(id), TypeDescriptor.valueOf(User.class));
+		Object obj = this.domainClassConverter.convert(id, TypeDescriptor.forObject(id), TypeDescriptor.valueOf(clazz));
 		if (obj == null) {
-			obj = User.class.newInstance();
-			((User)obj).setId((Long)id);
+			obj = clazz.newInstance();
 		}
 		
 		// Create a Mutable Object and add it to the Parmater List - it will be used

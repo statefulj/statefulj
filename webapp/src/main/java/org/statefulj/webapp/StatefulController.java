@@ -24,4 +24,6 @@ public @interface StatefulController {
 	String value() default "";
 	
 	String startState();
+	
+	Class<?> clazz();
 }

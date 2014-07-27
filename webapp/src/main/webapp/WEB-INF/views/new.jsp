@@ -4,9 +4,9 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>Foo</title>
+<title>New User</title>
 </head>
 <body>
-foo
+Id=${id}
 </body>
 </html>

@@ -16,7 +16,8 @@ import org.statefulj.persistence.jpa.annotations.State;
 public abstract class StatefulEntity {
 	
 	/**
-	 * Read only field - this field is updated directly by the JPAPersister
+	 * Field be set on insert.  But updates must be done through the JPAPersister
+	 * 
 	 */
 	@State
 	@Column(insertable=true, updatable=false)

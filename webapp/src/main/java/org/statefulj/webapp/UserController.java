@@ -4,10 +4,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.webapp.model.User;
 import org.statefulj.webapp.repo.UserRepository;
 
-@StatefulController(startState=UserController.NEW_STATE)
+@StatefulController(clazz=User.class, startState=UserController.NEW_STATE)
 public class UserController {
 	
 	// States
@@ -22,16 +23,14 @@ public class UserController {
 	
 	// Transitions/Actions
 	//
-	@Transitions({
-		@Transition(from=NEW_STATE, event="/{id}/new", to=NOT_NEW_STATE),
-		@Transition(from=NEW_STATE, event="/{id}/show", to=NOT_NEW_STATE),
-	})
-	public String foo(User user, String event) {
-		userRepository.save(user);
-		return "foo";
+	@Transition(from=NEW_STATE, event="/{id}/new", to=NOT_NEW_STATE)
+	public ModelAndView newUser(User user, String event) {
+		ModelAndView mv = new ModelAndView("new");
+		mv.addObject("id", user.getId());
+		return mv;
 	}
 
-	@Transition(from=NOT_NEW_STATE, event="/{id}/new", to=BOO_STATE)
+	@Transition(from=NOT_NEW_STATE, event="/{id}/boo", to=BOO_STATE)
 	public String boo(User user, String event) {
 		return "boo";
 	}

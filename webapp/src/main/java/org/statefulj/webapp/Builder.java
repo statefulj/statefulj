@@ -77,7 +77,7 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 	public static String FSM_HARNESS_SUFFIX = "FSMHarness";
 	public static String State_SUFFIX = "State";
 
-	public void postProcessBeanFactory(ConfigurableListableBeanFactory arg0)
+	public void postProcessBeanFactory(ConfigurableListableBeanFactory reg)
 			throws BeansException {
 	}
 
@@ -184,16 +184,10 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 		}
 		
 		// Build the Persister
-		// TODO : Get rid of this in-memory object and replace with jpa
 		//
 		String startStateId = stateBeanId(
 				clazz, 
-				((StatefulController)clazz.getAnnotation(StatefulController.class)).startState());
-		String statefulObjId = "statefulObj";
-		BeanDefinition statefulObj = BeanDefinitionBuilder
-				.genericBeanDefinition(Object.class)
-				.getBeanDefinition();
-		reg.registerBeanDefinition(statefulObjId, statefulObj);
+				clazz.getAnnotation(StatefulController.class).startState());
 		
 		String persisterId = Introspector.decapitalize(clazz.getSimpleName() + ".persister");
 		BeanDefinition persisterBean = BeanDefinitionBuilder
@@ -217,13 +211,14 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 
 		// Build the FSMHarness
 		//
+		Class<?> managedClass = clazz.getAnnotation(StatefulController.class).clazz();
 		String fsmHarnessId = Introspector.decapitalize(clazz.getSimpleName() + FSM_HARNESS_SUFFIX);
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
-				.genericBeanDefinition(FSMHarness.class)
+				.genericBeanDefinition(JPAFSMHarness.class)
 				.getBeanDefinition();
 		args = fsmHarness.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fsmId));
-		args.addIndexedArgumentValue(1, new RuntimeBeanReference(statefulObjId));
+		args.addIndexedArgumentValue(1, managedClass);
 		reg.registerBeanDefinition(fsmHarnessId, fsmHarness);
 	}
 	
@@ -279,7 +274,7 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 	}
 	
 	private void addHarnessReference(CtClass mvcProxyClass, Class<?> controller, ClassPool cp) throws NotFoundException, CannotCompileException {
-		CtClass type = cp.get(FSMHarness.class.getName());
+		CtClass type = cp.get(JPAFSMHarness.class.getName());
 		String fsmHarnessId = Introspector.decapitalize(controller.getSimpleName() + FSM_HARNESS_SUFFIX);
 		CtField field = new CtField(type, "harness", mvcProxyClass);
 		FieldInfo fi = field.getFieldInfo();
