@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.framework.controllers.UserController;
 import org.statefulj.framework.model.User;
+import org.statefulj.framework.utils.ReflectionUtils;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-StatefulControllerTests.xml"})
@@ -32,8 +33,7 @@ public class StatefulControllerTest {
 		
 		// Verify new User scenario
 		//
-		Method method = userControllerMVCProxy.getClass().getDeclaredMethod("$_first");
-		User user = (User)method.invoke(userControllerMVCProxy, (Object[])null);
+		User user = ReflectionUtils.invoke(userControllerMVCProxy, "$_first", User.class);
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -41,10 +41,8 @@ public class StatefulControllerTest {
 		
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
-		method = userControllerMVCProxy.getClass().getDeclaredMethod("$_id_second", Long.class);
-		user = (User)method.invoke(userControllerMVCProxy, new Object[]{ user.getId() });
+		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_id_second", User.class, user.getId());
 		
-		assertNotNull(method);
 		assertTrue(user.getId() > 0);
 		assertEquals(UserController.THREE_STATE, user.getState());
 	}
