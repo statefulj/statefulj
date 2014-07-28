@@ -1,10 +1,12 @@
-package org.statefulj.framework;
+package org.statefulj.framework.controllers;
 
 import javax.annotation.Resource;
 import javax.transaction.Transactional;
 
 import org.statefulj.framework.annotations.StatefulController;
 import org.statefulj.framework.annotations.Transition;
+import org.statefulj.framework.dao.UserRepository;
+import org.statefulj.framework.model.User;
 
 @Transactional
 @StatefulController(

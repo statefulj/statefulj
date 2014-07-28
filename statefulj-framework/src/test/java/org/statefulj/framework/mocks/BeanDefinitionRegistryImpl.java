@@ -1,4 +1,4 @@
-package org.statefulj.framework;
+package org.statefulj.framework.mocks;
 
 import java.util.ArrayList;
 import java.util.HashMap;

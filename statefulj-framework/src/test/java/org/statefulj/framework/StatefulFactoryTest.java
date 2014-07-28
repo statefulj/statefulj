@@ -9,11 +9,13 @@ import static org.junit.Assert.*;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.statefulj.framework.controllers.UserController;
+import org.statefulj.framework.mocks.BeanDefinitionRegistryImpl;
 
 public class StatefulFactoryTest {
 	
 	@Test
-	public void testStatefulFactory() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+	public void testFSMConstruction() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
 		
 		BeanDefinitionRegistry registry = new BeanDefinitionRegistryImpl();
 		
