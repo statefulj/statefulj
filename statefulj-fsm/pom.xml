@@ -12,7 +12,8 @@
 	<packaging>jar</packaging>
 
 	<name>statefulj-fsm</name>
-	<url>http://maven.apache.org</url>
+	<url>http://www.statefulj.org</url>
+	<description>Finite State Machine with Non-Detereminstic Transitions</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

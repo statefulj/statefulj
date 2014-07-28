@@ -31,6 +31,6 @@
 	  	</beans:constructor-arg>
 	</beans:bean>
 
- 	<beans:bean id="builder" class="org.statefulj.webapp.Builder" />
+ 	<beans:bean id="builder" class="org.statefulj.framework.StatefulFactory" />
 
 </beans:beans>

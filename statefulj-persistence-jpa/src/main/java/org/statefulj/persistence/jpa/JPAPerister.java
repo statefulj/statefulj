@@ -127,8 +127,8 @@ public class JPAPerister<T> implements Persister<T> {
 	 */
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
-			if (entityManager.contains(stateful)) {
-				Number id = getId(stateful);
+			Number id = getId(stateful);
+			if (id != null && entityManager.contains(stateful)) {
 				String where = (current.equals(this.start)) 
 						?
 						String.format(

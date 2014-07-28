@@ -12,8 +12,9 @@
 	<artifactId>statefulj-persistence-jpa</artifactId>
 	<packaging>jar</packaging>
 
-	<name>statefulj-persistence</name>
-	<url>http://maven.apache.org</url>
+	<name>statefulj-persistence-jpa</name>
+	<description>JPA based State Persistence</description>
+	<url>http://www,statefulj.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

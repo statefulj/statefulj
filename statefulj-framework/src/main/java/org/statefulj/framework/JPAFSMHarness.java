@@ -1,4 +1,4 @@
-package org.statefulj.webapp;
+package org.statefulj.framework;
 
 import javax.transaction.Transactional;
 
@@ -12,8 +12,12 @@ public class JPAFSMHarness extends FSMHarness {
 	}
 	
 	@Transactional
+	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException {
+		return super.onEvent(event, id, parms);
+	}
+
+	@Transactional
 	public Object onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException {
 		return super.onEvent(event, parms);
 	}
-
 }

@@ -1,4 +1,4 @@
-package org.statefulj.webapp;
+package org.statefulj.framework;
 
 import java.beans.Introspector;
 import java.lang.reflect.InvocationTargetException;
@@ -50,27 +50,27 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.AbstractBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.statefulj.framework.actions.MethodInvocationAction;
+import org.statefulj.framework.annotations.StatefulController;
+import org.statefulj.framework.annotations.Transition;
+import org.statefulj.framework.annotations.Transitions;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.impl.DeterministicTransitionImpl;
 import org.statefulj.fsm.model.impl.StateImpl;
 import org.statefulj.persistence.jpa.JPAPerister;
-import org.statefulj.persistence.memory.MemoryPersisterImpl;
-import org.statefulj.webapp.model.User;
 
-public class Builder implements BeanDefinitionRegistryPostProcessor {
+public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	
-	Logger logger = LoggerFactory.getLogger(Builder.class);
+	Logger logger = LoggerFactory.getLogger(StatefulFactory.class);
 
 	public static String MVC_SUFFIX = "MVCProxy";
 	public static String FSM_SUFFIX = "FSM";
@@ -108,6 +108,10 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 	}
 	
 	private void wireFSM(String controllerBeanId, Class<?> clazz, BeanDefinitionRegistry reg) throws CannotCompileException, IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException {
+		
+		// Determine the managed class
+		//
+		Class<?> managedClass = clazz.getAnnotation(StatefulController.class).clazz();
 		
 		// Gather all the events from across all the methods to build the canonical set
 		//
@@ -196,7 +200,7 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 		ConstructorArgumentValues args = persisterBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, stateBeans);
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(startStateId));
-		args.addIndexedArgumentValue(2, User.class);
+		args.addIndexedArgumentValue(2, managedClass);
 		reg.registerBeanDefinition(persisterId, persisterBean);
 
 		// Build the FSM
@@ -211,7 +215,6 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 
 		// Build the FSMHarness
 		//
-		Class<?> managedClass = clazz.getAnnotation(StatefulController.class).clazz();
 		String fsmHarnessId = Introspector.decapitalize(clazz.getSimpleName() + FSM_HARNESS_SUFFIX);
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAFSMHarness.class)
@@ -299,7 +302,7 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 			Map<Transition, Method> transitionMapping,
 			Set<String> states) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
-		// TODO : As we map the events, we need to make sure that the method signature of all the handlers for the event are the same
+		// TODO: As we map the events, we need to make sure that the method signature of all the handlers for the event are the same
 		
 		for(Method method : clazz.getDeclaredMethods()) {
 			Transitions transitions = method.getAnnotation(Transitions.class);
@@ -353,6 +356,10 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 	
 	private void addMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
+		// References id?
+		//
+		boolean referencesId = (event.indexOf("{id}") > 0);
+
 		// Clone Method from the StatefulController
 		//
 		CtMethod ctMethod = createMethod(mvcProxyClass, event, method, cp);
@@ -369,11 +376,11 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 
 		// Clone the parameters, along with the Annotations
 		//
-		addParameters(ctMethod, method, cp);
+		addParameters(referencesId, ctMethod, method, cp);
 
 		// Add the Method Body
 		//
-		addMethodBody(ctMethod, event);
+		addMethodBody(referencesId, ctMethod, event);
 		
 		// Add the Method to the Proxy class
 		//
@@ -434,37 +441,62 @@ public class Builder implements BeanDefinitionRegistryPostProcessor {
 		methodInfo.addAttribute(attr);
 	}
 	
-	private void addMethodBody(CtMethod ctMethod, String event) throws CannotCompileException, NotFoundException {
-		ctMethod.setBody(
-				"{ return (" + ctMethod.getReturnType().getName() + ")$proceed(\"" + event + "\", $args); }",
-				"this.harness",
-				"onEvent");
+	private void addMethodBody(boolean referencesId, CtMethod ctMethod, String event) throws CannotCompileException, NotFoundException {
+		String nullObjId = 
+				(referencesId) 
+				? "\"" 
+				: "\", null";
+		
+		String returnType = ctMethod.getReturnType().getName();
+		
+		String returnStmt = 
+				(returnType.equals("void")) 
+				? ""
+				: "return (" + returnType + ")";
+		
+		String methodBody = "{ " 
+				+ returnStmt
+				+ "$proceed(\"" 
+				+ event 
+				+ nullObjId
+				+ ", $args); }";
+
+		ctMethod.setBody(methodBody, "this.harness","onEvent");
 	}
 	
-	private void addParameters(CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	private void addParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+
 		int parmIndex = 0;
 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ParameterAnnotationsAttribute paramAtrributeInfo = 
 				new ParameterAnnotationsAttribute(
 						methodInfo.getConstPool(), 
 						ParameterAnnotationsAttribute.visibleTag);
+		
+		// Does this event reference the stateful object?
+		//
+		int annotationCnt = (referencesId) 
+				? method.getParameterTypes().length - 1 
+				: method.getParameterTypes().length - 2;
 
 		// Pull the Parameter Annotations from the StatefulController - we're going to skip
 		// over the first two - but then we're going to add an "id" parameter
 		//
 		java.lang.annotation.Annotation[][] parmAnnotations = method.getParameterAnnotations();
-		Annotation[][] paramArrays = new Annotation[method.getParameterTypes().length - 1][];
+		Annotation[][] paramArrays = new Annotation[annotationCnt][];
 		
 		// Add an Id parameter at the beginning of the method - this will be 
 		// used by the Harness to fetch the object 
 		//
-		paramArrays[parmIndex] = addIdParameter(ctMethod, cp);
-		parmIndex++;
+		if (referencesId) {
+			paramArrays[parmIndex] = addIdParameter(ctMethod, cp);
+			parmIndex++;
+		}
 		
 		int parmCnt = 0;
 		for(Class<?> parm : method.getParameterTypes()) {
 			
-			// Skip first two (Stateful and event)
+			// Skip first two parameters - they are the Stateful Object and event String.
 			//
 			if (parmCnt < 2) {
 				parmCnt++;

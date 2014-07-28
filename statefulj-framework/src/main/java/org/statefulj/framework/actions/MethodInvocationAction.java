@@ -1,4 +1,4 @@
-package org.statefulj.webapp;
+package org.statefulj.framework.actions;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

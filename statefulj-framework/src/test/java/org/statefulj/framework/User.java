@@ -1,4 +1,4 @@
-package org.statefulj.webapp.model;
+package org.statefulj.framework;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

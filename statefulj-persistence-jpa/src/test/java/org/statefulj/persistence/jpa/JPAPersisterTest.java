@@ -79,6 +79,7 @@ public class JPAPersisterTest {
 		Field stateField = StatefulEntity.class.getDeclaredField("state");
 		stateField.setAccessible(true);
 		stateField.set(dbOrder, "stateD");
+		dbOrder.setAmount(100);
 		this.orderRepo.save(dbOrder);
 		
 		UnitTestUtils.commitTransaction(transactionManager);
@@ -86,7 +87,8 @@ public class JPAPersisterTest {
 
 		dbOrder = this.orderRepo.findOne(dbOrder.getId());
 		currentState = jpaPersister.getCurrent(dbOrder);
-		assertEquals(stateB, currentState);
+		assertEquals(stateB.getName(), currentState.getName());
+		assertEquals(100, dbOrder.getAmount());
 
 		UnitTestUtils.commitTransaction(transactionManager);
 	}

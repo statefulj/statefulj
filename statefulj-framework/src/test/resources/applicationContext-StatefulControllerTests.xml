@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+    xmlns:context="http://www.springframework.org/schema/context" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
+
+    <context:property-placeholder location="classpath:test.database.properties" ignore-unresolvable="true"/>
+    <import resource="classpath:statefulj-framework-test-db.xml" />
+    
+ 	<context:component-scan base-package="org.statefulj.framework" />
+	<bean id="domainClassConverter" class="org.springframework.data.repository.support.DomainClassConverter">
+	  	<constructor-arg>
+	  		<bean class="org.springframework.format.support.DefaultFormattingConversionService" />
+	  	</constructor-arg>
+	</bean>
+
+ 	<bean id="factory" class="org.statefulj.framework.StatefulFactory" />
+</beans>
+    

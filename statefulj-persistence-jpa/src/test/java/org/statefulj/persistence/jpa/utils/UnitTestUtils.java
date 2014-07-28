@@ -14,7 +14,7 @@ public class UnitTestUtils {
 	public static void startTransaction(JpaTransactionManager transactionManager) {
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("SomeTxName");
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 		TransactionStatus status = transactionManager.getTransaction(def);
 		tl.set(status);
 	}

@@ -1,14 +1,19 @@
 package org.statefulj.webapp;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.ModelAndView;
+import org.statefulj.framework.annotations.StatefulController;
+import org.statefulj.framework.annotations.Transition;
 import org.statefulj.webapp.model.User;
 import org.statefulj.webapp.repo.UserRepository;
 
-@StatefulController(clazz=User.class, startState=UserController.NEW_STATE)
+@StatefulController(
+	clazz=User.class, 
+	startState=UserController.NEW_STATE
+)
+@Transactional
 public class UserController {
 	
 	// States
@@ -23,14 +28,15 @@ public class UserController {
 	
 	// Transitions/Actions
 	//
-	@Transition(from=NEW_STATE, event="/{id}/new", to=NOT_NEW_STATE)
+	@Transition(from=NEW_STATE, event="/new", to=NOT_NEW_STATE)
 	public ModelAndView newUser(User user, String event) {
+		userRepository.save(user);
 		ModelAndView mv = new ModelAndView("new");
 		mv.addObject("id", user.getId());
 		return mv;
 	}
 
-	@Transition(from=NOT_NEW_STATE, event="/{id}/boo", to=BOO_STATE)
+	@Transition(from=NOT_NEW_STATE, event="/{id}/next", to=BOO_STATE)
 	public String boo(User user, String event) {
 		return "boo";
 	}
@@ -40,8 +46,8 @@ public class UserController {
 		return "whatever";
 	}
 
-	@Transition(from=BOO_STATE, event="/{id}/zoo", to=BOO_STATE)
-	public String zoo(User user, String event, HttpServletRequest request, @PathVariable(value="id")String id) {
+	@Transition(from=BOO_STATE, event="/{id}/next", to=BOO_STATE)
+	public String zoo(User user, String event) {
 		return "zoo";
 	}
 }

@@ -1,4 +1,4 @@
-package org.statefulj.webapp;
+package org.statefulj.framework.annotations;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
