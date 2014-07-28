@@ -42,7 +42,7 @@ public class FSMHarness {
 			obj = clazz.newInstance();
 		}
 		
-		// Create a Mutable Object and add it to the Parmater List - it will be used
+		// Create a Mutable Object and add it to the Parameter List - it will be used
 		// to return the returned value from the Controller as the FSM returns the State
 		//
 		MutableObject<Object> returnValue = new MutableObject<Object>();
@@ -51,8 +51,6 @@ public class FSMHarness {
 		
 		// Call the FSM
 		// 
-		// TODO : Remove the placeholder stateful object with a call to the Spring Data Repo
-		//        to create/fetch the object
 		fsm.onEvent(obj, event, invokeParmlist.toArray());
 		return returnValue.getValue();
 	}
