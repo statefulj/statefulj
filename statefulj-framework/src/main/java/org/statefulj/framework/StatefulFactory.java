@@ -121,7 +121,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		
 		// Gather all the events.  When building the proxy, each event
 		// will result in a RequestMapping.  The method signature of the RequestMapping
-		// will be the same as the declared execution handler
+		// will be the same as the declared execution handler minus the first two parameters (Object, event)
 		//
 		Class<?> proxyClass = buildMVCProxy(clazz, eventMapping, transitionMapping, states, reg);
 
@@ -133,7 +133,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		String mvcProxyid = Introspector.decapitalize(clazz.getSimpleName() + MVC_SUFFIX);
 		reg.registerBeanDefinition(mvcProxyid, def);
 		
-		// Build the FSM infrastructure in the parent
+		// -- Build the FSM infrastructure --
+		
 		// Build out a set of States
 		//
 		List<RuntimeBeanReference> stateBeans = new ManagedList<RuntimeBeanReference>();
