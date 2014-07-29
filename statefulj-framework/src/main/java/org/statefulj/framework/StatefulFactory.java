@@ -62,9 +62,6 @@ import org.statefulj.framework.actions.MethodInvocationAction;
 import org.statefulj.framework.annotations.StatefulController;
 import org.statefulj.framework.annotations.Transition;
 import org.statefulj.framework.annotations.Transitions;
-import org.statefulj.fsm.FSM;
-import org.statefulj.fsm.model.State;
-import org.statefulj.fsm.model.impl.DeterministicTransitionImpl;
 import org.statefulj.fsm.model.impl.StateImpl;
 import org.statefulj.persistence.jpa.JPAPerister;
 
@@ -117,13 +114,14 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		//
 		Map<String, Method> eventMapping = new HashMap<String, Method>();
 		Map<Transition, Method> transitionMapping = new HashMap<Transition, Method>();
+		Map<Transition, Method> anyMapping = new HashMap<Transition, Method>();
 		Set<String> states = new HashSet<String>();
 		
 		// Gather all the events.  When building the proxy, each event
 		// will result in a RequestMapping.  The method signature of the RequestMapping
 		// will be the same as the declared execution handler minus the first two parameters (Object, event)
 		//
-		Class<?> proxyClass = buildMVCProxy(clazz, eventMapping, transitionMapping, states, reg);
+		Class<?> proxyClass = buildMVCProxy(clazz, eventMapping, transitionMapping, anyMapping,states, reg);
 
 		// Add the new Class to the Bean Registry
 		//
@@ -154,38 +152,30 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		RuntimeBeanReference controllerRef = new RuntimeBeanReference(controllerBeanId); // Reference to the controller
 		int cnt = 1;
 		for(Entry<Transition, Method> entry : transitionMapping.entrySet()) {
-
-			// Build the Action Bean
-			//
-			String actionId = Introspector.decapitalize(clazz.getSimpleName() + ".action." + entry.getValue().getName());
-			if (!reg.isBeanNameInUse(actionId)) {
-				BeanDefinition actionBean = BeanDefinitionBuilder
-						.genericBeanDefinition(MethodInvocationAction.class)
-						.getBeanDefinition();
-				MutablePropertyValues props = actionBean.getPropertyValues();
-				props.add("controller", controllerRef);
-				props.add("method", entry.getValue().getName());
-				props.add("parameters", entry.getValue().getParameterTypes());
-				reg.registerBeanDefinition(actionId, actionBean);
-			}
-			
-			// Build the Transition Bean
-			//
-			String transitionId = Introspector.decapitalize(clazz.getSimpleName() + ".transition." + cnt);
-			BeanDefinition transitionBean = BeanDefinitionBuilder
-					.genericBeanDefinition(DeterministicTransitionImpl.class)
-					.getBeanDefinition();
-			String fromId = stateBeanId(clazz, entry.getKey().from());
-			String toId = stateBeanId(clazz, entry.getKey().to());
-
-			ConstructorArgumentValues args = transitionBean.getConstructorArgumentValues();
-			args.addIndexedArgumentValue(0, new RuntimeBeanReference(fromId));
-			args.addIndexedArgumentValue(1, new RuntimeBeanReference(toId));
-			args.addIndexedArgumentValue(2, entry.getKey().event());
-			args.addIndexedArgumentValue(3, new RuntimeBeanReference(actionId));
-			
-			reg.registerBeanDefinition(transitionId, transitionBean);
+			registerActionAndTransition(
+					clazz, 
+					entry.getKey().from(), 
+					entry.getKey().to(), 
+					entry.getKey(), 
+					entry.getValue(), 
+					controllerRef, 
+					cnt, 
+					reg);
 			cnt++;
+		}
+		for(Entry<Transition, Method> entry : anyMapping.entrySet()) {
+			for (String state : states) {
+				registerActionAndTransition(
+						clazz, 
+						state, 
+						state, 
+						entry.getKey(), 
+						entry.getValue(), 
+						controllerRef, 
+						cnt, 
+						reg);
+				cnt++;
+			}
 		}
 		
 		// Build the Persister
@@ -226,6 +216,50 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		reg.registerBeanDefinition(fsmHarnessId, fsmHarness);
 	}
 	
+	private void registerActionAndTransition(Class<?> clazz, String from, String to, Transition transition, Method method, RuntimeBeanReference controllerRef, int cnt, BeanDefinitionRegistry reg) {
+		
+		logger.debug(
+				"registerActionAndTransition : Registering transition, {}:{}->{}:{}",
+				from,
+				transition.event(),
+				to,
+				method.getName());
+		
+		// Build the Action Bean
+		//
+		String actionId = Introspector.decapitalize(clazz.getSimpleName() + ".action." + method.getName());
+		if (!reg.isBeanNameInUse(actionId)) {
+			BeanDefinition actionBean = BeanDefinitionBuilder
+					.genericBeanDefinition(MethodInvocationAction.class)
+					.getBeanDefinition();
+			MutablePropertyValues props = actionBean.getPropertyValues();
+			props.add("controller", controllerRef);
+			props.add("method", method.getName());
+			props.add("parameters", method.getParameterTypes());
+			reg.registerBeanDefinition(actionId, actionBean);
+		}
+		
+		// Build the Transition Bean
+		//
+		String transitionId = Introspector.decapitalize(clazz.getSimpleName() + ".transition." + cnt);
+		BeanDefinition transitionBean = BeanDefinitionBuilder
+				.genericBeanDefinition(TransitionImpl.class)
+				.getBeanDefinition();
+		String fromId = stateBeanId(clazz, from);
+		String toId = stateBeanId(clazz, to);
+
+		ConstructorArgumentValues args = transitionBean.getConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fromId));
+		args.addIndexedArgumentValue(1, new RuntimeBeanReference(toId));
+		args.addIndexedArgumentValue(2, transition.event());
+		args.addIndexedArgumentValue(3, new RuntimeBeanReference(actionId));
+		args.addIndexedArgumentValue(4, 
+				(transition.from().equals(Transition.ANY_STATE) && 
+				 transition.to().equals(Transition.ANY_STATE)) );
+		
+		reg.registerBeanDefinition(transitionId, transitionBean);
+	}
+
 	private String stateBeanId(Class<?> clazz, String state) {
 		return Introspector.decapitalize(clazz.getSimpleName() + ".state." + state);
 	}
@@ -234,12 +268,15 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			Class<?> clazz, 
 			Map<String, Method> eventMapping, 
 			Map<Transition, Method> transitionMapping, 
+			Map<Transition, Method> anyMapping,
 			Set<String> states, 
 			BeanDefinitionRegistry reg) throws CannotCompileException, NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		
+		logger.debug("buildMVCProxy : Building proxy for {}", clazz);
+		
 		// Map the Events for the Class
 		//
-		mapEventsTransitionsAndStates(clazz, eventMapping, transitionMapping, states);
+		mapEventsTransitionsAndStates(clazz, eventMapping, transitionMapping, anyMapping, states);
 
 		// Set up the ClassPool
 		//
@@ -301,7 +338,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			Class<?> clazz, 
 			Map<String, Method> eventMapping, 
 			Map<Transition, Method> transitionMapping,
+			Map<Transition, Method> anyMapping,
 			Set<String> states) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+		
+		logger.debug("mapEventsTransitionsAndStates : Mapping events and transitions for {}", clazz);
 		
 		// TODO: As we map the events, we need to make sure that the method signature of all the handlers for the event are the same
 		
@@ -314,6 +354,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 							method,
 							eventMapping, 
 							transitionMapping, 
+							anyMapping,
 							states);
 				}
 			}
@@ -324,6 +365,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 						method,
 						eventMapping, 
 						transitionMapping, 
+						anyMapping,
 						states);
 			}
 		}
@@ -334,14 +376,23 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			Method method,
 			Map<String, Method> eventMapping, 
 			Map<Transition, Method> transitionMapping,
+			Map<Transition, Method> anyMapping,
 			Set<String> states) {
 		
+		logger.debug(
+				"mapTransition : mapping {}:{}->{}",
+				transition.from(),
+				transition.event(),
+				transition.to());
+		
 		eventMapping.put(transition.event(), method);
-		transitionMapping.put(transition, method);
-		if (!transition.from().equals(State.ANY_STATE)) {
+		if (!transition.from().equals(Transition.ANY_STATE)) {
 			states.add(transition.from());
+			transitionMapping.put(transition, method);
+		} else {
+			anyMapping.put(transition, method);
 		}
-		if (!transition.to().equals(State.ANY_STATE)) {
+		if (!transition.to().equals(Transition.ANY_STATE)) {
 			states.add(transition.to());
 		}
 	}
@@ -390,6 +441,12 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	
 	private CtMethod createMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException {
 		String methodName = "$" + event.replace("/", "_").replace("{", "").replace("}", "").toLowerCase();
+
+		logger.debug(
+				"createMethod : Create method {} for {}", 
+				methodName,
+				mvcProxyClass.getName());
+
 		CtMethod ctMethod = new CtMethod(cp.getCtClass(method.getReturnType().getName()), methodName, null, mvcProxyClass);
 		ctMethod.setModifiers(method.getModifiers());
 		return ctMethod;
@@ -579,6 +636,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	 * @throws InvocationTargetException
 	 */
 	private Annotation createAnnotation(ConstPool constPool, java.lang.annotation.Annotation annotation) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		logger.debug("createAnnotation : Create annotation = {}", annotation.annotationType().getName());
 		Class<?> clazz = annotation.annotationType();
 
 		Annotation annot = new Annotation(clazz.getName(), constPool);

@@ -7,7 +7,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.springframework.stereotype.Component;
-import org.statefulj.fsm.FSMConstants;
 
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -15,9 +14,12 @@ import org.statefulj.fsm.FSMConstants;
 @Component
 public @interface Transition {
 	
-	String from() default FSMConstants.ANY_STATE;
+	public final String ANY_STATE = "*";
+	
+	String from() default ANY_STATE;
 	
 	String event() default "";
 
-	String to() default FSMConstants.ANY_STATE;
+	String to() default ANY_STATE;
+	
 }

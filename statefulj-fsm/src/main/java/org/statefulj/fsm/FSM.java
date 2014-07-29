@@ -78,24 +78,9 @@ public class FSM<T> {
 				// Is there one?
 				//
 				if (transition != null) {
-					StateActionPair<T> pair = transition.getStateActionPair();
-					persister.setCurrent(stateful, current, pair.getState());
-					Action<T> action = pair.getAction();
-					
-					logger.debug("{}({})::{}/{} -> {}/{}", 
-							this.name,
-							stateful,
-							current.getName(), 
-							event, 
-							pair.getState().getName(), 
-							(action == null) ? "noop" : action.getClass().getSimpleName());
-					
-					if (action != null) {
-						pair.getAction().execute(stateful, event, args);
-					}
-					current = pair.getState();
+					current = transition(stateful,current, event, transition, args);
 				} else {
-					logger.debug("{}({})::{}/{} -> {}/noop", 
+					logger.debug("{}({})::{}:{}->{}:noop", 
 							this.name, 
 							stateful,
 							current.getName(), 
@@ -149,5 +134,39 @@ public class FSM<T> {
 
 	public State<T> getCurrentState(T obj) {
 		return this.persister.getCurrent(obj);
+	}
+	
+	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> transition, Object... args) throws RetryException {
+		StateActionPair<T> pair = transition.getStateActionPair();
+		persister.setCurrent(stateful, current, pair.getState());
+		executeAction(
+				pair.getAction(), 
+				stateful, 
+				event,
+				current.getName(),
+				pair.getState().getName(),
+				args);
+		return pair.getState();
+	}
+	
+	protected void executeAction(
+			Action<T> action, 
+			T stateful, 
+			String event, 
+			String from, 
+			String to, 
+			Object... args) throws RetryException {
+		
+		logger.debug("{}({})::{}:{}->{}:{}", 
+				this.name,
+				stateful,
+				from, 
+				event, 
+				to, 
+				(action == null) ? "noop" : action.getClass().getSimpleName());
+		
+		if (action != null) {
+			action.execute(stateful, event, args);
+		}
 	}
 }
