@@ -4,9 +4,11 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-<title>Boo</title>
+<title>Any</title>
 </head>
 <body>
-boo
+user.id=${user.id}<br/>
+user.state=${user.state}<br/>
+event=${event}<br/>
 </body>
 </html>

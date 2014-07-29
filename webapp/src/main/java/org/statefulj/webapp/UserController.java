@@ -1,11 +1,10 @@
 package org.statefulj.webapp;
 
-import javax.transaction.Transactional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.annotations.StatefulController;
 import org.statefulj.framework.annotations.Transition;
+import org.statefulj.framework.annotations.Transitions;
 import org.statefulj.webapp.model.User;
 import org.statefulj.webapp.repo.UserRepository;
 
@@ -13,7 +12,6 @@ import org.statefulj.webapp.repo.UserRepository;
 	clazz=User.class, 
 	startState=UserController.NEW_STATE
 )
-@Transactional
 public class UserController {
 	
 	// States
@@ -31,23 +29,24 @@ public class UserController {
 	@Transition(from=NEW_STATE, event="/new", to=NOT_NEW_STATE)
 	public ModelAndView newUser(User user, String event) {
 		userRepository.save(user);
-		ModelAndView mv = new ModelAndView("new");
-		mv.addObject("id", user.getId());
+		return userView(user, event);
+	}
+
+	@Transitions(value={
+		@Transition(from=NOT_NEW_STATE, event="/{id}/next", to=BOO_STATE),
+		@Transition(from=BOO_STATE, event="/{id}/next", to=BOO_STATE),
+		@Transition(from=NOT_NEW_STATE, event="/{id}/whatever", to=WHATEVER_STATE),
+		@Transition(from=BOO_STATE, event="/{id}/whatever", to=WHATEVER_STATE),
+		@Transition(event="/{id}/any")
+	})
+	public ModelAndView user(User user, String event) {
+		return userView(user, event);
+	}
+	
+	private ModelAndView userView(User user, String event) {
+		ModelAndView mv = new ModelAndView("user");
+		mv.addObject("user", user);
+		mv.addObject("event", event);
 		return mv;
-	}
-
-	@Transition(from=NOT_NEW_STATE, event="/{id}/next", to=BOO_STATE)
-	public String boo(User user, String event) {
-		return "boo";
-	}
-
-	@Transition(from=NOT_NEW_STATE, event="/{id}/whatever", to=WHATEVER_STATE)
-	public String whatever(User user, String event) {
-		return "whatever";
-	}
-
-	@Transition(from=BOO_STATE, event="/{id}/next", to=BOO_STATE)
-	public String zoo(User user, String event) {
-		return "zoo";
 	}
 }

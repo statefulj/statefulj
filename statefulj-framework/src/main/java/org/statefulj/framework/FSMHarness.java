@@ -1,9 +1,11 @@
 package org.statefulj.framework;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.repository.support.DomainClassConverter;
@@ -25,7 +27,7 @@ public class FSMHarness {
 		this.clazz = clazz;
 	}
 	
-	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException {
+	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException, ObjectNotFoundException {
 		
 		// Remove the first parameter from the parms - is the Id of the Entity Object
 		//
@@ -36,9 +38,10 @@ public class FSMHarness {
 		
 		if (id != null ){
 			obj = this.domainClassConverter.convert(id, TypeDescriptor.forObject(id), TypeDescriptor.valueOf(clazz));
-		}
-		
-		if (obj == null) {
+			if (obj == null) {
+				throw new ObjectNotFoundException((Serializable)id, clazz.getSimpleName());
+			}
+		} else {
 			obj = clazz.newInstance();
 		}
 		
@@ -55,7 +58,7 @@ public class FSMHarness {
 		return returnValue.getValue();
 	}
 	
-	public Object onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException {
+	public Object onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException, ObjectNotFoundException {
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		Object id = parmList.remove(0);
 		return onEvent(event, id, parmList.toArray());

@@ -72,7 +72,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	public static String MVC_SUFFIX = "MVCProxy";
 	public static String FSM_SUFFIX = "FSM";
 	public static String FSM_HARNESS_SUFFIX = "FSMHarness";
-	public static String State_SUFFIX = "State";
+	public static String STATE_SUFFIX = "State";
 
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory reg)
 			throws BeansException {
@@ -137,6 +137,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		//
 		List<RuntimeBeanReference> stateBeans = new ManagedList<RuntimeBeanReference>();
 		for(String state : states) {
+			logger.debug("wireFSM : Registering state \"{}\"", state);
 			String stateId = stateBeanId(clazz, state);
 			BeanDefinition stateBean = BeanDefinitionBuilder
 					.genericBeanDefinition(StateImpl.class)
@@ -219,7 +220,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	private void registerActionAndTransition(Class<?> clazz, String from, String to, Transition transition, Method method, RuntimeBeanReference controllerRef, int cnt, BeanDefinitionRegistry reg) {
 		
 		logger.debug(
-				"registerActionAndTransition : Registering transition, {}:{}->{}:{}",
+				"registerActionAndTransition : {}:{}->{}:{}",
 				from,
 				transition.event(),
 				to,
@@ -255,7 +256,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(actionId));
 		args.addIndexedArgumentValue(4, 
 				(transition.from().equals(Transition.ANY_STATE) && 
-				 transition.to().equals(Transition.ANY_STATE)) );
+				 transition.to().equals(Transition.ANY_STATE)));
 		
 		reg.registerBeanDefinition(transitionId, transitionBean);
 	}
@@ -445,7 +446,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		logger.debug(
 				"createMethod : Create method {} for {}", 
 				methodName,
-				mvcProxyClass.getName());
+				mvcProxyClass.getSimpleName());
 
 		CtMethod ctMethod = new CtMethod(cp.getCtClass(method.getReturnType().getName()), methodName, null, mvcProxyClass);
 		ctMethod.setModifiers(method.getModifiers());
