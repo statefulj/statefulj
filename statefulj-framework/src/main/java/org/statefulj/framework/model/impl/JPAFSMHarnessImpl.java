@@ -1,4 +1,4 @@
-package org.statefulj.framework;
+package org.statefulj.framework.model.impl;
 
 import javax.transaction.Transactional;
 
@@ -7,9 +7,9 @@ import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
 @Transactional
-public class JPAFSMHarness extends FSMHarness {
+public class JPAFSMHarnessImpl extends FSMHarnessImpl {
 	
-	public JPAFSMHarness(FSM<Object> fsm, Class<?> clazz) {
+	public JPAFSMHarnessImpl(FSM<Object> fsm, Class<?> clazz) {
 		super(fsm, clazz);
 	}
 	

@@ -1,4 +1,4 @@
-package org.statefulj.framework;
+package org.statefulj.framework.model.impl;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,10 +9,11 @@ import org.hibernate.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.data.repository.support.DomainClassConverter;
+import org.statefulj.framework.model.FSMHarness;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class FSMHarness {
+public class FSMHarnessImpl implements FSMHarness {
 	
 
 	@Autowired
@@ -22,7 +23,7 @@ public class FSMHarness {
 	
 	private Class<?> clazz;
 	
-	public FSMHarness(FSM<Object> fsm, Class<?> clazz) {
+	public FSMHarnessImpl(FSM<Object> fsm, Class<?> clazz) {
 		this.fsm = fsm;
 		this.clazz = clazz;
 	}

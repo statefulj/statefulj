@@ -1,4 +1,4 @@
-package org.statefulj.framework;
+package org.statefulj.framework.fsm;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

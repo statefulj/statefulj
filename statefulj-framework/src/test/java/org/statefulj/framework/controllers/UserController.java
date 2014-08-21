@@ -22,18 +22,18 @@ public class UserController {
 	public static final String TWO_STATE = "two";
 	public static final String THREE_STATE = "three";
 	
-	@Transition(from=ONE_STATE, event="/first", to=TWO_STATE)
+	@Transition(from=ONE_STATE, event="springmvc:/first", to=TWO_STATE)
 	public User oneToTwo(User user, String event) {
 		userRepository.save(user);
 		return user;
 	}
 
-	@Transition(from=TWO_STATE, event="/{id}/second", to=THREE_STATE)
+	@Transition(from=TWO_STATE, event="springmvc:/{id}/second", to=THREE_STATE)
 	public User twoToThree(User user, String event) {
 		return user;
 	}
 
-	@Transition(event="/{id}/any")
+	@Transition(event="springmvc:/{id}/any")
 	public User any(User user, String event) {
 		return user;
 	}

@@ -1,4 +1,4 @@
-package org.statefulj.framework;
+package org.statefulj.framework.fsm;
 
 import org.statefulj.fsm.model.Action;
 import org.statefulj.fsm.model.State;

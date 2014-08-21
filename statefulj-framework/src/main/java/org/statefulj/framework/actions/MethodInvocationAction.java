@@ -21,7 +21,7 @@ public class MethodInvocationAction implements Action<Object> {
 			throws RetryException {
 		invoke(entity, event, parms);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	private void invoke(Object entity, String event, Object... parms) {
 		try {

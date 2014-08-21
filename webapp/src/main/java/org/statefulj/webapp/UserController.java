@@ -26,18 +26,18 @@ public class UserController {
 	
 	// Transitions/Actions
 	//
-	@Transition(from=NEW_STATE, event="/new", to=NOT_NEW_STATE)
+	@Transition(from=NEW_STATE, event="springmvc:/new", to=NOT_NEW_STATE)
 	public ModelAndView newUser(User user, String event) {
 		userRepository.save(user);
 		return userView(user, event);
 	}
 
 	@Transitions(value={
-		@Transition(from=NOT_NEW_STATE, event="/{id}/next", to=BOO_STATE),
-		@Transition(from=BOO_STATE, event="/{id}/next", to=BOO_STATE),
-		@Transition(from=NOT_NEW_STATE, event="/{id}/whatever", to=WHATEVER_STATE),
-		@Transition(from=BOO_STATE, event="/{id}/whatever", to=WHATEVER_STATE),
-		@Transition(event="/{id}/any")
+		@Transition(from=NOT_NEW_STATE, event="springmvc:/{id}/next", to=BOO_STATE),
+		@Transition(from=BOO_STATE, event="springmvc:/{id}/next", to=BOO_STATE),
+		@Transition(from=NOT_NEW_STATE, event="springmvc:/{id}/whatever", to=WHATEVER_STATE),
+		@Transition(from=BOO_STATE, event="springmvc:/{id}/whatever", to=WHATEVER_STATE),
+		@Transition(event="springmvc:/{id}/any")
 	})
 	public ModelAndView user(User user, String event) {
 		return userView(user, event);
