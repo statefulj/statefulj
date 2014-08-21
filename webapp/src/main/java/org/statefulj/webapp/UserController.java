@@ -16,10 +16,10 @@ public class UserController {
 	
 	// States
 	//
-	public static final String NEW_STATE = "new";
-	public static final String NOT_NEW_STATE = "not-new";
-	public static final String BOO_STATE = "boo";
-	public static final String WHATEVER_STATE = "whatever";
+	static final String NEW_STATE = "new";
+	static final String NOT_NEW_STATE = "not-new";
+	static final String BOO_STATE = "boo";
+	static final String WHATEVER_STATE = "whatever";
 
 	@Autowired
 	UserRepository userRepository;

@@ -3,7 +3,7 @@ package org.statefulj.fsm;
 /**
  * Indicates that the FSM should wait for a period before retrying the Event
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 public class WaitAndRetryException extends RetryException {

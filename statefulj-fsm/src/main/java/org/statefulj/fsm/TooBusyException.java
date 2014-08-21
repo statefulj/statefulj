@@ -3,7 +3,7 @@ package org.statefulj.fsm;
 /**
  * Indicates that the number of retries has been exhausted
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 public class TooBusyException extends Exception {

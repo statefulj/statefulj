@@ -45,6 +45,14 @@ import org.statefulj.framework.model.impl.ReferenceFactoryImpl;
 import org.statefulj.fsm.model.impl.StateImpl;
 import org.statefulj.persistence.jpa.JPAPerister;
 
+/**
+ * StatefulFactory is responsible for inspecting all StatefulControllers and building out
+ * the StatefulJ framework.  The factory is invoked at post processing of the beans but before
+ * the beans are instantiated
+ * 
+ * @author Andrew Hall
+ *
+ */
 public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	
 	Logger logger = LoggerFactory.getLogger(StatefulFactory.class);
@@ -64,6 +72,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			throws BeansException {
 	}
 
+	// TODO: Move creation of bean Ids into the Reference Factory
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry reg)
 			throws BeansException {
 		logger.debug("postProcessBeanDefinitionRegistry : enter");
@@ -107,7 +116,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		
 		// Gather all the events from across all the methods to build the canonical set
 		//
-//		Map<String, Method> eventMapping = new HashMap<String, Method>();
 		Map<String, Map<String, Method>> providersMappings = new HashMap<String, Map<String, Method>>();
 		Map<Transition, Method> transitionMapping = new HashMap<Transition, Method>();
 		Map<Transition, Method> anyMapping = new HashMap<Transition, Method>();

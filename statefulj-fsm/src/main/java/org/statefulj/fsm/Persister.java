@@ -6,7 +6,7 @@ import org.statefulj.fsm.model.State;
  * A Persister is responsible for maintaining the persistence of the current State of the
  * FSM
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 public interface Persister<T> {

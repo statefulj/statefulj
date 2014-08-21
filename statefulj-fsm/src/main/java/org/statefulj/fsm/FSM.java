@@ -11,7 +11,7 @@ import org.statefulj.fsm.model.Transition;
  * The FSM is responsible for the processing the event with the current State and persisting
  * the State with the composite Persister
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 public class FSM<T> {

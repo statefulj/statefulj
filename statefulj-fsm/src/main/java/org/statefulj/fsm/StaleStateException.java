@@ -3,7 +3,7 @@ package org.statefulj.fsm;
 /**
  * Indicates that the evaluated State was inconsistent with the Persisted State
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 public class StaleStateException extends RetryException {

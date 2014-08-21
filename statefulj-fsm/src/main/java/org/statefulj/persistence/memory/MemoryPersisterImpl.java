@@ -9,7 +9,7 @@ import org.statefulj.fsm.model.State;
 /**
  * Thread safe, in memory Persister.  
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 public class MemoryPersisterImpl<T> implements Persister<T> {

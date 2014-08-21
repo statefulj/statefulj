@@ -3,7 +3,7 @@ package org.statefulj.fsm;
 /**
  * Exception indicates that the FSM needs to retry the event
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 public class RetryException extends Exception {

@@ -9,7 +9,7 @@ import org.statefulj.persistence.jpa.annotations.State;
  * A convenience class for a Stateful Entity.  This Class ensures read-only behavior for the State
  * field
  * 
- * @author andrewhall
+ * @author Andrew Hall
  *
  */
 @MappedSuperclass
