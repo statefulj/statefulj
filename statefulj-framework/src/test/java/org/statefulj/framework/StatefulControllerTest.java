@@ -40,7 +40,7 @@ public class StatefulControllerTest {
 		
 		// Verify new User scenario
 		//
-		User user = ReflectionUtils.invoke(userControllerMVCProxy, "$_first", User.class);
+		User user = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_first", User.class);
 
 		UnitTestUtils.commitTransaction(transactionManager);
 		UnitTestUtils.startTransaction(transactionManager);
@@ -51,7 +51,7 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_id_any", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_id_any", User.class, user.getId());
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -59,7 +59,7 @@ public class StatefulControllerTest {
 		
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
-		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_id_second", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_post_id_second", User.class, user.getId());
 
 		UnitTestUtils.commitTransaction(transactionManager);
 		UnitTestUtils.startTransaction(transactionManager);
@@ -69,7 +69,7 @@ public class StatefulControllerTest {
 
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_id_any", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_id_any", User.class, user.getId());
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);

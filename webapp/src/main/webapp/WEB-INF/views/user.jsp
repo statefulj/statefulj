@@ -20,5 +20,8 @@
 	<a href="${user.id}/next.mvc">next</a><br/>
 	<a href="${user.id}/whatever.mvc">whatever</a><br/>
 	<a href="${user.id}/any.mvc">any</a><br/>
+	<form method="post" action="${user.id}/post.mvc">
+		<input type="submit" name="submit" value="submit" />
+	</form>
 </body>
 </html>

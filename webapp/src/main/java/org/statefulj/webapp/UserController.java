@@ -37,7 +37,8 @@ public class UserController {
 		@Transition(from=BOO_STATE, event="springmvc:/{id}/next", to=BOO_STATE),
 		@Transition(from=NOT_NEW_STATE, event="springmvc:/{id}/whatever", to=WHATEVER_STATE),
 		@Transition(from=BOO_STATE, event="springmvc:/{id}/whatever", to=WHATEVER_STATE),
-		@Transition(event="springmvc:/{id}/any")
+		@Transition(event="springmvc:/{id}/any"),
+		@Transition(event="springmvc:post:/{id}/post")
 	})
 	public ModelAndView user(User user, String event) {
 		return userView(user, event);

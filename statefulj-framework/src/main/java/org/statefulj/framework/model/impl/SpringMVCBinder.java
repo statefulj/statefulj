@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
@@ -36,6 +38,8 @@ import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -54,6 +58,8 @@ public class SpringMVCBinder implements EndpointBinder {
 
 	private Logger logger = LoggerFactory.getLogger(SpringMVCBinder.class);
 	
+	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
+
 	public static String MVC_SUFFIX = "MVCProxy";
 	public static String FSM_SUFFIX = "FSM";
 	public static String FSM_HARNESS_SUFFIX = "FSMHarness";
@@ -65,8 +71,10 @@ public class SpringMVCBinder implements EndpointBinder {
 	}
 
 	@Override
-	public Class<?> bindEndpoints(Class<?> clazz,
-			Map<String, Method> eventMapping, ReferenceFactory refFactory)
+	public Class<?> bindEndpoints(
+			Class<?> clazz,
+			Map<String, Method> eventMapping, 
+			ReferenceFactory refFactory)
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
@@ -139,13 +147,19 @@ public class SpringMVCBinder implements EndpointBinder {
 	
 	private void addMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
+		Pair<String, String> methodEndpoint = this.parseMethod(event);
+		String requestMethod = methodEndpoint.getLeft();
+		String requestEvent = methodEndpoint.getRight();
+		requestMethod = (requestMethod == null) ? RequestMethod.GET.toString() : requestMethod.toUpperCase();
+
+		
 		// References id?
 		//
 		boolean referencesId = (event.indexOf("{id}") > 0);
 
 		// Clone Method from the StatefulController
 		//
-		CtMethod ctMethod = createMethod(mvcProxyClass, event, method, cp);
+		CtMethod ctMethod = createMethod(mvcProxyClass, requestMethod, requestEvent, method, cp);
 
 		// TODO : Validate that the method begins with : Stateful, event
 		
@@ -155,7 +169,7 @@ public class SpringMVCBinder implements EndpointBinder {
 
 		// Add a RequestMapping annotation
 		//
-		addRequestMapping(ctMethod, event);
+		addRequestMapping(ctMethod, requestMethod, requestEvent);
 
 		// Clone the parameters, along with the Annotations
 		//
@@ -170,8 +184,13 @@ public class SpringMVCBinder implements EndpointBinder {
 		mvcProxyClass.addMethod(ctMethod);
 	}
 	
-	private CtMethod createMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException {
-		String methodName = "$" + event.replace("/", "_").replace("{", "").replace("}", "").toLowerCase();
+	private CtMethod createMethod(
+			CtClass mvcProxyClass, 
+			String requestMethod, 
+			String requestEvent, 
+			Method method, 
+			ClassPool cp) throws NotFoundException {
+		String methodName = ("$_" + requestMethod + requestEvent.replace("/", "_").replace("{", "").replace("}", "")).toLowerCase();
 
 		logger.debug(
 				"createMethod : Create method {} for {}", 
@@ -203,7 +222,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		}
 	}
 	
-	private void addRequestMapping(CtMethod ctMethod, String event) {
+	private void addRequestMapping(CtMethod ctMethod, String method, String request) {
 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ConstPool constPool = methodInfo.getConstPool();
 
@@ -212,7 +231,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		
 		ArrayMemberValue valueVals = new ArrayMemberValue(constPool);
 		StringMemberValue valueVal = new StringMemberValue(constPool);
-		valueVal.setValue(event);
+		valueVal.setValue(request);
 		valueVals.setValue(new MemberValue[]{valueVal});
 		
 		requestMapping.addMemberValue("value", valueVals);
@@ -222,7 +241,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		ArrayMemberValue methodVals = new ArrayMemberValue(constPool);
 		EnumMemberValue methodVal = new EnumMemberValue(constPool);
 		methodVal.setType(RequestMethod.class.getName());
-		methodVal.setValue(RequestMethod.GET.toString());
+		methodVal.setValue(method);
 		methodVals.setValue(new MemberValue[]{methodVal});
 		
 		requestMapping.addMemberValue("method", methodVals);
@@ -428,5 +447,13 @@ public class SpringMVCBinder implements EndpointBinder {
 			((EnumMemberValue)memberVal).setValue(((Enum<?>)val).toString());
 		}
 		return memberVal;
+	}
+
+	private Pair<String, String> parseMethod(String event) {
+		Matcher matcher = this.methodPattern.matcher(event);
+		if (!matcher.matches()) {
+			throw new RuntimeException("Unable to parse event=" + event);
+		}
+		return new ImmutablePair<String, String>(matcher.group(2), matcher.group(3));
 	}
 }
