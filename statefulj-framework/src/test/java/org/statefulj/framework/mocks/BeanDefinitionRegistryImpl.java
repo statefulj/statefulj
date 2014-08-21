@@ -15,26 +15,20 @@ public class BeanDefinitionRegistryImpl implements BeanDefinitionRegistry {
 
 	@Override
 	public String[] getAliases(String arg0) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean isAlias(String arg0) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public void registerAlias(String arg0, String arg1) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void removeAlias(String arg0) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -52,19 +46,16 @@ public class BeanDefinitionRegistryImpl implements BeanDefinitionRegistry {
 	@Override
 	public BeanDefinition getBeanDefinition(String beanName)
 			throws NoSuchBeanDefinitionException {
-		// TODO Auto-generated method stub
 		return registry.get(beanName);
 	}
 
 	@Override
 	public boolean containsBeanDefinition(String beanName) {
-		// TODO Auto-generated method stub
 		return registry.containsKey(beanName);
 	}
 
 	@Override
 	public String[] getBeanDefinitionNames() {
-		// TODO Auto-generated method stub
 		ArrayList<String> keys = new ArrayList<String>();
 		keys.addAll(registry.keySet());
 		return keys.toArray(new String[]{});
@@ -72,13 +63,11 @@ public class BeanDefinitionRegistryImpl implements BeanDefinitionRegistry {
 
 	@Override
 	public int getBeanDefinitionCount() {
-		// TODO Auto-generated method stub
 		return registry.size();
 	}
 
 	@Override
 	public boolean isBeanNameInUse(String beanName) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 

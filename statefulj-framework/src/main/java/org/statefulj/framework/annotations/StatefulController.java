@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 public @interface StatefulController {
 
-	// TODO : Need to declare the Class that the StatefulController is responsible for managing
+	// TODO : Add in NOOP transitions
 	
 	/**
 	 * The value may indicate a suggestion for a logical component name,

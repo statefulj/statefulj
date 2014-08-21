@@ -72,7 +72,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			throws BeansException {
 	}
 
-	// TODO: Move creation of bean Ids into the Reference Factory
+	// TODO : Move creation of bean Ids into the Reference Factory
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry reg)
 			throws BeansException {
 		logger.debug("postProcessBeanDefinitionRegistry : enter");
@@ -114,7 +114,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		//
 		Class<?> managedClass = clazz.getAnnotation(StatefulController.class).clazz();
 		
-		// Gather all the events from across all the methods to build the canonical set
+		// Gather all the events from across all the methods
 		//
 		Map<String, Map<String, Method>> providersMappings = new HashMap<String, Map<String, Method>>();
 		Map<Transition, Method> transitionMapping = new HashMap<Transition, Method>();
@@ -164,8 +164,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		
 		// Build out the Action classes and the Transitions
 		//
-		// TODO : Handle the "Any" case
-		RuntimeBeanReference controllerRef = new RuntimeBeanReference(controllerBeanId); // Reference to the controller
+		RuntimeBeanReference controllerRef = new RuntimeBeanReference(controllerBeanId);
 		int cnt = 1;
 		for(Entry<Transition, Method> entry : transitionMapping.entrySet()) {
 			registerActionAndTransition(
@@ -296,7 +295,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		
 		logger.debug("mapEventsTransitionsAndStates : Mapping events and transitions for {}", clazz);
 		
-		// TODO: As we map the events, we need to make sure that the method signature of all the handlers for the event are the same
+		// TODO : As we map the events, we need to make sure that the method signature of all the handlers for the event are the same
 		
 		for(Method method : clazz.getDeclaredMethods()) {
 			

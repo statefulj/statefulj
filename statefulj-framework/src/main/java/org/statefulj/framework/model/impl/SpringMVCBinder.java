@@ -161,8 +161,6 @@ public class SpringMVCBinder implements EndpointBinder {
 		//
 		CtMethod ctMethod = createMethod(mvcProxyClass, requestMethod, requestEvent, method, cp);
 
-		// TODO : Validate that the method begins with : Stateful, event
-		
 		// Clone method Annotations
 		//
 		addMethodAnnotations(ctMethod, method);
@@ -236,8 +234,6 @@ public class SpringMVCBinder implements EndpointBinder {
 		
 		requestMapping.addMemberValue("value", valueVals);
 		
-		// TODO : Parse the protocol from the url
-		//
 		ArrayMemberValue methodVals = new ArrayMemberValue(constPool);
 		EnumMemberValue methodVal = new EnumMemberValue(constPool);
 		methodVal.setType(RequestMethod.class.getName());

@@ -13,7 +13,6 @@ public class ReferenceFactoryImpl implements ReferenceFactory {
 
 	@Override
 	public String binder(Class<?> controller, String binder) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -24,7 +23,6 @@ public class ReferenceFactoryImpl implements ReferenceFactory {
 
 	@Override
 	public String fsm() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
