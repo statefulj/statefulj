@@ -31,10 +31,10 @@ public class StatefulControllerTest {
 	@Resource
 	JpaTransactionManager transactionManager;
 	
-	@Autowired
+	@Resource
 	ApplicationContext appContext;
 	
-	@Autowired
+	@Resource
 	UserRepository userRepo;
 	
 	@Resource

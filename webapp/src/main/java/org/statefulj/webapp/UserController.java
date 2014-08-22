@@ -1,5 +1,7 @@
 package org.statefulj.webapp;
 
+import javax.annotation.Resource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.annotations.StatefulController;
@@ -21,7 +23,7 @@ public class UserController {
 	static final String BOO_STATE = "boo";
 	static final String WHATEVER_STATE = "whatever";
 
-	@Autowired
+	@Resource
 	UserRepository userRepository;
 	
 	// Transitions/Actions
