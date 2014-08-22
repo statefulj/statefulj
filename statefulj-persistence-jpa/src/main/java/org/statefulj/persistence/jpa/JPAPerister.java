@@ -15,6 +15,8 @@ import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 
+// TODO : Rewrite this to use "safe" queury building instead of string construction
+//
 @Transactional
 public class JPAPerister<T> implements Persister<T> {
 

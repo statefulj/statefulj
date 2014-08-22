@@ -1,6 +1,7 @@
 package org.statefulj.framework;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import javax.annotation.Resource;
 
@@ -19,6 +20,9 @@ import org.statefulj.framework.dao.UserRepository;
 import org.statefulj.framework.model.User;
 import org.statefulj.framework.utils.ReflectionUtils;
 import org.statefulj.framework.utils.UnitTestUtils;
+import org.statefulj.fsm.FSM;
+import org.statefulj.fsm.TooBusyException;
+import org.statefulj.fsm.model.State;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-StatefulControllerTests.xml"})
@@ -33,8 +37,11 @@ public class StatefulControllerTest {
 	@Autowired
 	UserRepository userRepo;
 	
+	@Resource
+	FSM<User> userFSM;
+	
 	@Test
-	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
 		UnitTestUtils.startTransaction(transactionManager);
 		
 		// Make sure proxy is constructed
@@ -89,7 +96,16 @@ public class StatefulControllerTest {
 		assertNull(nulObj);
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FOUR_STATE, user.getState());
+
+		State<User> nextState = userFSM.onEvent(user, "five");
+		assertNotNull(nextState);
+		assertEquals(UserController.FIVE_STATE, nextState.getName());
+
+		user = userRepo.findOne(user.getId());
+		assertEquals(UserController.FIVE_STATE, user.getState());
+
 		UnitTestUtils.commitTransaction(transactionManager);
+
 	}
 
 }
