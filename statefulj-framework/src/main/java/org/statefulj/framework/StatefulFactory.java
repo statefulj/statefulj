@@ -244,7 +244,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				from,
 				transition.event(),
 				to,
-				(method == null) ? "null" : method.getName());
+				(method == null) ? "noop" : method.getName());
 		
 		// Build the Action Bean
 		//
