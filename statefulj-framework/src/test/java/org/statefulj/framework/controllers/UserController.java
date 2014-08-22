@@ -9,7 +9,10 @@ import org.statefulj.framework.model.User;
 
 @StatefulController(
 	clazz=User.class, 
-	startState=UserController.ONE_STATE
+	startState=UserController.ONE_STATE,
+	noops={
+		@Transition(from=Transition.ANY_STATE, event="springmvc:/{id}/four", to=UserController.FOUR_STATE)
+	}
 )
 public class UserController {
 	
@@ -21,6 +24,7 @@ public class UserController {
 	public static final String ONE_STATE = "one";
 	public static final String TWO_STATE = "two";
 	public static final String THREE_STATE = "three";
+	public static final String FOUR_STATE = "four";
 	
 	@Transition(from=ONE_STATE, event="springmvc:get:/first", to=TWO_STATE)
 	public User oneToTwo(User user, String event) {

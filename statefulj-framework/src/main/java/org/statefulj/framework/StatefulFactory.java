@@ -183,7 +183,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				registerActionAndTransition(
 						clazz, 
 						state, 
-						state, 
+						(entry.getKey().to().equals(Transition.ANY_STATE)) ? state : entry.getKey().to(), 
 						entry.getKey(), 
 						entry.getValue(), 
 						controllerRef, 
@@ -244,20 +244,24 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				from,
 				transition.event(),
 				to,
-				method.getName());
+				(method == null) ? "null" : method.getName());
 		
 		// Build the Action Bean
 		//
-		String actionId = Introspector.decapitalize(clazz.getSimpleName() + ".action." + method.getName());
-		if (!reg.isBeanNameInUse(actionId)) {
-			BeanDefinition actionBean = BeanDefinitionBuilder
-					.genericBeanDefinition(MethodInvocationAction.class)
-					.getBeanDefinition();
-			MutablePropertyValues props = actionBean.getPropertyValues();
-			props.add("controller", controllerRef);
-			props.add("method", method.getName());
-			props.add("parameters", method.getParameterTypes());
-			reg.registerBeanDefinition(actionId, actionBean);
+		RuntimeBeanReference actionRef = null;
+		if (method != null) {
+			String actionId = Introspector.decapitalize(clazz.getSimpleName() + ".action." + method.getName());
+			if (!reg.isBeanNameInUse(actionId)) {
+				BeanDefinition actionBean = BeanDefinitionBuilder
+						.genericBeanDefinition(MethodInvocationAction.class)
+						.getBeanDefinition();
+				MutablePropertyValues props = actionBean.getPropertyValues();
+				props.add("controller", controllerRef);
+				props.add("method", method.getName());
+				props.add("parameters", method.getParameterTypes());
+				reg.registerBeanDefinition(actionId, actionBean);
+			}
+			actionRef = new RuntimeBeanReference(actionId);
 		}
 		
 		// Build the Transition Bean
@@ -266,6 +270,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		BeanDefinition transitionBean = BeanDefinitionBuilder
 				.genericBeanDefinition(TransitionImpl.class)
 				.getBeanDefinition();
+
 		String fromId = stateBeanId(clazz, from);
 		String toId = stateBeanId(clazz, to);
 		Pair<String, String> providerEvent = parseEvent(transition.event());
@@ -274,7 +279,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fromId));
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(toId));
 		args.addIndexedArgumentValue(2, providerEvent.getRight());
-		args.addIndexedArgumentValue(3, new RuntimeBeanReference(actionId));
+		args.addIndexedArgumentValue(3, actionRef);
 		args.addIndexedArgumentValue(4, 
 				(transition.from().equals(Transition.ANY_STATE) && 
 				 transition.to().equals(Transition.ANY_STATE)));
@@ -294,6 +299,19 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			Set<String> states) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
 		logger.debug("mapEventsTransitionsAndStates : Mapping events and transitions for {}", clazz);
+		
+		// Map the NOOP Transitions
+		//
+		StatefulController ctrlAnnotation = clazz.getAnnotation(StatefulController.class);
+		for (Transition transition : ctrlAnnotation.noops()) {
+			mapTransition(
+					transition, 
+					null,
+					providerMappings,
+					transitionMapping, 
+					anyMapping,
+					states);
+		}
 		
 		// TODO : As we map the events, we need to make sure that the method signature of all the handlers for the event are the same
 		

@@ -15,6 +15,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.framework.controllers.UserController;
+import org.statefulj.framework.dao.UserRepository;
 import org.statefulj.framework.model.User;
 import org.statefulj.framework.utils.ReflectionUtils;
 import org.statefulj.framework.utils.UnitTestUtils;
@@ -28,6 +29,9 @@ public class StatefulControllerTest {
 	
 	@Autowired
 	ApplicationContext appContext;
+	
+	@Autowired
+	UserRepository userRepo;
 	
 	@Test
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -75,6 +79,17 @@ public class StatefulControllerTest {
 		assertTrue(user.getId() > 0);
 		assertEquals(UserController.THREE_STATE, user.getState());
 		
+		UnitTestUtils.commitTransaction(transactionManager);
+		UnitTestUtils.startTransaction(transactionManager);
+
+		// Verify "any" scenario
+		//
+		Object nulObj = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_id_four", User.class, user.getId());
+		
+		assertNull(nulObj);
+		user = userRepo.findOne(user.getId());
+		assertEquals(UserController.FOUR_STATE, user.getState());
+		UnitTestUtils.commitTransaction(transactionManager);
 	}
 
 }

@@ -14,8 +14,6 @@ import org.springframework.stereotype.Component;
 @Component
 public @interface StatefulController {
 
-	// TODO : Add in NOOP transitions
-	
 	/**
 	 * The value may indicate a suggestion for a logical component name,
 	 * to be turned into a Spring bean in case of an autodetected component.
@@ -26,4 +24,9 @@ public @interface StatefulController {
 	String startState();
 	
 	Class<?> clazz();
+	
+	// A set of NOOP transitions
+	//
+	Transition[] noops() default {};
+
 }

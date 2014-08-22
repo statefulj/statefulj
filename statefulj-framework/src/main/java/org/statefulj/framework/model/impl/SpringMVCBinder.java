@@ -195,27 +195,30 @@ public class SpringMVCBinder implements EndpointBinder {
 				methodName,
 				mvcProxyClass.getSimpleName());
 
-		CtMethod ctMethod = new CtMethod(cp.getCtClass(method.getReturnType().getName()), methodName, null, mvcProxyClass);
-		ctMethod.setModifiers(method.getModifiers());
+		CtClass returnClass = (method == null) ? CtClass.voidType : cp.getCtClass(method.getReturnType().getName());
+		CtMethod ctMethod = new CtMethod(returnClass, methodName, null, mvcProxyClass);
+//		ctMethod.setModifiers(method.getModifiers());
 		return ctMethod;
 	}
 	
 	private void addMethodAnnotations(CtMethod ctMethod, Method method) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		MethodInfo methodInfo = ctMethod.getMethodInfo();
-		ConstPool constPool = methodInfo.getConstPool();
-		for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
-			AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+		if (method != null) {
+			MethodInfo methodInfo = ctMethod.getMethodInfo();
+			ConstPool constPool = methodInfo.getConstPool();
+			for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
+				AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 
-			// If it's a Transition - convert a RequestMapping annotation; otherwise,
-			// clone the annotation
-			//
-			Annotation clone = null;
-			if (anno instanceof Transitions || anno instanceof Transition) {
-				// skip
-			} else {
-				clone = createAnnotation(constPool, anno);
-				attr.addAnnotation(clone);
-				methodInfo.addAttribute(attr);
+				// If it's a Transition - convert a RequestMapping annotation; otherwise,
+				// clone the annotation
+				//
+				Annotation clone = null;
+				if (anno instanceof Transitions || anno instanceof Transition) {
+					// skip
+				} else {
+					clone = createAnnotation(constPool, anno);
+					attr.addAnnotation(clone);
+					methodInfo.addAttribute(attr);
+				}
 			}
 		}
 	}
@@ -270,59 +273,67 @@ public class SpringMVCBinder implements EndpointBinder {
 	
 	private void addParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
-		int parmIndex = 0;
-		MethodInfo methodInfo = ctMethod.getMethodInfo();
+ 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ParameterAnnotationsAttribute paramAtrributeInfo = 
 				new ParameterAnnotationsAttribute(
 						methodInfo.getConstPool(), 
 						ParameterAnnotationsAttribute.visibleTag);
 		
-		// Does this event reference the stateful object?
-		//
-		int annotationCnt = (referencesId) 
-				? method.getParameterTypes().length - 1 
-				: method.getParameterTypes().length - 2;
-
-		// Pull the Parameter Annotations from the StatefulController - we're going to skip
-		// over the first two - but then we're going to add an "id" parameter
-		//
-		java.lang.annotation.Annotation[][] parmAnnotations = method.getParameterAnnotations();
-		Annotation[][] paramArrays = new Annotation[annotationCnt][];
-		
-		// Add an Id parameter at the beginning of the method - this will be 
-		// used by the Harness to fetch the object 
-		//
-		if (referencesId) {
-			paramArrays[parmIndex] = addIdParameter(ctMethod, cp);
-			parmIndex++;
-		}
-		
-		int parmCnt = 0;
-		for(Class<?> parm : method.getParameterTypes()) {
-			
-			// Skip first two parameters - they are the Stateful Object and event String.
+		Annotation[][] paramArrays = null;
+		if (method != null) {
+			int parmIndex = 0;
+			// Does this event reference the stateful object?
 			//
-			if (parmCnt < 2) {
-				parmCnt++;
-				continue;
+			int annotationCnt = (referencesId) 
+					? method.getParameterTypes().length - 1 
+					: method.getParameterTypes().length - 2;
+
+			// Pull the Parameter Annotations from the StatefulController - we're going to skip
+			// over the first two - but then we're going to add an "id" parameter
+			//
+			java.lang.annotation.Annotation[][] parmAnnotations = method.getParameterAnnotations();
+			paramArrays = new Annotation[annotationCnt][];
+			
+			// Add an Id parameter at the beginning of the method - this will be 
+			// used by the Harness to fetch the object 
+			//
+			if (referencesId) {
+				paramArrays[parmIndex] = addIdParameter(ctMethod, cp);
+				parmIndex++;
 			}
 			
-			// Clone the parameter Class
+			int parmCnt = 0;
+			for(Class<?> parm : method.getParameterTypes()) {
+				
+				// Skip first two parameters - they are the Stateful Object and event String.
+				//
+				if (parmCnt < 2) {
+					parmCnt++;
+					continue;
+				}
+				
+				// Clone the parameter Class
+				//
+				CtClass ctParm = cp.getCtClass(parm.getName());
+				
+				// Add the parameter to the method
+				//
+				ctMethod.addParameter(ctParm);
+				
+				// Add the Parameter Annotations to the Method
+				//
+				paramArrays[parmIndex] = createParameterAnnotations(
+						ctMethod.getMethodInfo(),
+						parmAnnotations[parmCnt],
+						paramAtrributeInfo.getConstPool());
+				parmCnt++;
+				parmIndex++;
+			}
+		} else {
+			// NOOP transitions always a require an object Id
 			//
-			CtClass ctParm = cp.getCtClass(parm.getName());
-			
-			// Add the parameter to the method
-			//
-			ctMethod.addParameter(ctParm);
-			
-			// Add the Parameter Annotations to the Method
-			//
-			paramArrays[parmIndex] = createParameterAnnotations(
-					ctMethod.getMethodInfo(),
-					parmAnnotations[parmCnt],
-					paramAtrributeInfo.getConstPool());
-			parmCnt++;
-			parmIndex++;
+			paramArrays = new Annotation[1][];
+			paramArrays[0] = addIdParameter(ctMethod, cp);
 		}
 		paramAtrributeInfo.setAnnotations(paramArrays);
 		methodInfo.addAttribute(paramAtrributeInfo);
