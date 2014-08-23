@@ -79,6 +79,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			throws BeansException {
 		logger.debug("postProcessBeanDefinitionRegistry : enter");
 		try {
+			
+			// Load up all Endpoint Binders
+			//
 			Reflections reflections = new Reflections("org.statefulj");
 			Set<Class<? extends EndpointBinder>> subTypes = reflections.getSubTypesOf(EndpointBinder.class);
 			for(Class<?> binderClass : subTypes) {
@@ -105,6 +108,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			args.addIndexedArgumentValue(0, new RuntimeBeanReference(defaultFormattingConversionServiceId));
 			reg.registerBeanDefinition(domainClassConverterId, converterServiceBean);
 
+			// Iterate thru all StatefulControllers and build and wire the FSM
+			//
 			Map<String, Class<?>> contollerMap = mapControllerClasses(reg);
 			for (Entry<String, Class<?>> entry : contollerMap.entrySet()) {
 				wireFSM(entry.getKey(), entry.getValue(), reg);
@@ -115,6 +120,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		logger.debug("postProcessBeanDefinitionRegistry : exit");
 	}
 	
+	/**
+	 * Iterate thru all beans and fetch the StatefulControllers
+	 * 
+	 * @param reg
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
 	private Map<String, Class<?>> mapControllerClasses(BeanDefinitionRegistry reg) throws ClassNotFoundException {
 		Map<String, Class<?>> controllers = new HashMap<String, Class<?>>();
 		for(String bfName : reg.getBeanDefinitionNames()) {
@@ -366,7 +378,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		}
 	}
 	
-	public void mapTransition(
+	private void mapTransition(
 			Transition transition, 
 			Method method,
 			Map<String, Map<String, Method>> providerMappings,

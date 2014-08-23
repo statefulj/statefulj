@@ -214,7 +214,7 @@ public class SpringMVCBinder implements EndpointBinder {
 				if (anno instanceof Transitions || anno instanceof Transition) {
 					// skip
 				} else {
-					clone = createAnnotation(constPool, anno);
+					clone = cloneAnnotation(constPool, anno);
 					attr.addAnnotation(clone);
 					methodInfo.addAttribute(attr);
 				}
@@ -374,7 +374,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		List<Annotation> ctParmAnnotations = new LinkedList<Annotation>();
 
 		for(java.lang.annotation.Annotation annotation : annotations) {
-			Annotation clone = createAnnotation(parameterConstPool, annotation);
+			Annotation clone = cloneAnnotation(parameterConstPool, annotation);
 			AnnotationsAttribute attr = new AnnotationsAttribute(parameterConstPool, AnnotationsAttribute.visibleTag);
 			attr.addAnnotation(clone);
 			ctParmAnnotations.add(clone);
@@ -391,8 +391,8 @@ public class SpringMVCBinder implements EndpointBinder {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 */
-	private Annotation createAnnotation(ConstPool constPool, java.lang.annotation.Annotation annotation) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		logger.debug("createAnnotation : Create annotation = {}", annotation.annotationType().getName());
+	private Annotation cloneAnnotation(ConstPool constPool, java.lang.annotation.Annotation annotation) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		logger.debug("cloneAnnotation : Create annotation = {}", annotation.annotationType().getName());
 		Class<?> clazz = annotation.annotationType();
 
 		Annotation annot = new Annotation(clazz.getName(), constPool);

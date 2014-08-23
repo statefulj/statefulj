@@ -40,6 +40,8 @@ public class StatefulControllerTest {
 	@Resource
 	FSM<User> userFSM;
 	
+	// TODO : Need to test for annotated parameters
+	
 	@Test
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
 		UnitTestUtils.startTransaction(transactionManager);
