@@ -197,7 +197,6 @@ public class SpringMVCBinder implements EndpointBinder {
 
 		CtClass returnClass = (method == null) ? CtClass.voidType : cp.getCtClass(method.getReturnType().getName());
 		CtMethod ctMethod = new CtMethod(returnClass, methodName, null, mvcProxyClass);
-//		ctMethod.setModifiers(method.getModifiers());
 		return ctMethod;
 	}
 	

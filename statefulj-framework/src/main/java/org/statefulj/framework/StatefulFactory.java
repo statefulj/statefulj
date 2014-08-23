@@ -32,6 +32,8 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.data.repository.support.DomainClassConverter;
+import org.springframework.format.support.DefaultFormattingConversionService;
 import org.statefulj.framework.actions.MethodInvocationAction;
 import org.statefulj.framework.annotations.StatefulController;
 import org.statefulj.framework.annotations.Transition;
@@ -86,6 +88,23 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				}
 			}
 		    
+			// Define DomainClassConverter
+			//
+	  		String defaultFormattingConversionServiceId = "defaultFormattingConversionService";
+			BeanDefinition conversionServiceBean = BeanDefinitionBuilder
+					.genericBeanDefinition(DefaultFormattingConversionService.class)
+					.getBeanDefinition();
+			reg.registerBeanDefinition(defaultFormattingConversionServiceId, conversionServiceBean);
+			
+			
+	  		String domainClassConverterId = "domainClassConverter";
+			BeanDefinition converterServiceBean = BeanDefinitionBuilder
+					.genericBeanDefinition(DomainClassConverter.class)
+					.getBeanDefinition();
+			ConstructorArgumentValues args = converterServiceBean.getConstructorArgumentValues();
+			args.addIndexedArgumentValue(0, new RuntimeBeanReference(defaultFormattingConversionServiceId));
+			reg.registerBeanDefinition(domainClassConverterId, converterServiceBean);
+
 			Map<String, Class<?>> contollerMap = mapControllerClasses(reg);
 			for (Entry<String, Class<?>> entry : contollerMap.entrySet()) {
 				wireFSM(entry.getKey(), entry.getValue(), reg);

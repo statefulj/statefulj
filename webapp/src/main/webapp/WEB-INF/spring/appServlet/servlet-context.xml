@@ -25,12 +25,6 @@
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 	
-	<beans:bean id="domainClassConverter" class="org.springframework.data.repository.support.DomainClassConverter">
-	  	<beans:constructor-arg>
-	  		<beans:bean class="org.springframework.format.support.DefaultFormattingConversionService" />
-	  	</beans:constructor-arg>
-	</beans:bean>
-
  	<beans:bean id="builder" class="org.statefulj.framework.StatefulFactory" />
 
 </beans:beans>

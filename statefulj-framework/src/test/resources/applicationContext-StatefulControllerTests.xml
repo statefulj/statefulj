@@ -11,12 +11,7 @@
     <import resource="classpath:statefulj-framework-test-db.xml" />
     
  	<context:component-scan base-package="org.statefulj.framework" />
-	<bean id="domainClassConverter" class="org.springframework.data.repository.support.DomainClassConverter">
-	  	<constructor-arg>
-	  		<bean class="org.springframework.format.support.DefaultFormattingConversionService" />
-	  	</constructor-arg>
-	</bean>
-
+ 	
  	<bean id="factory" class="org.statefulj.framework.StatefulFactory" />
 </beans>
     
