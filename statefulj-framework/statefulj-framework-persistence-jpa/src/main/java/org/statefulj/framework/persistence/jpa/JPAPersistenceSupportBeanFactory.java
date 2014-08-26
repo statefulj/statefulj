@@ -25,12 +25,13 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	@Override
 	public String registerPersistenceSupport(
 			Class<?> statefulClass,
+			Class<?> statefulControllerClass,
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans,
 			String repoFactoryBeanId, 
 			BeanDefinitionRegistry reg) {
 		
-		String persisterId = Introspector.decapitalize(statefulClass.getSimpleName() + ".persister");
+		String persisterId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + ".persister");
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAPerister.class)
 				.getBeanDefinition();
@@ -40,7 +41,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(2, statefulClass);
 		reg.registerBeanDefinition(persisterId, persisterBean);
 		
-		String persistenceSupportId = Introspector.decapitalize(statefulClass.getSimpleName() + ".presistenceSupport");
+		String persistenceSupportId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + ".presistenceSupport");
 		BeanDefinition persistenceSupportBean = BeanDefinitionBuilder
 				.genericBeanDefinition(PersistenceSupportImpl.class)
 				.getBeanDefinition();
@@ -55,18 +56,21 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	@Override
 	public String registerHarness(
 			Class<?> statefulClass, 
+			Class<?> statefulControllerClass,
 			String fsmBeanId,
+			String persistenceSupportId,
 			BeanDefinitionRegistry reg) {
 
 		// Build the FSMHarness
 		//
-		String fsmHarnessId = Introspector.decapitalize(statefulClass.getSimpleName() + FSM_HARNESS_SUFFIX);
+		String fsmHarnessId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + FSM_HARNESS_SUFFIX);
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAFSMHarnessImpl.class)
 				.getBeanDefinition();
 		ConstructorArgumentValues args = fsmHarness.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fsmBeanId));
 		args.addIndexedArgumentValue(1, statefulClass);
+		args.addIndexedArgumentValue(2, new RuntimeBeanReference(persistenceSupportId));
 		reg.registerBeanDefinition(fsmHarnessId, fsmHarness);		
 		return fsmHarnessId;
 	}

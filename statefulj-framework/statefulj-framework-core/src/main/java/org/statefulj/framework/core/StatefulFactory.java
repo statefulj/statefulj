@@ -60,7 +60,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	
 	Logger logger = LoggerFactory.getLogger(StatefulFactory.class);
 	
-	private final Pattern provider = Pattern.compile("(([^:]*):)?(.*)");
+	private final Pattern binder = Pattern.compile("(([^:]*):)?(.*)");
 
 	public static String MVC_SUFFIX = "MVCProxy";
 	public static String FSM_SUFFIX = "FSM";
@@ -292,6 +292,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				//
 				persistenceSupportId = factory.registerPersistenceSupport(
 						statefulClass, 
+						clazz,
 						startStateId, 
 						stateBeans, 
 						repoFactoryBeanId,
@@ -304,12 +305,18 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 						.genericBeanDefinition(FSM.class)
 						.getBeanDefinition();
 				ConstructorArgumentValues args = fsmBean.getConstructorArgumentValues();
-				args.addIndexedArgumentValue(0, new RuntimeBeanReference(persistenceSupportId));
+				args.addIndexedArgumentValue(0, fsmId);
+				args.addIndexedArgumentValue(1, new RuntimeBeanReference(persistenceSupportId));
 				reg.registerBeanDefinition(fsmId, fsmBean);
 
 				// Build the FSMHarness
 				//
-				factory.registerHarness(statefulClass, fsmId, reg);
+				factory.registerHarness(
+						statefulClass, 
+						clazz,
+						fsmId, 
+						persistenceSupportId,
+						reg);
 
 			} else {
 				logger.warn("mapControllerAndEntityClasses : Unable to locate PersistenceSupportFactory for {} ", clazz.getName());
@@ -471,7 +478,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	}
 	
 	private Pair<String, String> parseEvent(String event) {
-		Matcher matcher = this.provider.matcher(event);
+		Matcher matcher = this.binder.matcher(event);
 		if (!matcher.matches()) {
 			throw new RuntimeException("Unable to parse event=" + event);
 		}

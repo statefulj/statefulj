@@ -16,11 +16,14 @@ public class FSMHarnessImpl<T> implements FSMHarness {
 
 	private PersistenceSupport<T> persistenceSupport;
 	
-	private FSM<Object> fsm;
+	private FSM<T> fsm;
 	
 	private Class<T> clazz;
 	
-	public FSMHarnessImpl(FSM<Object> fsm, Class<T> clazz, PersistenceSupport<T> persistenceSupport) {
+	public FSMHarnessImpl(
+			FSM<T> fsm, 
+			Class<T> clazz, 
+			PersistenceSupport<T> persistenceSupport) {
 		this.fsm = fsm;
 		this.clazz = clazz;
 		this.persistenceSupport = persistenceSupport;

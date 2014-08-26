@@ -16,6 +16,7 @@ public interface PersistenceSupportBeanFactory {
 	
 	String registerPersistenceSupport(
 			Class<?> statefulClass, 
+			Class<?> statefulControllerClass, 
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans, 
 			String repoFactoryBeanId,
@@ -23,7 +24,9 @@ public interface PersistenceSupportBeanFactory {
 
 	String registerHarness(
 			Class<?> statefulClass, 
+			Class<?> statefulControllerClass, 
 			String fsmBeanId,
+			String persistenceSupportId,
 			BeanDefinitionRegistry reg);
 
 }

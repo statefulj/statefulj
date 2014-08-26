@@ -11,7 +11,10 @@ import org.statefulj.fsm.TooBusyException;
 @Transactional
 public class JPAFSMHarnessImpl<T> extends FSMHarnessImpl<T> {
 	
-	public JPAFSMHarnessImpl(FSM<Object> fsm, Class<T> clazz, PersistenceSupport<T> persistenceSupport) {
+	public JPAFSMHarnessImpl(
+			FSM<T> fsm, 
+			Class<T> clazz, 
+			PersistenceSupport<T> persistenceSupport) {
 		super(fsm, clazz, persistenceSupport);
 	}
 	
