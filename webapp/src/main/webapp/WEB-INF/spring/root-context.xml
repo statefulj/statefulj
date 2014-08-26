@@ -14,7 +14,6 @@
                         http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.2.xsd">
 
     <context:property-placeholder location="classpath:database.properties" ignore-unresolvable="false"/>
-    <jpa:repositories base-package="org.statefulj.webapp.repo" />
     <tx:annotation-driven mode="proxy" transaction-manager="transactionManager"/>
 
     <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/>

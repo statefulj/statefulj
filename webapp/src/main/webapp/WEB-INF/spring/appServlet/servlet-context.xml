@@ -3,15 +3,18 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:tx="http://www.springframework.org/schema/tx"
 	xmlns:beans="http://www.springframework.org/schema/beans"
+ 	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
         http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+		http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
  	<context:component-scan base-package="org.statefulj.webapp" />
     <tx:annotation-driven mode="proxy" transaction-manager="transactionManager"/>
+	<jpa:repositories base-package="org.statefulj.webapp.repo" />
 	
 	<!-- Enables the Spring MVC @Controller programming model -->
 	<annotation-driven/>
@@ -25,6 +28,6 @@
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 	
- 	<beans:bean id="builder" class="org.statefulj.framework.StatefulFactory" />
+ 	<beans:bean id="builder" class="org.statefulj.framework.core.StatefulFactory" />
 
 </beans:beans>
