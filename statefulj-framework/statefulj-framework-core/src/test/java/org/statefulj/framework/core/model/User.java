@@ -1,20 +1,7 @@
 package org.statefulj.framework.core.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
-import org.statefulj.persistence.jpa.model.StatefulEntity;
-
-
-@Entity
-@Table(name="users")
-public class User extends StatefulEntity {
+public class User {
 	
-	@Id
-	@GeneratedValue(strategy=GenerationType.SEQUENCE)
 	Long id;
 
 	public Long getId() {

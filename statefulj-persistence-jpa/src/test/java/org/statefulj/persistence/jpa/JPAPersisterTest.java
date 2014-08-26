@@ -50,7 +50,7 @@ public class JPAPersisterTest {
 		order = this.orderRepo.save(order);
 
 		State<Order> currentState = jpaPersister.getCurrent(order);
-		assertEquals(stateA, currentState);
+		assertEquals(stateA, currentState); 
 		
 		// Verify that qualified a change in state works
 		//

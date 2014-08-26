@@ -4,7 +4,6 @@
 
 	<groupId>org.statefulj.framework</groupId>
 	<artifactId>statefulj-framework-tests</artifactId>
-	<packaging>jar</packaging>
 
 	<name>statefulj-framework-tests</name>
 	<url>http://statefulj.org</url>
@@ -20,47 +19,19 @@
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.7</version>
-		</dependency>
 
 		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-			<version>3.3.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.javassist</groupId>
-			<artifactId>javassist</artifactId>
-			<version>3.18.2-GA</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.reflections</groupId>
-			<artifactId>reflections</artifactId>
-			<version>0.9.9-RC1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.statefulj</groupId>
-			<artifactId>statefulj-persistence-jpa</artifactId>
+			<groupId>org.statefulj.framework</groupId>
+			<artifactId>statefulj-framework-binder-springmvc</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency>
-
-		<!-- @Inject -->
-		<dependency>
-			<groupId>javax.inject</groupId>
-			<artifactId>javax.inject</artifactId>
-			<version>1</version>
+			<groupId>org.statefulj.framework</groupId>
+			<artifactId>statefulj-framework-persistence-jpa</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -94,7 +65,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>3.2.9.RELEASE</version>
+			<version>4.0.5.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -102,13 +73,6 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.0.13</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-persistence-jpa</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 

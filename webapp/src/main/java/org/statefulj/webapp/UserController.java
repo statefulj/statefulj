@@ -4,9 +4,9 @@ import javax.annotation.Resource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.ModelAndView;
-import org.statefulj.framework.annotations.StatefulController;
-import org.statefulj.framework.annotations.Transition;
-import org.statefulj.framework.annotations.Transitions;
+import org.statefulj.framework.core.annotations.StatefulController;
+import org.statefulj.framework.core.annotations.Transition;
+import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.webapp.model.User;
 import org.statefulj.webapp.repo.UserRepository;
 

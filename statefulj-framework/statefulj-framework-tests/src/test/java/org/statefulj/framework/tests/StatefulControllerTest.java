@@ -1,4 +1,4 @@
-package org.statefulj.framework.core;
+package org.statefulj.framework.tests;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -13,11 +13,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.statefulj.framework.core.controllers.UserController;
-import org.statefulj.framework.core.dao.UserRepository;
-import org.statefulj.framework.core.model.User;
-import org.statefulj.framework.core.utils.ReflectionUtils;
-import org.statefulj.framework.core.utils.UnitTestUtils;
+import org.statefulj.framework.tests.controllers.UserController;
+import org.statefulj.framework.tests.dao.UserRepository;
+import org.statefulj.framework.tests.model.User;
+import org.statefulj.framework.tests.utils.ReflectionUtils;
+import org.statefulj.framework.tests.utils.UnitTestUtils;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;

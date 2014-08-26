@@ -36,14 +36,6 @@ public class StatefulFactoryTest {
 		
 		assertNotNull(proxyClass);
 		
-		Method method = proxyClass.getDeclaredMethod("$_get_first");
-		
-		assertNotNull(method);
-		
-		method = proxyClass.getDeclaredMethod("$_post_id_second", Long.class);
-		
-		assertNotNull(method);
-		
 	}
  
 }

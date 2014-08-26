@@ -19,12 +19,12 @@ public class JPAFSMHarnessImpl<T> extends FSMHarnessImpl<T> {
 	}
 	
 	@Override
-	public T onEvent(String event, Object id, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException, ObjectNotFoundException {
+	public T onEvent(String event, Object id, Object[] parms) throws TooBusyException {
 		return super.onEvent(event, id, parms);
 	}
 
 	@Override
-	public T onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException, ObjectNotFoundException {
+	public T onEvent(String event, Object[] parms) throws TooBusyException {
 		return super.onEvent(event, parms);
 	}
 }

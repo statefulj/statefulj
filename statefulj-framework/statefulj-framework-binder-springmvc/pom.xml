@@ -3,10 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.statefulj.framework</groupId>
-	<artifactId>statefulj-framework-persistence-jpa</artifactId>
+	<artifactId>statefulj-framework-binder-springmvc</artifactId>
 	<packaging>jar</packaging>
 
-	<name>statefulj-framework-persistence-jpa</name>
+	<name>statefulj-framework-binder-springmvc</name>
 	<url>http://statefulj.org</url>
 
 	<parent>
@@ -27,9 +27,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.statefulj</groupId>
-			<artifactId>statefulj-persistence-jpa</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${org.springframework-version}</version>
 		</dependency>
 
 		<dependency>
@@ -54,13 +54,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>hsqldb</groupId>
-			<artifactId>hsqldb</artifactId>
-			<version>1.8.0.10</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<version>4.0.5.RELEASE</version>
@@ -73,5 +66,6 @@
 			<version>1.0.13</version>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 </project>

@@ -1,11 +1,11 @@
-package org.statefulj.framework.core.controllers;
+package org.statefulj.framework.tests.controllers;
 
 import javax.annotation.Resource;
 
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
-import org.statefulj.framework.core.dao.UserRepository;
-import org.statefulj.framework.core.model.User;
+import org.statefulj.framework.tests.dao.UserRepository;
+import org.statefulj.framework.tests.model.User;
 
 @StatefulController(
 	clazz=User.class, 

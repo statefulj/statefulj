@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.hibernate.ObjectNotFoundException;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.PersistenceSupport;
 import org.statefulj.fsm.FSM;
@@ -30,7 +29,7 @@ public class FSMHarnessImpl<T> implements FSMHarness {
 	}
 	
 	@Override
-	public T onEvent(String event, Object id, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException, ObjectNotFoundException {
+	public T onEvent(String event, Object id, Object[] parms) throws TooBusyException {
 		
 		// Remove the first parameter from the parms - is the Id of the Entity Object
 		//
@@ -42,10 +41,14 @@ public class FSMHarnessImpl<T> implements FSMHarness {
 		if (id != null ){
 			obj = this.persistenceSupport.find((Serializable)id);
 			if (obj == null) {
-				throw new ObjectNotFoundException((Serializable)id, clazz.getSimpleName());
+				throw new RuntimeException("Unable to locate " + clazz.getSimpleName() + ", id=" + id);
 			}
 		} else {
-			obj = clazz.newInstance();
+			try {
+				obj = clazz.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
 		}
 		
 		// Create a Mutable Object and add it to the Parameter List - it will be used
@@ -62,7 +65,7 @@ public class FSMHarnessImpl<T> implements FSMHarness {
 	}
 	
 	@Override
-	public T onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException, IllegalAccessException, ObjectNotFoundException {
+	public T onEvent(String event, Object[] parms) throws TooBusyException {
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		Object id = parmList.remove(0);
 		return onEvent(event, id, parmList.toArray());

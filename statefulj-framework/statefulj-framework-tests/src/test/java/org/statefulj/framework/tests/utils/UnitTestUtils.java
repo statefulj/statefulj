@@ -1,4 +1,4 @@
-package org.statefulj.framework.core.utils;
+package org.statefulj.framework.tests.utils;
 
 import javax.persistence.EntityManager;
 
