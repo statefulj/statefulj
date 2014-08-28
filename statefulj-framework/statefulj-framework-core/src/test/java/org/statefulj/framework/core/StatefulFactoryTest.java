@@ -10,6 +10,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.statefulj.framework.core.controllers.UserController;
 import org.statefulj.framework.core.dao.UserRepository;
 import org.statefulj.framework.core.mocks.BeanDefinitionRegistryImpl;
+import org.statefulj.framework.core.mocks.MockProxy;
 import org.statefulj.framework.core.mocks.MockRepositoryFactoryBeanSupport;
 
 public class StatefulFactoryTest {
@@ -44,6 +45,7 @@ public class StatefulFactoryTest {
 		
 		assertNotNull(proxyClass);
 		
+		assertEquals(MockProxy.class, proxyClass);
 	}
  
 }

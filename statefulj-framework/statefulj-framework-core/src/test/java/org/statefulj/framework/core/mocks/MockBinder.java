@@ -5,8 +5,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 import javassist.CannotCompileException;
-import javassist.ClassClassPath;
-import javassist.ClassPool;
 import javassist.NotFoundException;
 
 import org.statefulj.framework.core.model.EndpointBinder;
@@ -26,10 +24,7 @@ public class MockBinder implements EndpointBinder {
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
 
-		ClassPool cp = ClassPool.getDefault();
-		cp.appendClassPath(new ClassClassPath(getClass()));
-		String mvcProxyClassName = "mockProxy";
-		return cp.makeClass(mvcProxyClassName).getClass();
+		return MockProxy.class;
 	}
 
 }
