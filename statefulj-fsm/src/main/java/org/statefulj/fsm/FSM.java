@@ -80,9 +80,9 @@ public class FSM<T> {
 				if (transition != null) {
 					current = transition(stateful,current, event, transition, args);
 				} else {
-					logger.debug("{}({})::{}:{}->{}:noop", 
+					logger.debug("{}({})::{}({})->{}(noop)", 
 							this.name, 
-							stateful,
+							stateful.getClass().getSimpleName(),
 							current.getName(), 
 							event,
 							current.getName());
@@ -157,13 +157,13 @@ public class FSM<T> {
 			String to, 
 			Object... args) throws RetryException {
 		
-		logger.debug("{}({})::{}:{}->{}:{}", 
+		logger.debug("{}({})::{}({})->{}({})", 
 				this.name,
-				stateful,
+				stateful.getClass().getSimpleName(),
 				from, 
 				event, 
 				to, 
-				(action == null) ? "noop" : action.getClass().getSimpleName());
+				(action == null) ? "noop" : action.toString());
 		
 		if (action != null) {
 			action.execute(stateful, event, args);

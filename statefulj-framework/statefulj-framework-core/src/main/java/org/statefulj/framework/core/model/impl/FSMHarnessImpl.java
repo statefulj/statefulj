@@ -1,19 +1,20 @@
 package org.statefulj.framework.core.model.impl;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.statefulj.framework.core.model.FSMHarness;
-import org.statefulj.framework.core.model.PersistenceSupport;
+import org.statefulj.framework.core.model.Factory;
+import org.statefulj.framework.core.model.Finder;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
 public class FSMHarnessImpl<T> implements FSMHarness {
 	
-
-	private PersistenceSupport<T> persistenceSupport;
+	private Factory<T> factory;
+	
+	private Finder<T> finder;
 	
 	private FSM<T> fsm;
 	
@@ -22,10 +23,12 @@ public class FSMHarnessImpl<T> implements FSMHarness {
 	public FSMHarnessImpl(
 			FSM<T> fsm, 
 			Class<T> clazz, 
-			PersistenceSupport<T> persistenceSupport) {
+			Factory<T> factory,
+			Finder<T> finder) {
 		this.fsm = fsm;
 		this.clazz = clazz;
-		this.persistenceSupport = persistenceSupport;
+		this.factory = factory;
+		this.finder = finder;
 	}
 	
 	@Override
@@ -39,16 +42,12 @@ public class FSMHarnessImpl<T> implements FSMHarness {
 		T obj = null;
 		
 		if (id != null ){
-			obj = this.persistenceSupport.find((Serializable)id);
+			obj = this.finder.find(id);
 			if (obj == null) {
 				throw new RuntimeException("Unable to locate " + clazz.getSimpleName() + ", id=" + id);
 			}
 		} else {
-			try {
-				obj = clazz.newInstance();
-			} catch (InstantiationException | IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
+			obj = this.factory.create();
 		}
 		
 		// Create a Mutable Object and add it to the Parameter List - it will be used

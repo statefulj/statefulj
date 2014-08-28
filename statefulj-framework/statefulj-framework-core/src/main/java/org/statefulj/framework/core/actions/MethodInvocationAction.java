@@ -17,8 +17,7 @@ public class MethodInvocationAction implements Action<Object> {
 	private Class<?>[] parameters;
 	
 
-	public void execute(Object stateful, String event, Object... parms)
-			throws RetryException {
+	public void execute(Object stateful, String event, Object... parms) throws RetryException {
 		invoke(stateful, event, parms);
 	}
 	
@@ -71,4 +70,7 @@ public class MethodInvocationAction implements Action<Object> {
 		this.parameters = parameters;
 	}
 
+	public String toString() {
+		return this.method;
+	}
 }

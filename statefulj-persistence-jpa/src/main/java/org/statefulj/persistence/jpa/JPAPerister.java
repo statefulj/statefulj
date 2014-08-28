@@ -15,7 +15,7 @@ import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 
-// TODO : Rewrite this to use "safe" queury building instead of string construction
+// TODO : Rewrite this to use "safe" query building instead of string construction
 //
 @Transactional
 public class JPAPerister<T> implements Persister<T> {
@@ -88,37 +88,6 @@ public class JPAPerister<T> implements Persister<T> {
 	}
 
 	/**
-	 * Overwrite the value in the db and in the stateful Entity
-	 * 
-	 * @param stateful
-	 * @param current
-	 */
-	public void setCurrent(T stateful, State<T> current) {
-		try {
-			Number id = getId(stateful);
-			String update = String.format(
-					"update %s set %s='%s' where %s=%s", 
-					this.clazz, 
-					this.stateField.getName(), 
-					current.getName(),
-					this.idField.getName(),
-					id);
-			if (entityManager.createQuery(update).executeUpdate() == 0) {
-				throw new RuntimeException("Unable to set state");
-			}
-			setState(stateful, current.getName());
-		} catch (NoSuchFieldException e) {
-			throw new RuntimeException(e);
-		} catch (SecurityException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalArgumentException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
 	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.  
 	 * If not, it will throw a StateStateException
 	 * 
@@ -129,38 +98,23 @@ public class JPAPerister<T> implements Persister<T> {
 	 */
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
-			Number id = getId(stateful);
+			
+			// Has this Entity been persisted to the database? 
+			//
+			Object id = getId(stateful);
 			if (id != null && entityManager.contains(stateful)) {
-				String where = (current.equals(this.start)) 
-						?
-						String.format(
-								"%s=%s and (%s='%s' or %s is null)",
-								this.idField.getName(),
-								id,
-								this.stateField.getName(), 
-								current.getName(),
-								this.stateField.getName()) 
-						:
-						String.format(
-								"%s=%s and %s='%s'",
-								this.idField.getName(),
-								id,
-								this.stateField.getName(), 
-								current.getName());
 				
-				String update = String.format(
-						"update %s set %s='%s' where %s", 
-						this.clazz, 
-						this.stateField.getName(), 
-						next.getName(),
-						where);
+				// Entity is in the database - perform qualified update based off 
+				// the current State value
+				//
+				String update = buildUpdateStatement(id, stateful, current, next, idField, stateField);
 				
 				// Successful update?
 				//
 				if (entityManager.createQuery(update).executeUpdate() == 0) {
 					
 					// If we aren't able to update - it's most likely that we are out of sync.
-					// So, fetch the latest value and update the stateful object.  Then throw a RetryException
+					// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
 					// This will cause the event to be reprocessed by the FSM
 					//
 					String query = String.format(
@@ -173,13 +127,19 @@ public class JPAPerister<T> implements Persister<T> {
 					try {
 						state = (String)entityManager.createQuery(query).getSingleResult();
 					} catch(NoResultException nre) {
-						// If it hasn't been 
+						// This is the first time setting the state, ignore
+						//
 					}
 					setState(stateful, state);
 					throwStaleState(current, next);
 				}
 				setState(stateful, next.getName());
 			} else {
+				
+				// The Entity hasn't been persisted to the database - so it exists only
+				// this Application memory.  So, serialize the qualified update to prevent
+				// concurrency conflicts
+				//
 				synchronized(stateful) {
 					String state = this.getState(stateful);
 					state = (state == null) ? this.start.getName() : state;
@@ -199,6 +159,41 @@ public class JPAPerister<T> implements Persister<T> {
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	protected String buildUpdateStatement(
+			Object id, 
+			T stateful, 
+			State<T> current, 
+			State<T> next, 
+			Field idField, 
+			Field stateField) {
+		
+		String where = (current.equals(this.start)) 
+				?
+				String.format(
+						"%s=%s and (%s='%s' or %s is null)",
+						idField.getName(),
+						id,
+						stateField.getName(), 
+						current.getName(),
+						stateField.getName()) 
+				:
+				String.format(
+						"%s=%s and %s='%s'",
+						idField.getName(),
+						id,
+						stateField.getName(), 
+						current.getName());
+		
+		String update = String.format(
+				"update %s set %s='%s' where %s", 
+				clazz, 
+				stateField.getName(), 
+				next.getName(),
+				where);
+		
+		return update;
 	}
 	
 	/**
@@ -228,8 +223,8 @@ public class JPAPerister<T> implements Persister<T> {
 		return match;
 	}
 	
-	private Number getId(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		return (Number)this.idField.get(obj);
+	private Object getId(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+		return this.idField.get(obj);
 	}
 	
 	private String getState(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {

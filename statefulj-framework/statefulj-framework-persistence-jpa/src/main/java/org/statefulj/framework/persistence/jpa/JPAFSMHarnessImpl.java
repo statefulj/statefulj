@@ -2,8 +2,8 @@ package org.statefulj.framework.persistence.jpa;
 
 import javax.transaction.Transactional;
 
-import org.hibernate.ObjectNotFoundException;
-import org.statefulj.framework.core.model.PersistenceSupport;
+import org.statefulj.framework.core.model.Factory;
+import org.statefulj.framework.core.model.Finder;
 import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
@@ -14,8 +14,9 @@ public class JPAFSMHarnessImpl<T> extends FSMHarnessImpl<T> {
 	public JPAFSMHarnessImpl(
 			FSM<T> fsm, 
 			Class<T> clazz, 
-			PersistenceSupport<T> persistenceSupport) {
-		super(fsm, clazz, persistenceSupport);
+			Factory<T> factory,
+			Finder<T> finder) {
+		super(fsm, clazz, factory, finder);
 	}
 	
 	@Override

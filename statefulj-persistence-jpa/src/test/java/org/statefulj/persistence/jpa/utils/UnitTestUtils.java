@@ -1,7 +1,5 @@
 package org.statefulj.persistence.jpa.utils;
 
-import javax.persistence.EntityManager;
-
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;

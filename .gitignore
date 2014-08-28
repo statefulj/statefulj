@@ -1,3 +1,4 @@
+*.log
 .springBeans
 .classpath
 .project

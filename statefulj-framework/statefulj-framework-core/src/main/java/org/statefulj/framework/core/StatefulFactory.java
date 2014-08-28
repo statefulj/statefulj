@@ -1,6 +1,7 @@
 package org.statefulj.framework.core;
 
 import java.beans.Introspector;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.reflections.Reflections;
@@ -182,13 +184,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	
 	private void buildFramework(
 			String controllerBeanId, 
-			Class<?> clazz, 
+			Class<?> statefulControllerClass, 
 			BeanDefinitionRegistry reg, 
 			Map<Class<?>, String> entityMappings) throws CannotCompileException, IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
 		
 		// Determine the managed class
 		// 
-		Class<?> statefulClass = clazz.getAnnotation(StatefulController.class).clazz();
+		Class<?> statefulClass = statefulControllerClass.getAnnotation(StatefulController.class).clazz();
 		
 		// Gather all the events from across all the methods
 		//
@@ -199,7 +201,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 
 		// Map the Events and Transitions for the Controller
 		//
-		mapEventsTransitionsAndStates(clazz, providersMappings, transitionMapping, anyMapping, states);
+		mapEventsTransitionsAndStates(statefulControllerClass, providersMappings, transitionMapping, anyMapping, states);
 		
 		for(Entry<String, Map<String, Method>> entry : providersMappings.entrySet()) {
 			
@@ -211,14 +213,14 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			// will result in a RequestMapping.  The method signature of the RequestMapping
 			// will be the same as the declared execution handler minus the first two parameters (Object, event)
 			//
-			Class<?> proxyClass = binder.bindEndpoints(clazz, entry.getValue(), referenceFactory);
+			Class<?> proxyClass = binder.bindEndpoints(statefulControllerClass, entry.getValue(), referenceFactory);
 
 			// Add the new Class to the Bean Registry
 			//
 			BeanDefinition def = BeanDefinitionBuilder
 					.genericBeanDefinition(proxyClass)
 					.getBeanDefinition();
-			String mvcProxyid = Introspector.decapitalize(clazz.getSimpleName() + MVC_SUFFIX);
+			String mvcProxyid = Introspector.decapitalize(statefulControllerClass.getSimpleName() + MVC_SUFFIX);
 			reg.registerBeanDefinition(mvcProxyid, def);
 		}
 		
@@ -229,12 +231,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		List<RuntimeBeanReference> stateBeans = new ManagedList<RuntimeBeanReference>();
 		for(String state : states) {
 			logger.debug("wireFSM : Registering state \"{}\"", state);
-			String stateId = stateBeanId(clazz, state);
-			BeanDefinition stateBean = BeanDefinitionBuilder
-					.genericBeanDefinition(StateImpl.class)
-					.getBeanDefinition();
-			stateBean.getPropertyValues().add("name", state);
-			reg.registerBeanDefinition(stateId, stateBean);
+			String stateId = registerState(statefulControllerClass, state, reg);
 			stateBeans.add(new RuntimeBeanReference(stateId));
 		}
 		
@@ -244,7 +241,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		int cnt = 1;
 		for(Entry<Transition, Method> entry : transitionMapping.entrySet()) {
 			registerActionAndTransition(
-					clazz, 
+					statefulControllerClass, 
 					entry.getKey().from(), 
 					entry.getKey().to(), 
 					entry.getKey(), 
@@ -257,7 +254,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		for(Entry<Transition, Method> entry : anyMapping.entrySet()) {
 			for (String state : states) {
 				registerActionAndTransition(
-						clazz, 
+						statefulControllerClass, 
 						state, 
 						(entry.getKey().to().equals(Transition.ANY_STATE)) ? state : entry.getKey().to(), 
 						entry.getKey(), 
@@ -269,60 +266,66 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			}
 		}
 		
-		// Build the Persister
+		// Fetch the Entity Repo
 		//
-		String startStateId = stateBeanId(
-				clazz, 
-				clazz.getAnnotation(StatefulController.class).startState());
+		String repoBeanId = entityMappings.get(statefulClass);
+
+		if(repoBeanId == null) {
+			throw new RuntimeException("There is no Repository associated with " + statefulClass);
+		}
+
+		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
+		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
+
+		PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoBeanClass);
 		
-		String persistenceSupportId = null;
-		String repoFactoryBeanId = entityMappings.get(statefulClass);
-		if (repoFactoryBeanId != null) {
-			
-			BeanDefinition repoFactoryBean = reg.getBeanDefinition(repoFactoryBeanId);
-			Class<?> repoFactoryBeanClass = Class.forName(repoFactoryBean.getBeanClassName());
-			
-			// Create the PersistenceSupport Bean and map it
-			//
-			PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoFactoryBeanClass);
+		if(factory == null) {
+			throw new RuntimeException("No PersistenceFactory associated with " + repoBeanClass);
+		}
 
-			if (factory != null) {
-				
-				// Create PersistenceSupport
-				//
-				persistenceSupportId = factory.registerPersistenceSupport(
-						statefulClass, 
-						clazz,
-						startStateId, 
-						stateBeans, 
-						repoFactoryBeanId,
-						reg);
+		StatefulController statefulContollerAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
 
-				// Build the FSM
-				//
-				String fsmId = Introspector.decapitalize(clazz.getSimpleName() + FSM_SUFFIX);
-				BeanDefinition fsmBean = BeanDefinitionBuilder
-						.genericBeanDefinition(FSM.class)
-						.getBeanDefinition();
-				ConstructorArgumentValues args = fsmBean.getConstructorArgumentValues();
-				args.addIndexedArgumentValue(0, fsmId);
-				args.addIndexedArgumentValue(1, new RuntimeBeanReference(persistenceSupportId));
-				reg.registerBeanDefinition(fsmId, fsmBean);
+		String factoryId = statefulContollerAnnotation.factoryId();
+		
+		String finderId = statefulContollerAnnotation.finderId();
+		
+		String persisterId = statefulContollerAnnotation.persisterId();
 
-				// Build the FSMHarness
-				//
-				factory.registerHarness(
-						statefulClass, 
-						clazz,
-						fsmId, 
-						persistenceSupportId,
-						reg);
+		if (StringUtils.isEmpty(factoryId)) {
+			factoryId = factory.registerFactory(statefulClass, statefulControllerClass, reg);
+		}
 
-			} else {
-				logger.warn("mapControllerAndEntityClasses : Unable to locate PersistenceSupportFactory for {} ", clazz.getName());
-			}
+		if (StringUtils.isEmpty(finderId)) {
+			finderId = factory.registerFinder(statefulControllerClass, repoBeanId, reg);
 		}
 		
+		if (StringUtils.isEmpty(persisterId)) {
+
+			String startStateId = stateBeanId(
+					statefulControllerClass, 
+					statefulContollerAnnotation.startState());
+			
+			persisterId = factory.registerPersister(
+					statefulClass, 
+					statefulControllerClass, 
+					startStateId, 
+					stateBeans, 
+					reg);
+		}
+
+		// Build the FSM
+		//
+		String fsmBeanId = registerFSM(statefulControllerClass, persisterId, reg);
+
+		// Build the FSMHarness
+		//
+		factory.registerHarness(
+				statefulClass, 
+				statefulControllerClass, 
+				fsmBeanId, 
+				factoryId, 
+				finderId, 
+				reg);
 	}
 	
 	private void registerActionAndTransition(
@@ -331,7 +334,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			String to, 
 			Transition transition, 
 			Method method, 
-			RuntimeBeanReference controllerRef, int cnt, BeanDefinitionRegistry reg) {
+			RuntimeBeanReference controllerRef, 
+			int cnt, 
+			BeanDefinitionRegistry reg) {
 		
 		logger.debug(
 				"registerActionAndTransition : {}:{}->{}:{}",
@@ -483,5 +488,27 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			throw new RuntimeException("Unable to parse event=" + event);
 		}
 		return new ImmutablePair<String, String>(matcher.group(2), matcher.group(3));
+	}
+	
+	private String registerState(Class<?> statefulControllerClass, String state, BeanDefinitionRegistry reg) {
+		String stateId = stateBeanId(statefulControllerClass, state);
+		BeanDefinition stateBean = BeanDefinitionBuilder
+				.genericBeanDefinition(StateImpl.class)
+				.getBeanDefinition();
+		stateBean.getPropertyValues().add("name", state);
+		reg.registerBeanDefinition(stateId, stateBean);
+		return stateId;
+	}
+	
+	private String registerFSM(Class<?> statefulControllerClass, String persisterId, BeanDefinitionRegistry reg) {
+		String fsmBeanId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + FSM_SUFFIX);
+		BeanDefinition fsmBean = BeanDefinitionBuilder
+				.genericBeanDefinition(FSM.class)
+				.getBeanDefinition();
+		ConstructorArgumentValues args = fsmBean.getConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, fsmBeanId);
+		args.addIndexedArgumentValue(1, new RuntimeBeanReference(persisterId));
+		reg.registerBeanDefinition(fsmBeanId, fsmBean);
+		return fsmBeanId;
 	}
 }
