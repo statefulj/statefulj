@@ -9,7 +9,7 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.statefulj.framework.core.controllers.UserController;
 import org.statefulj.framework.core.dao.UserRepository;
-import org.statefulj.framework.core.mocks.BeanDefinitionRegistryImpl;
+import org.statefulj.framework.core.mocks.MockBeanDefinitionRegistryImpl;
 import org.statefulj.framework.core.mocks.MockProxy;
 import org.statefulj.framework.core.mocks.MockRepositoryFactoryBeanSupport;
 
@@ -18,7 +18,7 @@ public class StatefulFactoryTest {
 	@Test
 	public void testFSMConstruction() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
 		
-		BeanDefinitionRegistry registry = new BeanDefinitionRegistryImpl();
+		BeanDefinitionRegistry registry = new MockBeanDefinitionRegistryImpl();
 		
 		BeanDefinition userRepo = BeanDefinitionBuilder
 				.genericBeanDefinition(MockRepositoryFactoryBeanSupport.class)

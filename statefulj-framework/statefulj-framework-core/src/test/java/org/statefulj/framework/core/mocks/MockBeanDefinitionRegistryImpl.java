@@ -9,7 +9,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 
-public class BeanDefinitionRegistryImpl implements BeanDefinitionRegistry {
+public class MockBeanDefinitionRegistryImpl implements BeanDefinitionRegistry {
 	
 	private Map<String, BeanDefinition> registry = new HashMap<String, BeanDefinition>();
 
