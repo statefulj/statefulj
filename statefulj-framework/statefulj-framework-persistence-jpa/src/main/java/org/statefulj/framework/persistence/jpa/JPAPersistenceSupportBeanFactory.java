@@ -1,13 +1,11 @@
 package org.statefulj.framework.persistence.jpa;
 
-import java.beans.Introspector;
 import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
 import org.statefulj.framework.core.model.impl.CrudRepositoryFinderImpl;
 import org.statefulj.framework.core.model.impl.FactoryImpl;
@@ -24,44 +22,29 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	}
 
 	@Override
-	public String registerFactory(
-			Class<?> statefulClass,
-			Class<?> statefulControllerClass,
-			BeanDefinitionRegistry reg) {
-		String factoryId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + ".factory");
+	public BeanDefinition buildFactoryBean(Class<?> statefulClass) {
 		BeanDefinition factoryBean = BeanDefinitionBuilder
 				.genericBeanDefinition(FactoryImpl.class)
 				.getBeanDefinition();
 		ConstructorArgumentValues args = factoryBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, statefulClass);
-		reg.registerBeanDefinition(factoryId, factoryBean);
-		return factoryId;
+		return factoryBean;
 	}
 
 	@Override
-	public String registerFinder(
-			Class<?> statefulControllerClass,
-			String repoFactoryBeanId,
-			BeanDefinitionRegistry reg) {
-		String finderId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + ".finder");
+	public BeanDefinition buildFinderBean(String repoFactoryBeanId) {
 		BeanDefinition finderBean = BeanDefinitionBuilder
 				.genericBeanDefinition(CrudRepositoryFinderImpl.class)
 				.getBeanDefinition();
 		ConstructorArgumentValues args = finderBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, new RuntimeBeanReference(repoFactoryBeanId));
-		reg.registerBeanDefinition(finderId, finderBean);
-		return finderId;
+		return finderBean;
 	}
 
 	@Override
-	public String registerPersister(
-			Class<?> statefulClass,
-			Class<?> statefulControllerClass,
+	public BeanDefinition buildPersisterBean(Class<?> statefulClass,
 			String startStateId, 
-			List<RuntimeBeanReference> stateBeans,
-			BeanDefinitionRegistry reg) {
-		
-		String persisterId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + ".persister");
+			List<RuntimeBeanReference> stateBeans) {
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAPerister.class)
 				.getBeanDefinition();
@@ -69,24 +52,17 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(0, stateBeans);
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(startStateId));
 		args.addIndexedArgumentValue(2, statefulClass);
-		reg.registerBeanDefinition(persisterId, persisterBean);
-		
-		return persisterId;
+		return persisterBean;
 	}
 
 	
 	@Override
-	public String registerHarness(
+	public BeanDefinition buildHarnessBean(
 			Class<?> statefulClass,
-			Class<?> statefulControllerClass, 
 			String fsmBeanId,
 			String factoryId, 
-			String finderId, 
-			BeanDefinitionRegistry reg) {
+			String finderId) {
 
-		// Build the FSMHarness
-		//
-		String fsmHarnessId = Introspector.decapitalize(statefulControllerClass.getSimpleName() + FSM_HARNESS_SUFFIX);
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAFSMHarnessImpl.class)
 				.getBeanDefinition();
@@ -95,8 +71,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
-		reg.registerBeanDefinition(fsmHarnessId, fsmHarness);		
-		return fsmHarnessId;
+		return fsmHarness;
 	}
 
 }

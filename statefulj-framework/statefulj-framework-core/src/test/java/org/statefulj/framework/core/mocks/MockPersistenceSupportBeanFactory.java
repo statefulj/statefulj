@@ -2,8 +2,10 @@ package org.statefulj.framework.core.mocks;
 
 import java.util.List;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.statefulj.framework.core.model.impl.FactoryImpl;
 import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
 
 public class MockPersistenceSupportBeanFactory implements
@@ -15,30 +17,31 @@ public class MockPersistenceSupportBeanFactory implements
 	}
 
 	@Override
-	public String registerFactory(Class<?> statefulClass,
-			Class<?> statefulControllerClass, BeanDefinitionRegistry reg) {
-		return "mockFactoryId";
+	public BeanDefinition buildFactoryBean(Class<?> statefulClass) {
+		return mockDef();
 	}
 
 	@Override
-	public String registerFinder(Class<?> statefulControllerClass,
-			String repoFactoryBeanId, BeanDefinitionRegistry reg) {
-		return "mockFinderId";
+	public BeanDefinition buildFinderBean(String repoBeanId) {
+		return mockDef();
 	}
 
 	@Override
-	public String registerPersister(Class<?> statefulClass,
-			Class<?> statefulControllerClass, String startStateId,
-			List<RuntimeBeanReference> stateBeans, BeanDefinitionRegistry reg) {
-		return "mockPersisterId";
+	public BeanDefinition buildPersisterBean(Class<?> statefulClass,
+			String startStateId, List<RuntimeBeanReference> stateBeans) {
+		return mockDef();
 	}
 
 	@Override
-	public String registerHarness(Class<?> statefulClass,
-			Class<?> statefulControllerClass, String fsmBeanId,
-			String factoryId, String finderId, BeanDefinitionRegistry reg) {
-		return "mockHarnessId";
+	public BeanDefinition buildHarnessBean(Class<?> statefulClass,
+			String fsmBeanId, String factoryId, String finderId) {
+		return mockDef();
 	}
-
-
+	
+	private BeanDefinition mockDef() {
+		return BeanDefinitionBuilder
+				.genericBeanDefinition(FactoryImpl.class)
+				.getBeanDefinition();
+	}
+ 
 }

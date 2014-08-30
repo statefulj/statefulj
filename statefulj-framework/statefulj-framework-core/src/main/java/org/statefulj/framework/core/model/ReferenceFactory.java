@@ -1,11 +1,25 @@
 package org.statefulj.framework.core.model;
 
+import java.lang.reflect.Method;
+
 public interface ReferenceFactory {
 	
-	String binder(Class<?> controller, String binder);
+	String getBinderId();
+
+	String getFinderId();
 	
-	String fsmHarness(String controller);
+	String getHarnessId(); 
+
+	String getPersisterId(); 
+
+	String getFactoryId();
+
+	String getFSMId();
 	
-	String fsm();
+	String getStateId(String state);
+	
+	String getTransitionId(int cnt);
+	
+	String getActionId(Method method);
 
 }

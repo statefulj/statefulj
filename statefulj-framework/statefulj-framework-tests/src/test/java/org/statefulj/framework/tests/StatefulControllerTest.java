@@ -13,6 +13,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.statefulj.framework.core.model.ReferenceFactory;
+import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
 import org.statefulj.framework.tests.model.User;
@@ -44,14 +46,16 @@ public class StatefulControllerTest {
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
 		UnitTestUtils.startTransaction(transactionManager);
 		
+		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
+		
 		// Make sure proxy is constructed
 		//
-		Object userControllerMVCProxy = this.appContext.getBean("userControllerMVCProxy");
-		assertNotNull(userControllerMVCProxy);
+		Object userControllerBinder = this.appContext.getBean(refFactory.getBinderId());
+		assertNotNull(userControllerBinder);
 		
 		// Verify new User scenario
 		//
-		User user = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_first", User.class);
+		User user = ReflectionUtils.invoke(userControllerBinder, "$_get_first", User.class);
 
 		UnitTestUtils.commitTransaction(transactionManager);
 		UnitTestUtils.startTransaction(transactionManager);
@@ -62,7 +66,7 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_id_any", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId());
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -70,7 +74,7 @@ public class StatefulControllerTest {
 		
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
-		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_post_id_second", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerBinder, "$_post_id_second", User.class, user.getId());
 
 		UnitTestUtils.commitTransaction(transactionManager);
 		UnitTestUtils.startTransaction(transactionManager);
@@ -80,7 +84,7 @@ public class StatefulControllerTest {
 
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_id_any", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId());
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -91,7 +95,7 @@ public class StatefulControllerTest {
 
 		// Verify "any" scenario
 		//
-		Object nulObj = ReflectionUtils.invoke(userControllerMVCProxy, "$_get_id_four", User.class, user.getId());
+		Object nulObj = ReflectionUtils.invoke(userControllerBinder, "$_get_id_four", User.class, user.getId());
 		
 		assertNull(nulObj);
 		user = userRepo.findOne(user.getId());

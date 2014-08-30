@@ -12,6 +12,8 @@ import org.statefulj.framework.core.dao.UserRepository;
 import org.statefulj.framework.core.mocks.MockBeanDefinitionRegistryImpl;
 import org.statefulj.framework.core.mocks.MockProxy;
 import org.statefulj.framework.core.mocks.MockRepositoryFactoryBeanSupport;
+import org.statefulj.framework.core.model.ReferenceFactory;
+import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 
 public class StatefulFactoryTest {
 	
@@ -33,11 +35,12 @@ public class StatefulFactoryTest {
 
 		registry.registerBeanDefinition("userController", userController);
 	
+		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
 		StatefulFactory factory = new StatefulFactory();
 		
 		factory.postProcessBeanDefinitionRegistry(registry);
 		
-		BeanDefinition userControllerMVCProxy = registry.getBeanDefinition("userControllerMVCProxy");
+		BeanDefinition userControllerMVCProxy = registry.getBeanDefinition(refFactory.getBinderId());
 		
 		assertNotNull(userControllerMVCProxy);
 		

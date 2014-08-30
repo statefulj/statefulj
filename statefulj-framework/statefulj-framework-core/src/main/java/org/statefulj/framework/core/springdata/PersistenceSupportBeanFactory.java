@@ -2,6 +2,7 @@ package org.statefulj.framework.core.springdata;
 
 import java.util.List;
 
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.statefulj.framework.core.model.Factory;
@@ -17,29 +18,19 @@ public interface PersistenceSupportBeanFactory {
 	 */
 	Class<?> getKey(); 
 	
-	String registerFactory(
-			Class<?> statefulClass,
-			Class<?> statefulControllerClass,
-			BeanDefinitionRegistry reg);
+	BeanDefinition buildFactoryBean(Class<?> statefulClass);
 	
-	String registerFinder(
-			Class<?> statefulControllerClass,
-			String repoFactoryBeanId,
-			BeanDefinitionRegistry reg);
+	BeanDefinition buildFinderBean(String repoBeanId);
 	
-	String registerPersister(
+	BeanDefinition buildPersisterBean(
 			Class<?> statefulClass,
-			Class<?> statefulControllerClass,
 			String startStateId, 
-			List<RuntimeBeanReference> stateBeans,
-			BeanDefinitionRegistry reg);
+			List<RuntimeBeanReference> stateBeans);
 
-	String registerHarness(
+	BeanDefinition buildHarnessBean(
 			Class<?> statefulClass, 
-			Class<?> statefulControllerClass, 
 			String fsmBeanId,
 			String factoryId,
-			String finderId,
-			BeanDefinitionRegistry reg);
+			String finderId);
 
 }

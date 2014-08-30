@@ -93,7 +93,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		
 		// Add the member variable referencing the StatefulController
 		//
-		addHarnessReference(mvcProxyClass, refFactory.fsmHarness(clazz.getSimpleName()), cp);
+		addHarnessReference(mvcProxyClass, refFactory.getHarnessId(), cp);
 		
 		// Copy methods from bean to the new proxy class
 		//
