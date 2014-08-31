@@ -4,14 +4,14 @@ import javax.transaction.Transactional;
 
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
-import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
+import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
 @Transactional
-public class JPAFSMHarnessImpl<T> extends FSMHarnessImpl<T> {
+public class JPAStatefulFSMImpl<T> extends StatefulFSMImpl<T> {
 	
-	public JPAFSMHarnessImpl(
+	public JPAStatefulFSMImpl(
 			FSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T> factory,

@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.statefulj.framework.core.model.FSMHarness;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class FSMHarnessImpl<T> implements FSMHarness {
+public class StatefulFSMImpl<T> implements StatefulFSM {
 	
 	private Factory<T> factory;
 	
@@ -20,7 +20,7 @@ public class FSMHarnessImpl<T> implements FSMHarness {
 	
 	private Class<T> clazz;
 	
-	public FSMHarnessImpl(
+	public StatefulFSMImpl(
 			FSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T> factory,

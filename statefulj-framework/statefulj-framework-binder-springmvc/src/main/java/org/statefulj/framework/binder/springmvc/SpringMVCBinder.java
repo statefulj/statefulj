@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.model.EndpointBinder;
-import org.statefulj.framework.core.model.FSMHarness;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.ReferenceFactory;
 
 public class SpringMVCBinder implements EndpointBinder {
@@ -93,7 +93,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		
 		// Add the member variable referencing the StatefulController
 		//
-		addHarnessReference(mvcProxyClass, refFactory.getHarnessId(), cp);
+		addHarnessReference(mvcProxyClass, refFactory.getStatefulFSMId(), cp);
 		
 		// Copy methods from bean to the new proxy class
 		//
@@ -114,7 +114,7 @@ public class SpringMVCBinder implements EndpointBinder {
 	}
 	
 	private void addHarnessReference(CtClass mvcProxyClass, String fsmHarnessId, ClassPool cp) throws NotFoundException, CannotCompileException {
-		CtClass type = cp.get(FSMHarness.class.getName());
+		CtClass type = cp.get(StatefulFSM.class.getName());
 		CtField field = new CtField(type, "harness", mvcProxyClass);
 		FieldInfo fi = field.getFieldInfo();
 		

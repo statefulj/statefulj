@@ -8,7 +8,7 @@ public interface ReferenceFactory {
 
 	String getFinderId();
 	
-	String getHarnessId(); 
+	String getStatefulFSMId(); 
 
 	String getPersisterId(); 
 

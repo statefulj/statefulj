@@ -239,19 +239,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		//
 		RuntimeBeanReference controllerRef = new RuntimeBeanReference(controllerBeanId);
 		int cnt = 1;
-		for(Entry<Transition, Method> entry : transitionMapping.entrySet()) {
-			registerActionAndTransition(
-					referenceFactory,
-					statefulControllerClass, 
-					entry.getKey().from(), 
-					entry.getKey().to(), 
-					entry.getKey(), 
-					entry.getValue(), 
-					controllerRef, 
-					cnt, 
-					reg);
-			cnt++;
-		}
 		for(Entry<Transition, Method> entry : anyMapping.entrySet()) {
 			for (String state : states) {
 				String from = state;
@@ -268,6 +255,19 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 						reg);
 				cnt++;
 			}
+		}
+		for(Entry<Transition, Method> entry : transitionMapping.entrySet()) {
+			registerActionAndTransition(
+					referenceFactory,
+					statefulControllerClass, 
+					entry.getKey().from(), 
+					entry.getKey().to(), 
+					entry.getKey(), 
+					entry.getValue(), 
+					controllerRef, 
+					cnt, 
+					reg);
+			cnt++;
 		}
 		
 		// Fetch Repo info
@@ -318,9 +318,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				persisterId, 
 				reg);
 
-		// Build out the Harness Bean
+		// Build out the StatefulFSM Bean
 		//
-		registerHarness(
+		registerStatefulFSM(
 				referenceFactory,
 				factory, 
 				statefulClass, 
@@ -602,7 +602,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		return persisterId;
 	}
 	
-	private String registerHarness(
+	private String registerStatefulFSM(
 				ReferenceFactory referenceFactory,
 				PersistenceSupportBeanFactory persistenceFactory,
 				Class<?> statefulClass, 
@@ -610,9 +610,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				String factoryId, 
 				String finderId, 
 				BeanDefinitionRegistry reg) {
-		String harnessId = referenceFactory.getHarnessId();
-		reg.registerBeanDefinition(harnessId, 
-				persistenceFactory.buildHarnessBean(statefulClass, fsmBeanId, factoryId, finderId));
-		return harnessId;
+		String statefulFSMId = referenceFactory.getStatefulFSMId();
+		reg.registerBeanDefinition(statefulFSMId, 
+				persistenceFactory.buildStatefulFSM(statefulClass, fsmBeanId, factoryId, finderId));
+		return statefulFSMId;
 	}
 }

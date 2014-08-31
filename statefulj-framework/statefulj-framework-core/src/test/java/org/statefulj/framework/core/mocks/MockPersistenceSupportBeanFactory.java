@@ -33,7 +33,7 @@ public class MockPersistenceSupportBeanFactory implements
 	}
 
 	@Override
-	public BeanDefinition buildHarnessBean(Class<?> statefulClass,
+	public BeanDefinition buildStatefulFSM(Class<?> statefulClass,
 			String fsmBeanId, String factoryId, String finderId) {
 		return mockDef();
 	}

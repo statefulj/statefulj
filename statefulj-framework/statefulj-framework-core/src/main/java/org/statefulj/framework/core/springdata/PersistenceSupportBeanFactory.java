@@ -27,7 +27,7 @@ public interface PersistenceSupportBeanFactory {
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans);
 
-	BeanDefinition buildHarnessBean(
+	BeanDefinition buildStatefulFSM(
 			Class<?> statefulClass, 
 			String fsmBeanId,
 			String factoryId,
