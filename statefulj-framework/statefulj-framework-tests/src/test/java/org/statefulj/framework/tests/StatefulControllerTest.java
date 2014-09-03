@@ -14,6 +14,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.framework.core.model.ReferenceFactory;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
@@ -36,8 +37,8 @@ public class StatefulControllerTest {
 	@Resource
 	UserRepository userRepo;
 	
-	@Resource
-	FSM<User> userFSM;
+	@Resource(name="userController.statefulFSM")
+	StatefulFSM<Object> userFSM;
 	
 	// TODO : Need to test for annotated parameters
 	
@@ -90,10 +91,7 @@ public class StatefulControllerTest {
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FOUR_STATE, user.getState());
 
-		State<User> nextState = userFSM.onEvent(user, "five");
-		assertNotNull(nextState);
-		assertEquals(UserController.FIVE_STATE, nextState.getName());
-
+		userFSM.onEvent("five", user.getId(), new Object[]{});
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FIVE_STATE, user.getState());
 

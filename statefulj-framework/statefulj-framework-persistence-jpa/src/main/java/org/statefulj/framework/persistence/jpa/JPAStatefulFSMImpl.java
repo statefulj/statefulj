@@ -3,75 +3,66 @@ package org.statefulj.framework.persistence.jpa;
 import javax.annotation.Resource;
 
 import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class JPAStatefulFSMImpl<T> extends StatefulFSMImpl<T> {
+public class JPAStatefulFSMImpl<T> implements StatefulFSM<T> {
 	
 	ThreadLocal<TransactionStatus> tl = new ThreadLocal<TransactionStatus>();
 	
 	@Resource
 	JpaTransactionManager transactionManager;
 	
+	StatefulFSM<T> fsm;
+	
 	public JPAStatefulFSMImpl(
 			FSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T> factory,
 			Finder<T> finder) {
-		super(fsm, clazz, factory, finder);
+		this.fsm = new StatefulFSMImpl<T>(fsm, clazz, factory, finder);
 	}
 	
 	@Override
-	public T onEvent(String event, Object id, Object[] parms) throws TooBusyException {
-		startTransaction(transactionManager);
-		try {
-			T val = super.onEvent(event, id, parms);
-			commitTransaction(transactionManager);
-			return val;
-		} catch(Throwable t) {
-			rollbackTransaction(transactionManager);
-			throw t;
-		} 
+	public T onEvent(final String event, final Object id, final Object[] parms) throws TooBusyException {
+		TransactionTemplate tt = new TransactionTemplate(transactionManager);
+		return tt.execute(new TransactionCallback<T>() {
+
+			@Override
+			public T doInTransaction(TransactionStatus status) {
+				try {
+					return fsm.onEvent(event, id, parms);
+				} catch (TooBusyException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			
+		});
 	}
 
 	@Override
-	public T onEvent(String event, Object[] parms) throws TooBusyException {
-		startTransaction(transactionManager);
-		try {
-			T val = super.onEvent(event, parms);
-			commitTransaction(transactionManager);
-			return val;
-		} catch(Throwable t) {
-			rollbackTransaction(transactionManager);
-			throw t;
-		}
-	}
-	
-	public void startTransaction(JpaTransactionManager transactionManager) {
-		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName(Thread.currentThread().getName() + ".tx");
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
-		TransactionStatus status = transactionManager.getTransaction(def);
-		tl.set(status);
-	}
+	public T onEvent(final String event, final Object[] parms) throws TooBusyException {
+		TransactionTemplate tt = new TransactionTemplate(transactionManager);
+		return tt.execute(new TransactionCallback<T>() {
 
-	public void commitTransaction(JpaTransactionManager transactionManager) {
-		TransactionStatus ts = tl.get();
-		if (!ts.isCompleted()) {
-			transactionManager.commit(ts);
-		}
-	}
-
-	public void rollbackTransaction(JpaTransactionManager transactionManager) {
-		TransactionStatus ts = tl.get();
-		if (!ts.isCompleted()) {
-			transactionManager.rollback(ts);
-		}
+			@Override
+			public T doInTransaction(TransactionStatus status) {
+				try {
+					return fsm.onEvent(event, parms);
+				} catch (TooBusyException e) {
+					throw new RuntimeException(e);
+				} catch (InstantiationException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			
+		});
 	}
 }

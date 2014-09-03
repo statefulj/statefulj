@@ -93,7 +93,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		
 		// Add the member variable referencing the StatefulController
 		//
-		addHarnessReference(mvcProxyClass, refFactory.getStatefulFSMId(), cp);
+		addStatefulFSMReference(mvcProxyClass, refFactory.getStatefulFSMId(), cp);
 		
 		// Copy methods from bean to the new proxy class
 		//
@@ -113,9 +113,9 @@ public class SpringMVCBinder implements EndpointBinder {
 		ccFile.addAttribute(attr);
 	}
 	
-	private void addHarnessReference(CtClass mvcProxyClass, String fsmHarnessId, ClassPool cp) throws NotFoundException, CannotCompileException {
+	private void addStatefulFSMReference(CtClass mvcProxyClass, String statefulFSMId, ClassPool cp) throws NotFoundException, CannotCompileException {
 		CtClass type = cp.get(StatefulFSM.class.getName());
-		CtField field = new CtField(type, "harness", mvcProxyClass);
+		CtField field = new CtField(type, "statefulFSM", mvcProxyClass);
 		FieldInfo fi = field.getFieldInfo();
 		
 		AnnotationsAttribute attr = new AnnotationsAttribute(
@@ -124,7 +124,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		Annotation annot = new Annotation(Resource.class.getName(), fi.getConstPool());
 		
 		StringMemberValue nameValue = new StringMemberValue(fi.getConstPool());
-		nameValue.setValue(fsmHarnessId);
+		nameValue.setValue(statefulFSMId);
 		annot.addMemberValue("name", nameValue);
 		
 		attr.addAnnotation(annot);
@@ -264,7 +264,7 @@ public class SpringMVCBinder implements EndpointBinder {
 				+ nullObjId
 				+ ", $args); }";
 
-		ctMethod.setBody(methodBody, "this.harness","onEvent");
+		ctMethod.setBody(methodBody, "this.statefulFSM","onEvent");
 	}
 	
 	private void addParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {

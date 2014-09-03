@@ -10,7 +10,7 @@ import org.statefulj.framework.core.model.Finder;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class StatefulFSMImpl<T> implements StatefulFSM {
+public class StatefulFSMImpl<T> implements StatefulFSM<T> {
 	
 	private Factory<T> factory;
 	
