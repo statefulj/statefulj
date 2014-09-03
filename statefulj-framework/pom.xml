@@ -40,5 +40,6 @@
 		<module>statefulj-framework-persistence-jpa</module>
 		<module>statefulj-framework-binder-springmvc</module>
         <module>statefulj-framework-tests</module>
+        <module>statefulj-framework-demo</module>
 	</modules>
 </project>

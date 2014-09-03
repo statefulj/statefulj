@@ -19,7 +19,6 @@ import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
 import org.statefulj.framework.tests.model.User;
 import org.statefulj.framework.tests.utils.ReflectionUtils;
-import org.statefulj.framework.tests.utils.UnitTestUtils;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
@@ -44,8 +43,7 @@ public class StatefulControllerTest {
 	
 	@Test
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
-		UnitTestUtils.startTransaction(transactionManager);
-		
+
 		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
 		
 		// Make sure proxy is constructed
@@ -57,9 +55,6 @@ public class StatefulControllerTest {
 		//
 		User user = ReflectionUtils.invoke(userControllerBinder, "$_get_first", User.class);
 
-		UnitTestUtils.commitTransaction(transactionManager);
-		UnitTestUtils.startTransaction(transactionManager);
-		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
 		assertEquals(UserController.TWO_STATE, user.getState());
@@ -76,9 +71,6 @@ public class StatefulControllerTest {
 		//
 		user = ReflectionUtils.invoke(userControllerBinder, "$_post_id_second", User.class, user.getId());
 
-		UnitTestUtils.commitTransaction(transactionManager);
-		UnitTestUtils.startTransaction(transactionManager);
-		
 		assertTrue(user.getId() > 0);
 		assertEquals(UserController.THREE_STATE, user.getState());
 
@@ -90,9 +82,6 @@ public class StatefulControllerTest {
 		assertTrue(user.getId() > 0);
 		assertEquals(UserController.THREE_STATE, user.getState());
 		
-		UnitTestUtils.commitTransaction(transactionManager);
-		UnitTestUtils.startTransaction(transactionManager);
-
 		// Verify "any" scenario
 		//
 		Object nulObj = ReflectionUtils.invoke(userControllerBinder, "$_get_id_four", User.class, user.getId());
@@ -107,8 +96,6 @@ public class StatefulControllerTest {
 
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FIVE_STATE, user.getState());
-
-		UnitTestUtils.commitTransaction(transactionManager);
 
 	}
 

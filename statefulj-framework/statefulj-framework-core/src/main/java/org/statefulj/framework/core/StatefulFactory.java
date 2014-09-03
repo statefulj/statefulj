@@ -135,7 +135,24 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		for(String bfName : reg.getBeanDefinitionNames()) {
 			
 			BeanDefinition bf = reg.getBeanDefinition(bfName);
-			Class<?> clazz = Class.forName(bf.getBeanClassName());
+			Class<?> clazz = null;
+			if (bf.getBeanClassName() == null) {
+				BeanDefinition factory = reg.getBeanDefinition(bf.getFactoryBeanName());
+				String factoryClassName = factory.getBeanClassName();
+				Class<?> factoryClass = Class.forName(factoryClassName);
+				for (Method method : factoryClass.getMethods()) {
+					if (method.getName().equals(bf.getFactoryMethodName())) {
+						clazz = method.getReturnType();
+						break;
+					}
+				}
+			} else {
+				clazz = Class.forName(bf.getBeanClassName());
+			}
+			
+			if (clazz == null) {
+				throw new RuntimeException("Unable to resolve class for bean " + bfName);
+			}
 			
 			// If it's a StatefulController, add it to the mapping
 			//
