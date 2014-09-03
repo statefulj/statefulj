@@ -15,7 +15,7 @@ import org.statefulj.framework.core.StatefulFactory;
 @EnableTransactionManagement
 @ComponentScan({ "org.statefulj.webapp.*" })
 @Import({ AppSecurityConfig.class })
-public class ViewConfig {
+public class MVCConfig {
 
 	@Bean
 	public InternalResourceViewResolver viewResolver() {
