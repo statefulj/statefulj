@@ -41,13 +41,18 @@ public class StatefulFSMImpl<T> implements StatefulFSM<T> {
 		
 		T obj = null;
 		
-		if (id != null ){
-			obj = this.finder.find(id);
-			if (obj == null) {
-				throw new RuntimeException("Unable to locate " + clazz.getSimpleName() + ", id=" + id);
-			}
+		if (id == null) {
+			obj = this.finder.find();
 		} else {
-			obj = this.factory.create();
+			obj = this.finder.find(id);
+		}
+
+		if ( obj == null ) {
+			if (id != null) {
+				throw new RuntimeException("Unable to locate " + clazz.getSimpleName() + ", id=" + id);
+			} else {
+				obj = this.factory.create();
+			}
 		}
 		
 		// Create a Mutable Object and add it to the Parameter List - it will be used

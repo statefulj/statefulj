@@ -18,4 +18,9 @@ public class CrudRepositoryFinderImpl<T> implements Finder<T> {
 		return repo.findOne((Serializable)id);
 	}
 
+	@Override
+	public T find() {
+		return null;
+	}
+
 }

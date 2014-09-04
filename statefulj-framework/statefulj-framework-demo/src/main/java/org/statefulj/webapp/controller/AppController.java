@@ -19,6 +19,20 @@ public class AppController {
  
 	}
  
+	@RequestMapping("/login")
+	public ModelAndView loginPage() {
+		ModelAndView model = new ModelAndView();
+		model.setViewName("login");
+ 		return model;
+	}
+	
+	@RequestMapping("/registration")
+	public ModelAndView registrationPage() {
+		ModelAndView model = new ModelAndView();
+		model.setViewName("registration");
+ 		return model;
+	}
+	
 	@RequestMapping(value = "/protected**", method = RequestMethod.GET)
 	public ModelAndView protectedPage() {
  

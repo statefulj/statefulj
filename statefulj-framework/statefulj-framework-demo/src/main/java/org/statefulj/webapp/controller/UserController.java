@@ -1,48 +1,48 @@
 package org.statefulj.webapp.controller;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
+import org.apache.http.HttpRequest;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.webapp.model.User;
 import org.statefulj.webapp.repo.UserRepository;
+import org.statefulj.webapp.services.UserService;
 
 @StatefulController(
 	clazz=User.class, 
-	startState=UserController.NEW_STATE
+	startState=UserController.UNREGISTERED,
+	finderId="userService"
 )
 public class UserController {
 	
 	// States
 	//
-	static final String NEW_STATE = "new";
-	static final String NOT_NEW_STATE = "not-new";
-	static final String BOO_STATE = "boo";
-	static final String WHATEVER_STATE = "whatever";
+	static final String UNREGISTERED = "UNREGISTERED";
+	static final String REGISTERED_UNCONFIRMED = "REGISTERED_UNCONFIRMED";
+	static final String REGISTERED_CONFIRMED = "REGISTERED_CONFIRMED";
 
 	@Resource
-	UserRepository userRepository;
+	UserService userService;
 	
 	// Transitions/Actions
 	//
-	@Transition(from=NEW_STATE, event="springmvc:/new", to=NOT_NEW_STATE)
-	public ModelAndView newUser(User user, String event) {
-		userRepository.save(user);
-		return userView(user, event);
+	@Transition(from=UNREGISTERED, event="springmvc:post:/user/register", to=REGISTERED_UNCONFIRMED)
+	public String newUser(User user, String event, HttpServletRequest request, @RequestParam(value="email") String email, @RequestParam(value="password") String password) {
+		user.setEmail(email);
+		user.setPassword(password);  
+		userService.save(user);
+		userService.login(request.getSession(), user);
+		return "redirect:/user";
 	}
-
-	@Transitions(value={
-		@Transition(from=NOT_NEW_STATE, event="springmvc:/{id}/next", to=BOO_STATE),
-		@Transition(from=BOO_STATE, event="springmvc:/{id}/next", to=BOO_STATE),
-		@Transition(from=NOT_NEW_STATE, event="springmvc:/{id}/whatever", to=WHATEVER_STATE),
-		@Transition(from=BOO_STATE, event="springmvc:/{id}/whatever", to=WHATEVER_STATE),
-		@Transition(event="springmvc:/{id}/whatever"), // TODO : Broken
-		@Transition(event="springmvc:/{id}/any"),
-		@Transition(event="springmvc:post:/{id}/post")
-	})
-	public ModelAndView user(User user, String event) {
+	
+	@Transition(event="springmvc:/user")
+	public ModelAndView userDetail(User user, String event) {
 		return userView(user, event);
 	}
 	

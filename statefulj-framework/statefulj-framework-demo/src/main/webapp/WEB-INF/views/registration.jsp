@@ -14,8 +14,25 @@
 	<base href="${fn:substring(url, 0, fn:length(url) - fn:length(uri))}${req.contextPath}/">
 </head>
 <body> 
-	user.id=${user.id}<br/>
-	user.state=${user.state}<br/>
-	event=${event}<br/>
+<c:url value="/user/register" var="registerUrl"/>
+<form action="${registerUrl}" method="post">       
+    <c:if test="${param.error != null}">        
+        <p>
+            Invalid username and password.
+        </p>
+    </c:if>
+    <p>
+        <label for="email">Email</label>
+        <input type="text" id="email" name="email"/>	
+    </p>
+    <p>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password"/>	
+    </p>
+    <input type="hidden"                        
+        name="${_csrf.parameterName}"
+        value="${_csrf.token}"/>
+    <button type="submit" class="btn">Register</button>
+</form>
 </body>
 </html>
