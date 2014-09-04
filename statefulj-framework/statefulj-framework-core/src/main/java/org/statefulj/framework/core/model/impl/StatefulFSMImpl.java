@@ -10,7 +10,7 @@ import org.statefulj.framework.core.model.Finder;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class StatefulFSMImpl<T> implements StatefulFSM<T> {
+public class StatefulFSMImpl<T> implements StatefulFSM {
 	
 	private Factory<T> factory;
 	
@@ -32,10 +32,8 @@ public class StatefulFSMImpl<T> implements StatefulFSM<T> {
 	}
 	
 	@Override
-	public T onEvent(String event, Object id, Object[] parms) throws TooBusyException {
+	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException {
 		
-		// Remove the first parameter from the parms - is the Id of the Entity Object
-		//
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length + 1);
 		
@@ -69,7 +67,7 @@ public class StatefulFSMImpl<T> implements StatefulFSM<T> {
 	}
 	
 	@Override
-	public T onEvent(String event, Object[] parms) throws TooBusyException {
+	public Object onEvent(String event, Object[] parms) throws TooBusyException {
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		Object id = parmList.remove(0);
 		return onEvent(event, id, parmList.toArray());

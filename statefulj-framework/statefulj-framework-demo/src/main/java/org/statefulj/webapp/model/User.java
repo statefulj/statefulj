@@ -15,6 +15,13 @@ import org.statefulj.persistence.jpa.model.StatefulEntity;
 @Table(name="users")
 public class User extends StatefulEntity {
 	
+	// States
+	//
+	public static final String UNREGISTERED = "UNREGISTERED";
+	public static final String REGISTERED_UNCONFIRMED = "REGISTERED_UNCONFIRMED";
+	public static final String REGISTERED_CONFIRMED = "REGISTERED_CONFIRMED";
+	public static final String DELETED = "DELETED";
+
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE)
 	Long id;
@@ -23,6 +30,16 @@ public class User extends StatefulEntity {
 	String email;
 	
 	String password;
+	
+	int token;
+
+	public int getToken() {
+		return token;
+	}
+
+	public void setToken(int token) {
+		this.token = token;
+	}
 
 	public Long getId() {
 		return id;

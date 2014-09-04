@@ -52,6 +52,7 @@ import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.ReferenceFactory;
 
+// TODO : Handle when an action doesn't have either the User or Event parameter
 public class SpringMVCBinder implements EndpointBinder {
 	
 	public final static String KEY = "springmvc";

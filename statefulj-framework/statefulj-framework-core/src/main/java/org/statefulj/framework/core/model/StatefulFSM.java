@@ -2,10 +2,10 @@ package org.statefulj.framework.core.model;
 
 import org.statefulj.fsm.TooBusyException;
 
-public interface StatefulFSM<T> {
+public interface StatefulFSM {
 
-	public T onEvent(String event, Object id, Object[] parms) throws TooBusyException;
+	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException;
 
-	public T onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException;
+	public Object onEvent(String event, Object[] parms) throws TooBusyException, InstantiationException;
 
 }

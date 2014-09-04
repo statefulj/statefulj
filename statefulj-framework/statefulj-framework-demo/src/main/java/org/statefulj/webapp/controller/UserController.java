@@ -3,47 +3,89 @@ package org.statefulj.webapp.controller;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.http.HttpRequest;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.apache.commons.lang3.RandomUtils;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
+import org.statefulj.fsm.FSM;
+import org.statefulj.fsm.TooBusyException;
 import org.statefulj.webapp.model.User;
-import org.statefulj.webapp.repo.UserRepository;
 import org.statefulj.webapp.services.UserService;
+import org.statefulj.webapp.services.UserSessionService;
 
 @StatefulController(
 	clazz=User.class, 
-	startState=UserController.UNREGISTERED,
-	finderId="userService"
+	startState=User.UNREGISTERED,
+	finderId="userSessionService",
+	noops={	
+		@Transition(from=User.REGISTERED_UNCONFIRMED, event="successful-confirmation", to=User.REGISTERED_CONFIRMED)
+	}
 )
 public class UserController {
 	
-	// States
-	//
-	static final String UNREGISTERED = "UNREGISTERED";
-	static final String REGISTERED_UNCONFIRMED = "REGISTERED_UNCONFIRMED";
-	static final String REGISTERED_CONFIRMED = "REGISTERED_CONFIRMED";
-
 	@Resource
 	UserService userService;
 	
-	// Transitions/Actions
-	//
-	@Transition(from=UNREGISTERED, event="springmvc:post:/user/register", to=REGISTERED_UNCONFIRMED)
-	public String newUser(User user, String event, HttpServletRequest request, @RequestParam(value="email") String email, @RequestParam(value="password") String password) {
+	@Resource
+	UserSessionService userSessionService;
+	
+	@Resource(name="userController.fsm")
+	FSM<User> userFSM;
+	
+	@Transition(from=User.UNREGISTERED, event="springmvc:/login")
+	public String loginPage(User user, String event) {
+ 		return "login";
+	}
+	
+	@Transition(from=User.UNREGISTERED, event="springmvc:/registration")
+	public String registrationPage(User user, String event) {
+ 		return "registration";
+	}
+	
+	@Transitions({
+		@Transition(event="springmvc:/login"),
+		@Transition(event="springmvc:/registration")
+	})
+	public String redirectToAccount(User user, String event) {
+ 		return "redirect:/user";
+	}
+
+	@Transition(from=User.UNREGISTERED, event="springmvc:post:/user/register", to=User.REGISTERED_UNCONFIRMED)
+	public String newUser(User user, String event, HttpServletRequest request, @RequestParam("email") String email, @RequestParam("password") String password) {
 		user.setEmail(email);
-		user.setPassword(password);  
+		user.setPassword(password); 
+		user.setToken(RandomUtils.nextInt(1, 99999999));
 		userService.save(user);
-		userService.login(request.getSession(), user);
+		userSessionService.login(request.getSession(), user);
 		return "redirect:/user";
+	}
+	
+	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:/user")
+	public ModelAndView confirmationPage(User user, String event) {
+		ModelAndView mv = new ModelAndView("confirmation");
+		mv.addObject("user", user);
+		return mv;
 	}
 	
 	@Transition(event="springmvc:/user")
 	public ModelAndView userDetail(User user, String event) {
 		return userView(user, event);
+	}
+	
+	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:post:/user/confirmation")
+	public String confirmUser(User user, String event, @RequestParam("token") int token) throws InstantiationException, TooBusyException {
+		String redirect = "redirect:/user";
+		
+		// If tokens match, transition to CONFIRMED
+		//
+		if (user.getToken() == token) {
+			userFSM.onEvent(user, "successful-confirmation");
+		} else {
+			redirect += "?msg=bad+token";
+		}
+		return redirect;
 	}
 	
 	private ModelAndView userView(User user, String event) {

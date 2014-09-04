@@ -39,6 +39,11 @@ public class UserController {
 		return user;
 	}
 
+	@Transition(from=THREE_STATE, event="springmvc:post:/{id}/second")
+	public User threeToThree(User user, String event) {
+		return user;
+	}
+
 	@Transition(event="springmvc:/{id}/any")
 	public User any(User user, String event) {
 		return user;

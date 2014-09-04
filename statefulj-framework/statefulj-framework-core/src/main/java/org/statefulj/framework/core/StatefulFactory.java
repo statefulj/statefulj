@@ -359,6 +359,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			int cnt, 
 			BeanDefinitionRegistry reg) {
 		
+		// Remap to="Any" to to=from
+		//
+		to = (Transition.ANY_STATE.equals(to)) ? from : to;
+		
 		logger.debug(
 				"registerActionAndTransition : {}({})->{}({})",
 				from,

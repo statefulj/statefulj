@@ -13,14 +13,14 @@ import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class JPAStatefulFSMImpl<T> implements StatefulFSM<T> {
+public class JPAStatefulFSMImpl<T> implements StatefulFSM {
 	
 	ThreadLocal<TransactionStatus> tl = new ThreadLocal<TransactionStatus>();
 	
 	@Resource
 	JpaTransactionManager transactionManager;
 	
-	StatefulFSM<T> fsm;
+	StatefulFSM fsm;
 	
 	public JPAStatefulFSMImpl(
 			FSM<T> fsm, 
@@ -31,12 +31,12 @@ public class JPAStatefulFSMImpl<T> implements StatefulFSM<T> {
 	}
 	
 	@Override
-	public T onEvent(final String event, final Object id, final Object[] parms) throws TooBusyException {
+	public Object onEvent(final String event, final Object id, final Object[] parms) throws TooBusyException {
 		TransactionTemplate tt = new TransactionTemplate(transactionManager);
-		return tt.execute(new TransactionCallback<T>() {
+		return tt.execute(new TransactionCallback<Object>() {
 
 			@Override
-			public T doInTransaction(TransactionStatus status) {
+			public Object doInTransaction(TransactionStatus status) {
 				try {
 					return fsm.onEvent(event, id, parms);
 				} catch (TooBusyException e) {
@@ -48,12 +48,12 @@ public class JPAStatefulFSMImpl<T> implements StatefulFSM<T> {
 	}
 
 	@Override
-	public T onEvent(final String event, final Object[] parms) throws TooBusyException {
+	public Object onEvent(final String event, final Object[] parms) throws TooBusyException {
 		TransactionTemplate tt = new TransactionTemplate(transactionManager);
-		return tt.execute(new TransactionCallback<T>() {
+		return tt.execute(new TransactionCallback<Object>() {
 
 			@Override
-			public T doInTransaction(TransactionStatus status) {
+			public Object doInTransaction(TransactionStatus status) {
 				try {
 					return fsm.onEvent(event, parms);
 				} catch (TooBusyException e) {

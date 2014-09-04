@@ -20,9 +20,7 @@ import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
 import org.statefulj.framework.tests.model.User;
 import org.statefulj.framework.tests.utils.ReflectionUtils;
-import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
-import org.statefulj.fsm.model.State;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-StatefulControllerTests.xml"})
@@ -38,7 +36,7 @@ public class StatefulControllerTest {
 	UserRepository userRepo;
 	
 	@Resource(name="userController.statefulFSM")
-	StatefulFSM<Object> userFSM;
+	StatefulFSM userFSM;
 	
 	// TODO : Need to test for annotated parameters
 	
