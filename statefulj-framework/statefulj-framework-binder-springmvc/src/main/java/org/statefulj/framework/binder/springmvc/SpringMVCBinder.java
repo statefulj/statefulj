@@ -193,7 +193,7 @@ public class SpringMVCBinder implements EndpointBinder {
 				methodName,
 				mvcProxyClass.getSimpleName());
 
-		CtClass returnClass = (method == null) ? CtClass.voidType : cp.getCtClass(method.getReturnType().getName());
+		CtClass returnClass = (method == null) ? CtClass.voidType : cp.get(method.getReturnType().getName());
 		CtMethod ctMethod = new CtMethod(returnClass, methodName, null, mvcProxyClass);
 		return ctMethod;
 	}
@@ -284,6 +284,7 @@ public class SpringMVCBinder implements EndpointBinder {
 			int annotationCnt = (referencesId) 
 					? method.getParameterTypes().length - 1 
 					: method.getParameterTypes().length - 2;
+			annotationCnt = Math.max(annotationCnt, 0);
 
 			// Pull the Parameter Annotations from the StatefulController - we're going to skip
 			// over the first two - but then we're going to add an "id" parameter
@@ -311,7 +312,7 @@ public class SpringMVCBinder implements EndpointBinder {
 				
 				// Clone the parameter Class
 				//
-				CtClass ctParm = cp.getCtClass(parm.getName());
+				CtClass ctParm = cp.get(parm.getName());
 				
 				// Add the parameter to the method
 				//
@@ -339,7 +340,7 @@ public class SpringMVCBinder implements EndpointBinder {
 	private Annotation[] addIdParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, CannotCompileException {
 		// Clone the parameter Class
 		//
-		CtClass ctParm = cp.getCtClass(Long.class.getName());
+		CtClass ctParm = cp.get(Long.class.getName());
 		
 		// Add the parameter to the method
 		//
@@ -373,6 +374,11 @@ public class SpringMVCBinder implements EndpointBinder {
 
 		for(java.lang.annotation.Annotation annotation : annotations) {
 			Annotation clone = cloneAnnotation(parameterConstPool, annotation);
+			
+			// TODO : Special case: since Javaassist doesn't allow me to set the name of the parameter,
+			//        I need to ensure that RequestParam's value is set to the parm name if there isn't already
+			//        a value set
+			
 			AnnotationsAttribute attr = new AnnotationsAttribute(parameterConstPool, AnnotationsAttribute.visibleTag);
 			attr.addAnnotation(clone);
 			ctParmAnnotations.add(clone);

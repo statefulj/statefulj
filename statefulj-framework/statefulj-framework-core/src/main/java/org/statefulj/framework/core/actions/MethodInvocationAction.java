@@ -39,6 +39,7 @@ public class MethodInvocationAction implements Action<Object> {
 			MutableObject<Object> returnValue = (MutableObject<Object>)parmList.remove(0);
 			
 			// Add the Entity and Event to the pam list to pass to the Controller
+			// TODO : Inspect method signature - make entity and event optional
 			//
 			ArrayList<Object> invokeParmList = new ArrayList<Object>(parmList.size() + 2);
 			invokeParmList.add(entity);
