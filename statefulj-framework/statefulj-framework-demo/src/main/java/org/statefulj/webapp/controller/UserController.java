@@ -9,7 +9,6 @@ import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
-import org.statefulj.fsm.TooBusyException;
 import org.statefulj.webapp.model.User;
 import org.statefulj.webapp.services.UserService;
 import org.statefulj.webapp.services.UserSessionService;
@@ -38,7 +37,12 @@ public class UserController {
 	}
 	
 	@Transitions({
+		// If we get a "successful-confirmation" event, transition into REGISTERD_CONFIRMED
+		//
 		@Transition(from=User.REGISTERED_UNCONFIRMED, event="successful-confirmation", to=User.REGISTERED_CONFIRMED),
+		
+		// If we're logged in, don't display either login or registration pages
+		//
 		@Transition(event="springmvc:/login"),
 		@Transition(event="springmvc:/registration")
 	})
@@ -91,7 +95,11 @@ public class UserController {
 	public String confirmUser(
 			User user, 
 			String event, 
-			@RequestParam("token") int token) throws InstantiationException, TooBusyException {
+			@RequestParam("token") int token) {
+		
+		// If a valid token, emit a "successful-confirmation" event, this will
+		// transition the User into a REGISTERED_CONFIRMED state
+		//
 		if (user.getToken() == token) {
 			return "event:successful-confirmation";
 		} else {
