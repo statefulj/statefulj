@@ -383,6 +383,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				props.add("controller", controllerRef);
 				props.add("method", method.getName());
 				props.add("parameters", method.getParameterTypes());
+				props.add("fsm", new RuntimeBeanReference(referenceFactory.getFSMId()));
 				reg.registerBeanDefinition(actionId, actionBean);
 			}
 			actionRef = new RuntimeBeanReference(actionId);

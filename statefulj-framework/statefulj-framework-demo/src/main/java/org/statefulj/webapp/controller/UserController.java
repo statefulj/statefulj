@@ -18,10 +18,7 @@ import org.statefulj.webapp.services.UserSessionService;
 @StatefulController(
 	clazz=User.class, 
 	startState=User.UNREGISTERED,
-	finderId="userSessionService",
-	noops={	
-		@Transition(from=User.REGISTERED_UNCONFIRMED, event="successful-confirmation", to=User.REGISTERED_CONFIRMED)
-	}
+	finderId="userSessionService"
 )
 public class UserController {
 	
@@ -45,6 +42,7 @@ public class UserController {
 	}
 	
 	@Transitions({
+		@Transition(from=User.REGISTERED_UNCONFIRMED, event="successful-confirmation", to=User.REGISTERED_CONFIRMED),
 		@Transition(event="springmvc:/login"),
 		@Transition(event="springmvc:/registration")
 	})
@@ -52,6 +50,7 @@ public class UserController {
  		return "redirect:/user";
 	}
 
+	// TODO : Fix - we shouldn't have to require passing in the RequestParam name
 	@Transition(from=User.UNREGISTERED, event="springmvc:post:/user/register", to=User.REGISTERED_UNCONFIRMED)
 	public String newUser(User user, String event, HttpServletRequest request, @RequestParam("email") String email, @RequestParam("password") String password) {
 		user.setEmail(email);
@@ -71,27 +70,18 @@ public class UserController {
 	
 	@Transition(event="springmvc:/user")
 	public ModelAndView userDetail(User user, String event) {
-		return userView(user, event);
-	}
-	
-	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:post:/user/confirmation")
-	public String confirmUser(User user, String event, @RequestParam("token") int token) throws InstantiationException, TooBusyException {
-		String redirect = "redirect:/user";
-		
-		// If tokens match, transition to CONFIRMED
-		//
-		if (user.getToken() == token) {
-			userFSM.onEvent(user, "successful-confirmation");
-		} else {
-			redirect += "?msg=bad+token";
-		}
-		return redirect;
-	}
-	
-	private ModelAndView userView(User user, String event) {
 		ModelAndView mv = new ModelAndView("user");
 		mv.addObject("user", user);
 		mv.addObject("event", event);
 		return mv;
+	}
+	
+	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:post:/user/confirmation")
+	public String confirmUser(User user, String event, @RequestParam("token") int token) throws InstantiationException, TooBusyException {
+		if (user.getToken() == token) {
+			return "event:successful-confirmation";
+		} else {
+			return "redirect:/user?msg=bad+token";
+		}
 	}
 }

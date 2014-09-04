@@ -80,7 +80,7 @@ public class UserSessionServiceImpl implements UserSessionService, UserDetailsSe
 			private static final long serialVersionUID = 1L;
 			String userName = user.getEmail();
 			String password = user.getPassword();
-			boolean isEnabled = User.DELETED.equals(user.getState());
+			boolean isEnabled = !User.DELETED.equals(user.getState());
 			
 			@Override
 			public boolean isEnabled() {
