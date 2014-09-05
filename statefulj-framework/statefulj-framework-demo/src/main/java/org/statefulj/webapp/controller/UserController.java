@@ -116,7 +116,7 @@ public class UserController {
 	// -- REGISTERED_CONFIRMED -- //
 
 	@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/user")
-	public ModelAndView userDetail(User user, String event) {
+	public ModelAndView userPage(User user, String event) {
 		ModelAndView mv = new ModelAndView("user");
 		mv.addObject("user", user);
 		mv.addObject("event", event);
