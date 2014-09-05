@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.statefulj.framework.core.StatefulFactory;
 
 @Configuration
-@EnableTransactionManagement
 public class StatefulJConfig {
 	
 	@Bean

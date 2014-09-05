@@ -12,10 +12,6 @@
 		<level value="DEBUG" />
 	</logger>
 
-	<logger name="org.springframework.security">
-		<level value="DEBUG" />
-	</logger>
-
 	<!-- Root Logger -->
 	<root level="WARN">
 		<appender-ref ref="STDOUT" />
