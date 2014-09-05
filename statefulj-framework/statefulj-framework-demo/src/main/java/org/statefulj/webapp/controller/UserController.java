@@ -19,7 +19,7 @@ import org.statefulj.webapp.services.UserSessionService;
 	finderId="userSessionService"
 )
 public class UserController {
-	
+	 
 	@Resource
 	UserService userService;
 	
