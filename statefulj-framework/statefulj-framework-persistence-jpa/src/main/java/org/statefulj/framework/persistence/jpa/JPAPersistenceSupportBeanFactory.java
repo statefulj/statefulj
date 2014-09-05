@@ -26,8 +26,6 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		BeanDefinition factoryBean = BeanDefinitionBuilder
 				.genericBeanDefinition(FactoryImpl.class)
 				.getBeanDefinition();
-		ConstructorArgumentValues args = factoryBean.getConstructorArgumentValues();
-		args.addIndexedArgumentValue(0, statefulClass);
 		return factoryBean;
 	}
 

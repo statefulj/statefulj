@@ -49,7 +49,7 @@ public class StatefulFSMImpl<T> implements StatefulFSM {
 			if (id != null) {
 				throw new RuntimeException("Unable to locate " + clazz.getName() + ", id=" + id);
 			} else {
-				obj = this.factory.create();
+				obj = this.factory.create(this.clazz);
 			}
 		}
 		
