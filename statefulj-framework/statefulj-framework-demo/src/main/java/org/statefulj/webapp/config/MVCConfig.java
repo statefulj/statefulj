@@ -12,7 +12,6 @@ import org.statefulj.framework.core.StatefulFactory;
 
 @EnableWebMvc
 @Configuration
-@EnableTransactionManagement
 @ComponentScan({ "org.statefulj.webapp.*" })
 @Import({ AppSecurityConfig.class })
 public class MVCConfig {
