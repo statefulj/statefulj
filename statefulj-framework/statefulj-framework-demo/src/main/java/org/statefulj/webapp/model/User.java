@@ -1,13 +1,18 @@
 package org.statefulj.webapp.model;
 
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.annotations.Cascade;
 import org.statefulj.persistence.jpa.model.StatefulEntity;
 
 
@@ -32,14 +37,9 @@ public class User extends StatefulEntity {
 	String password;
 	
 	int token;
-
-	public int getToken() {
-		return token;
-	}
-
-	public void setToken(int token) {
-		this.token = token;
-	}
+	
+	@OneToMany(mappedBy="owner", cascade=CascadeType.ALL)
+	List<Account> accounts;
 
 	public Long getId() {
 		return id;
@@ -65,4 +65,24 @@ public class User extends StatefulEntity {
 		this.password = password;
 	}
 	
+	public int getToken() {
+		return token;
+	}
+
+	public void setToken(int token) {
+		this.token = token;
+	}
+	
+	public void addAccount(Account account) {
+		account.setOwner(this);
+		this.accounts.add(account);
+	}
+
+	public List<Account> getAccounts() {
+		return accounts;
+	}
+
+	public void setAccounts(List<Account> accounts) {
+		this.accounts = accounts;
+	}
 }

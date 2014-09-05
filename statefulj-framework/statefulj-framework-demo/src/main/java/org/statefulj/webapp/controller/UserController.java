@@ -26,6 +26,13 @@ public class UserController {
 	@Resource
 	UserSessionService userSessionService;
 	
+	// -- UNREGISTERED -- //
+	
+	@Transition(from=User.UNREGISTERED, event="springmvc:/")
+	public String homePage() {
+ 		return "index";
+	}
+	
 	@Transition(from=User.UNREGISTERED, event="springmvc:/login")
 	public String loginPage() {
  		return "login";
@@ -36,20 +43,6 @@ public class UserController {
  		return "registration";
 	}
 	
-	@Transitions({
-		// If we get a "successful-confirmation" event, transition into REGISTERD_CONFIRMED
-		//
-		@Transition(from=User.REGISTERED_UNCONFIRMED, event="successful-confirmation", to=User.REGISTERED_CONFIRMED),
-		
-		// If we're logged in, don't display either login or registration pages
-		//
-		@Transition(event="springmvc:/login"),
-		@Transition(event="springmvc:/registration")
-	})
-	public String redirectToAccount() {
- 		return "redirect:/user";
-	}
-
 	// TODO : Fix - we shouldn't have to require passing in the RequestParam name
 	@Transition(from=User.UNREGISTERED, event="springmvc:post:/user/register", to=User.REGISTERED_UNCONFIRMED)
 	public String newUser(
@@ -59,7 +52,7 @@ public class UserController {
 			@RequestParam("email") String email, 
 			@RequestParam("password") String password) {
 		
-		// Initialize and save the User
+		// Create the User
 		//
 		user.setEmail(email);
 		user.setPassword(password); 
@@ -70,24 +63,22 @@ public class UserController {
 		//
 		userSessionService.login(request.getSession(), user);
 		
-		// Redirect to user page
+		// Redirect to confirmation page
 		//
-		return "redirect:/user";
-	
+		return "redirect:/confirmation";
 	}
 	
+	// -- REGISTERED_UNCONFIRMED -- //
+
 	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:/user")
+	public ModelAndView redirectToConfirmation(User user) {
+		return new ModelAndView("redirect:/confirmation");
+	}
+	
+	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:/confirmation")
 	public ModelAndView confirmationPage(User user) {
 		ModelAndView mv = new ModelAndView("confirmation");
 		mv.addObject("user", user);
-		return mv;
-	}
-	
-	@Transition(event="springmvc:/user")
-	public ModelAndView userDetail(User user, String event) {
-		ModelAndView mv = new ModelAndView("user");
-		mv.addObject("user", user);
-		mv.addObject("event", event);
 		return mv;
 	}
 	
@@ -105,5 +96,35 @@ public class UserController {
 		} else {
 			return "redirect:/user?msg=bad+token";
 		}
+	}
+
+	@Transitions({
+		// If we get a "successful-confirmation" event, transition into REGISTERD_CONFIRMED
+		//
+		@Transition(from=User.REGISTERED_UNCONFIRMED, event="successful-confirmation", to=User.REGISTERED_CONFIRMED),
+		
+		// If we're logged in, don't display either login or registration pages
+		//
+		@Transition(event="springmvc:/"),
+		@Transition(event="springmvc:/login"),
+		@Transition(event="springmvc:/registration")
+	})
+	public String redirectToAccount() {
+ 		return "redirect:/user";
+	}
+
+	// -- REGISTERED_CONFIRMED -- //
+
+	@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/user")
+	public ModelAndView userDetail(User user, String event) {
+		ModelAndView mv = new ModelAndView("user");
+		mv.addObject("user", user);
+		mv.addObject("event", event);
+		return mv;
+	}
+
+	@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/user/delete", to=User.DELETED)
+	public String deleteUser(User user, String event) {
+		return "redirect:/logout";
 	}
 }

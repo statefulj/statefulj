@@ -11,7 +11,7 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
-	<title>Any</title>
+	<title>Confirmation Page</title>
 	<base href="${fn:substring(url, 0, fn:length(url) - fn:length(uri))}${req.contextPath}/">
 </head>
 <body> 

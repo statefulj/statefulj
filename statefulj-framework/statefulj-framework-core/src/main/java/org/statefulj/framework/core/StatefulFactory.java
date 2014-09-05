@@ -289,7 +289,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		
 		// Fetch Repo info
 		//
-		String repoBeanId = entityMappings.get(statefulClass);
+		String repoBeanId = getRepoId(entityMappings, statefulClass);
 		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
 		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
 
@@ -421,9 +421,14 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		
 		logger.debug("mapEventsTransitionsAndStates : Mapping events and transitions for {}", statefulControllerClass);
 		
+		StatefulController ctrlAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
+
+		// Add Start State
+		//
+		states.add(ctrlAnnotation.startState());
+		
 		// Map the NOOP Transitions
 		//
-		StatefulController ctrlAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
 		for (Transition transition : ctrlAnnotation.noops()) {
 			mapTransition(
 					transition, 
@@ -434,7 +439,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 					states);
 		}
 		
-		// TODO : As we map the events, we need to make sure that the method signature of all the handlers for the event are the same
+		// TODO : As we map the events, we need to make sure that the method signature and return
+		// types of all the handlers for the event are the same
 		
 		for(Method method : statefulControllerClass.getDeclaredMethods()) {
 			
@@ -636,5 +642,25 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		reg.registerBeanDefinition(statefulFSMId, 
 				persistenceFactory.buildStatefulFSM(statefulClass, fsmBeanId, factoryId, finderId));
 		return statefulFSMId;
+	}
+	
+	private String getRepoId(Map<Class<?>, String> entityMappings, Class<?> clazz) {
+		if (clazz != null) {
+			String id = entityMappings.get(clazz);
+			if (id != null) {
+				return id;
+			}
+			id = getRepoId(entityMappings, clazz.getSuperclass());
+			if (id != null) {
+				return id;
+			}
+			for (Class<?> interfaze : clazz.getInterfaces()) {
+				id = getRepoId(entityMappings, interfaze);
+				if (id != null) {
+					return id;
+				}
+			}
+		}
+		return null;
 	}
 }

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Documented
 @Component
 /**
- * The StatefuleController annotation denotes a Class that defines a Finite State Machine
+ * The StatefuleController annotation defines a Finite State Machine
  * for the specified managed Entity.  A StatefulController is a Spring Component that will
  * be managed by Spring via Component scanning.
  * 
@@ -46,11 +46,7 @@ public @interface StatefulController {
 	Class<?> clazz();
 
 	/**
-	 * Optional Id of the PersistenceSupport bean for this class.  If not specified, a 
-	 * PersistenceSupport bean is dynamically generated based on the 
-	 * type of Repository supporting the managed Entity.  The PersistenceSupport Bean is 
-	 * responsible for fetching the Entity from the Database, as well as, updating the 
-	 * State of the Managed Entity for each Transition.
+	 * Optional Ids of the Persistence beans for this class. 
 	 * 
 	 * @return
 	 */
