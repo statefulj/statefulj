@@ -2,9 +2,6 @@
 	pageEncoding="US-ASCII"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
-<c:set var="req" value="${pageContext.request}" />
-<c:set var="url">${req.requestURL}</c:set>
-<c:set var="uri" value="${req.requestURI}" />
 <c:set var="logoutUrl" value="/logout" />
 <c:url var="createAccountUrl" value="/accounts"/>
 <c:url var="deleteUrl" value="/delete"/>
