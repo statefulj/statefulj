@@ -97,6 +97,13 @@
 			<version>${jstl.version}</version>
 		</dependency>
 
+		<!-- Sitemesh 3 for templating -->
+		<dependency>
+			<groupId>org.sitemesh</groupId>
+			<artifactId>sitemesh</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+
 		<!-- HSQL -->
 		<dependency>
 			<groupId>hsqldb</groupId>

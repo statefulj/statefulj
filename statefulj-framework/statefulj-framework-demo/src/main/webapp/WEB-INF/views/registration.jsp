@@ -6,13 +6,9 @@
 <c:set var="req" value="${pageContext.request}" />
 <c:set var="url">${req.requestURL}</c:set>
 <c:set var="uri" value="${req.requestURI}" />
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
 	<title>Registration Page</title>
-	<base href="${fn:substring(url, 0, fn:length(url) - fn:length(uri))}${req.contextPath}/">
-</head>
 <body> 
 <c:url value="/user/register" var="registerUrl"/>
 <form action="${registerUrl}" method="post">       
@@ -32,7 +28,7 @@
     <input type="hidden"                        
         name="${_csrf.parameterName}"
         value="${_csrf.token}"/>
-    <button type="submit" class="btn">Register</button>
+    <button type="submit" class="btn btn-default">Register</button>
 </form>
 </body>
 </html>

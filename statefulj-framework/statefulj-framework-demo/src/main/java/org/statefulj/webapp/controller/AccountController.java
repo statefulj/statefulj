@@ -14,7 +14,7 @@ import org.statefulj.webapp.model.Account;
 public class AccountController {
 	
 	@Transition(from=Account.NON_EXISTENT, event="springmvc:post:/accounts", to=Account.ACTIVE)
-	public String createCheckingAccount(Account account, String event) {
+	public String createAccount(Account account, String event) {
 		return "redirect:/user";
 	}
 

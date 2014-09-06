@@ -7,7 +7,6 @@
 <c:set var="url">${req.requestURL}</c:set>
 <c:set var="uri" value="${req.requestURI}" />
 <c:set var="logoutUrl" value="/logout" />
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
@@ -26,7 +25,7 @@
     <input type="hidden"                        
         name="${_csrf.parameterName}"
         value="${_csrf.token}"/>
-    <button type="submit" class="btn">Confirm</button>
+    <button type="submit" class="btn btn-default">Confirm</button>
 </form>
 <a href="${logoutUrl}">logout</a>
 </body>
