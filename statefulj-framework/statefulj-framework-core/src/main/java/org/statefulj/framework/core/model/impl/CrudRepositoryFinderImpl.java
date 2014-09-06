@@ -5,7 +5,7 @@ import java.io.Serializable;
 import org.springframework.data.repository.CrudRepository;
 import org.statefulj.framework.core.model.Finder;
 
-public class CrudRepositoryFinderImpl<T> implements Finder<T> {
+public class CrudRepositoryFinderImpl<T, CT> implements Finder<T, CT> {
 	
 	CrudRepository<T, Serializable> repo;
 	
@@ -14,12 +14,12 @@ public class CrudRepositoryFinderImpl<T> implements Finder<T> {
 	}
 
 	@Override
-	public T find(Object id) {
+	public T find(Class<T> clazz, Object id, String event, CT context) {
 		return repo.findOne((Serializable)id);
 	}
 
 	@Override
-	public T find() {
+	public T find(Class<T> clazz, String event, CT context) {
 		return null;
 	}
 

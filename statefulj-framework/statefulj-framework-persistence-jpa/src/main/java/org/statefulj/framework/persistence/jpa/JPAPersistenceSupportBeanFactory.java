@@ -55,21 +55,21 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 
 	
 	@Override
-	public BeanDefinition buildStatefulFSM(
+	public BeanDefinition buildFSMHarnessBean(
 			Class<?> statefulClass,
 			String fsmBeanId,
 			String factoryId, 
 			String finderId) {
 
-		BeanDefinition statefulFSM = BeanDefinitionBuilder
-				.genericBeanDefinition(JPAStatefulFSMImpl.class)
+		BeanDefinition fsmHarness = BeanDefinitionBuilder
+				.genericBeanDefinition(JPAFSMHarnessImpl.class)
 				.getBeanDefinition();
-		ConstructorArgumentValues args = statefulFSM.getConstructorArgumentValues();
+		ConstructorArgumentValues args = fsmHarness.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fsmBeanId));
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
-		return statefulFSM;
+		return fsmHarness;
 	}
 
 }

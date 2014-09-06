@@ -3,10 +3,12 @@ package org.statefulj.framework.tests;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.mockito.Mockito.mock;
 import static org.junit.Assert.*;
 
 import org.springframework.context.ApplicationContext;
@@ -14,7 +16,7 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.framework.core.model.ReferenceFactory;
-import org.statefulj.framework.core.model.StatefulFSM;
+import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
@@ -35,8 +37,8 @@ public class StatefulControllerTest {
 	@Resource
 	UserRepository userRepo;
 	
-	@Resource(name="userController.statefulFSM")
-	StatefulFSM userFSM;
+	@Resource(name="userController.fsmHarness")
+	FSMHarness fsmHarness;
 	
 	// TODO : Need to test for annotated parameters
 	
@@ -52,7 +54,8 @@ public class StatefulControllerTest {
 		
 		// Verify new User scenario
 		//
-		User user = ReflectionUtils.invoke(userControllerBinder, "$_get_first", User.class);
+		HttpServletRequest context = mock(HttpServletRequest.class);
+		User user = ReflectionUtils.invoke(userControllerBinder, "$_get_first", User.class, context );
 
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -60,7 +63,7 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId(), context);
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -68,14 +71,14 @@ public class StatefulControllerTest {
 		
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
-		user = ReflectionUtils.invoke(userControllerBinder, "$_post_id_second", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerBinder, "$_post_id_second", User.class, user.getId(), context);
 
 		assertTrue(user.getId() > 0);
 		assertEquals(UserController.THREE_STATE, user.getState());
 
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId());
+		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId(), context);
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -83,13 +86,13 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		Object nulObj = ReflectionUtils.invoke(userControllerBinder, "$_get_id_four", User.class, user.getId());
+		Object nulObj = ReflectionUtils.invoke(userControllerBinder, "$_get_id_four", User.class, user.getId(), context);
 		
 		assertNull(nulObj);
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FOUR_STATE, user.getState());
 
-		userFSM.onEvent("five", user.getId(), new Object[]{});
+		fsmHarness.onEvent("five", user.getId(), new Object[]{context});
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FIVE_STATE, user.getState());
 

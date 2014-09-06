@@ -4,27 +4,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.statefulj.framework.core.model.StatefulFSM;
+import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class StatefulFSMImpl<T> implements StatefulFSM {
+public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	
-	private Factory<T> factory;
+	private Factory<T, CT> factory;
 	
-	private Finder<T> finder;
+	private Finder<T, CT> finder;
 	
 	private FSM<T> fsm;
 	
 	private Class<T> clazz;
 	
-	public StatefulFSMImpl(
+	public FSMHarnessImpl(
 			FSM<T> fsm, 
 			Class<T> clazz, 
-			Factory<T> factory,
-			Finder<T> finder) {
+			Factory<T, CT> factory,
+			Finder<T, CT> finder) {
 		this.fsm = fsm;
 		this.clazz = clazz;
 		this.factory = factory;
@@ -32,24 +32,27 @@ public class StatefulFSMImpl<T> implements StatefulFSM {
 	}
 	
 	@Override
+	@SuppressWarnings("unchecked")
 	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException {
 		
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
+		CT context = (parmList.size() > 0) ? (CT)parmList.remove(0) : null;
+		
 		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length + 1);
 		
 		T obj = null;
 		
 		if (id == null) {
-			obj = this.finder.find();
+			obj = this.finder.find(clazz, event, context);
 		} else {
-			obj = this.finder.find(id);
+			obj = this.finder.find(clazz, id, event, context);
 		}
 
 		if ( obj == null ) {
 			if (id != null) {
 				throw new RuntimeException("Unable to locate " + clazz.getName() + ", id=" + id);
 			} else {
-				obj = this.factory.create(this.clazz);
+				obj = this.factory.create(this.clazz, event, context);
 			}
 		}
 		

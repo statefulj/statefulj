@@ -8,10 +8,16 @@ import org.statefulj.webapp.model.Account;
 
 @StatefulController(
 	clazz=Account.class,
-	startState=Account.NON_EXISTENT
+	startState=Account.NON_EXISTENT,
+	factoryId="accountService"
 )
 public class AccountController {
 	
+	@Transition(from=Account.NON_EXISTENT, event="springmvc:post:/accounts", to=Account.ACTIVE)
+	public String createCheckingAccount(Account account, String event) {
+		return "redirect:/user";
+	}
+
 	// Make sure that only owner's can access the particular account
 	//
 	@Transition(event="springmvc:/accounts/{id}")

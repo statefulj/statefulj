@@ -23,20 +23,26 @@
 		<li><a href="accounts/${account.id}">${account}</a></li>
 	</c:forEach>
 	<a href="logout">logout</a>
-	<form action="accounts/checking" method="post">
+	<form action="accounts" method="post">
+		<input type="hidden" name="type"
+			value="checking" />
+		<input type="hidden" name="${_csrf.parameterName}"
+			value="${_csrf.token}" />
 		<button type="submit">Add Checking Account</button>
+	</form>
+	<form action="accounts" method="post">
+		<input type="hidden" name="type"
+			value="savings" />
 		<input type="hidden" name="${_csrf.parameterName}"
 			value="${_csrf.token}" />
-	</form>
-	<form action="accounts/savings" method="post">
 		<button type="submit">Add Savings Account</button>
-		<input type="hidden" name="${_csrf.parameterName}"
-			value="${_csrf.token}" />
 	</form>
-	<form action="accounts/loan" method="post">
-		<button type="submit">Add Loan Account</button>
+	<form action="accounts" method="post">
+		<input type="hidden" name="type"
+			value="loan" />
 		<input type="hidden" name="${_csrf.parameterName}"
 			value="${_csrf.token}" />
+		<button type="submit">Add Loan Account</button>
 	</form>
 	<a href="user/delete">Delete User</a>
 </body>

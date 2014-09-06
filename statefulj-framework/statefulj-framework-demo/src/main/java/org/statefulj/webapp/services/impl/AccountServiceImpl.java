@@ -1,11 +1,15 @@
 package org.statefulj.webapp.services.impl;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.webapp.model.Account;
+import org.statefulj.webapp.model.CheckingAccount;
+import org.statefulj.webapp.model.LoanAccount;
+import org.statefulj.webapp.model.SavingsAccount;
 import org.statefulj.webapp.model.User;
 import org.statefulj.webapp.repo.AccountRepository;
 import org.statefulj.webapp.services.AccountService;
@@ -13,7 +17,7 @@ import org.statefulj.webapp.services.UserSessionService;
 
 @Service("accountService")
 @Transactional
-public class AccountServiceImpl implements AccountService, Factory<Account> {
+public class AccountServiceImpl implements AccountService, Factory<Account, HttpServletRequest> {
 	
 	@Resource
 	AccountRepository accountRepo;
@@ -33,17 +37,30 @@ public class AccountServiceImpl implements AccountService, Factory<Account> {
 	}
 
 	@Override
-	public Account create(Class<Account> clazz) {
-		try {
-			User user = userSessionService.findLoggedInUser();
-			Account account = clazz.newInstance();
-			user.addAccount(account);
-			return account;
-		} catch (InstantiationException e) {
-			throw new RuntimeException(e);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
+	public Account create(Class<Account> clazz, String event, HttpServletRequest request) {
+		User user = userSessionService.findLoggedInUser();
+		Account account = null;
+		
+		switch(request.getParameter("type")) {
+		
+			case "checking" :
+				account = new CheckingAccount();
+				break;
+		
+			case "savings" :
+				account = new SavingsAccount();
+				break;
+				
+			case "loan" :
+				account = new LoanAccount();
+				break;
+				
+			default :
+				throw new RuntimeException("Unrecognized account type " + request.getParameter("type"));
 		}
+		
+		user.addAccount(account);
+		return account;
 	}
 
 }

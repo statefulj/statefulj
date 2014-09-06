@@ -33,14 +33,14 @@ public class MockPersistenceSupportBeanFactory implements
 	}
 
 	@Override
-	public BeanDefinition buildStatefulFSM(Class<?> statefulClass,
+	public BeanDefinition buildFSMHarnessBean(Class<?> statefulClass,
 			String fsmBeanId, String factoryId, String finderId) {
 		return mockDef();
 	}
 	
 	private BeanDefinition mockDef() {
 		return BeanDefinitionBuilder
-				.genericBeanDefinition(FactoryImpl.class)
+				.genericBeanDefinition(Object.class)
 				.getBeanDefinition();
 	}
  

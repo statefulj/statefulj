@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
@@ -49,7 +50,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.model.EndpointBinder;
-import org.statefulj.framework.core.model.StatefulFSM;
+import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.ReferenceFactory;
 
 // TODO : Handle when an action doesn't have either the User or Event parameter
@@ -94,7 +95,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		
 		// Add the member variable referencing the StatefulController
 		//
-		addStatefulFSMReference(mvcProxyClass, refFactory.getStatefulFSMId(), cp);
+		addFSMHarnessReferenceId(mvcProxyClass, refFactory.getFSMHarnessId(), cp);
 		
 		// Copy methods from bean to the new proxy class
 		//
@@ -114,9 +115,9 @@ public class SpringMVCBinder implements EndpointBinder {
 		ccFile.addAttribute(attr);
 	}
 	
-	private void addStatefulFSMReference(CtClass mvcProxyClass, String statefulFSMId, ClassPool cp) throws NotFoundException, CannotCompileException {
-		CtClass type = cp.get(StatefulFSM.class.getName());
-		CtField field = new CtField(type, "statefulFSM", mvcProxyClass);
+	private void addFSMHarnessReferenceId(CtClass mvcProxyClass, String fsmHarnessId, ClassPool cp) throws NotFoundException, CannotCompileException {
+		CtClass type = cp.get(FSMHarness.class.getName());
+		CtField field = new CtField(type, "fsmHarness", mvcProxyClass);
 		FieldInfo fi = field.getFieldInfo();
 		
 		AnnotationsAttribute attr = new AnnotationsAttribute(
@@ -125,7 +126,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		Annotation annot = new Annotation(Resource.class.getName(), fi.getConstPool());
 		
 		StringMemberValue nameValue = new StringMemberValue(fi.getConstPool());
-		nameValue.setValue(statefulFSMId);
+		nameValue.setValue(fsmHarnessId);
 		annot.addMemberValue("name", nameValue);
 		
 		attr.addAnnotation(annot);
@@ -265,7 +266,7 @@ public class SpringMVCBinder implements EndpointBinder {
 				+ nullObjId
 				+ ", $args); }";
 
-		ctMethod.setBody(methodBody, "this.statefulFSM","onEvent");
+		ctMethod.setBody(methodBody, "this.fsmHarness","onEvent");
 	}
 	
 	private void addParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
@@ -282,12 +283,12 @@ public class SpringMVCBinder implements EndpointBinder {
 			// Does this event reference the stateful object?
 			//
 			int annotationCnt = (referencesId) 
-					? method.getParameterTypes().length - 1 
-					: method.getParameterTypes().length - 2;
-			annotationCnt = Math.max(annotationCnt, 0);
+					? method.getParameterTypes().length 
+					: method.getParameterTypes().length - 1;
+			annotationCnt = Math.max(annotationCnt, 1);
 
 			// Pull the Parameter Annotations from the StatefulController - we're going to skip
-			// over the first two - but then we're going to add an "id" parameter
+			// over the first two - but then we're going to add a parameter for the HttpServletRequest and "id" parameter
 			//
 			java.lang.annotation.Annotation[][] parmAnnotations = method.getParameterAnnotations();
 			paramArrays = new Annotation[annotationCnt][];
@@ -299,6 +300,11 @@ public class SpringMVCBinder implements EndpointBinder {
 				paramArrays[parmIndex] = addIdParameter(ctMethod, cp);
 				parmIndex++;
 			}
+			
+			// Add an HttpServletRequest - this will be passed in as a context to the finder/factory methods
+			//
+			paramArrays[parmIndex] = addHttpRequestParameter(ctMethod, cp);
+			parmIndex++;
 			
 			int parmCnt = 0;
 			for(Class<?> parm : method.getParameterTypes()) {
@@ -330,11 +336,25 @@ public class SpringMVCBinder implements EndpointBinder {
 		} else {
 			// NOOP transitions always a require an object Id
 			//
-			paramArrays = new Annotation[1][];
+			paramArrays = new Annotation[2][];
 			paramArrays[0] = addIdParameter(ctMethod, cp);
+			paramArrays[1] = addHttpRequestParameter(ctMethod, cp);
 		}
 		paramAtrributeInfo.setAnnotations(paramArrays);
 		methodInfo.addAttribute(paramAtrributeInfo);
+	}
+	
+	private Annotation[] addHttpRequestParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, CannotCompileException {
+		// Map the HttpServletRequest class
+		//
+		CtClass ctParm = cp.get(HttpServletRequest.class.getName());
+		
+		// Add the parameter to the method
+		//
+		ctMethod.addParameter(ctParm);
+		
+		return new Annotation[]{};
+		
 	}
 	
 	private Annotation[] addIdParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, CannotCompileException {

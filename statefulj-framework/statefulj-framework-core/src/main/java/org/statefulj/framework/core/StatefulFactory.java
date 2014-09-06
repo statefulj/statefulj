@@ -335,9 +335,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				persisterId, 
 				reg);
 
-		// Build out the StatefulFSM Bean
+		// Build out the FSMHarness Bean
 		//
-		registerStatefulFSM(
+		registerFSMHarness(
 				referenceFactory,
 				factory, 
 				statefulClass, 
@@ -630,7 +630,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 		return persisterId;
 	}
 	
-	private String registerStatefulFSM(
+	private String registerFSMHarness(
 				ReferenceFactory referenceFactory,
 				PersistenceSupportBeanFactory persistenceFactory,
 				Class<?> statefulClass, 
@@ -638,10 +638,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 				String factoryId, 
 				String finderId, 
 				BeanDefinitionRegistry reg) {
-		String statefulFSMId = referenceFactory.getStatefulFSMId();
-		reg.registerBeanDefinition(statefulFSMId, 
-				persistenceFactory.buildStatefulFSM(statefulClass, fsmBeanId, factoryId, finderId));
-		return statefulFSMId;
+		String fsmHarnessId = referenceFactory.getFSMHarnessId();
+		reg.registerBeanDefinition(fsmHarnessId, 
+				persistenceFactory.buildFSMHarnessBean(statefulClass, fsmBeanId, factoryId, finderId));
+		return fsmHarnessId;
 	}
 	
 	private String getRepoId(Map<Class<?>, String> entityMappings, Class<?> clazz) {

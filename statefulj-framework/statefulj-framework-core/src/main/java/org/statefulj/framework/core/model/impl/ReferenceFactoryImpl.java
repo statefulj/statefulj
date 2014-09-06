@@ -26,8 +26,8 @@ public class ReferenceFactoryImpl implements ReferenceFactory {
 	}
 
 	@Override
-	public String getStatefulFSMId() {
-		return decapitalize(ctrl + ".statefulFSM");
+	public String getFSMHarnessId() {
+		return decapitalize(ctrl + ".fsmHarness");
 	}
 
 	@Override

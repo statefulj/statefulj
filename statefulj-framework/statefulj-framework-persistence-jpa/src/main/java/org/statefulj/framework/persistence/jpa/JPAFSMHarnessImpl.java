@@ -8,26 +8,26 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
-import org.statefulj.framework.core.model.StatefulFSM;
-import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
+import org.statefulj.framework.core.model.FSMHarness;
+import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class JPAStatefulFSMImpl<T> implements StatefulFSM {
+public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
 	
 	ThreadLocal<TransactionStatus> tl = new ThreadLocal<TransactionStatus>();
 	
 	@Resource
 	JpaTransactionManager transactionManager;
 	
-	StatefulFSM fsm;
+	FSMHarness fsm;
 	
-	public JPAStatefulFSMImpl(
+	public JPAFSMHarnessImpl(
 			FSM<T> fsm, 
 			Class<T> clazz, 
-			Factory<T> factory,
-			Finder<T> finder) {
-		this.fsm = new StatefulFSMImpl<T>(fsm, clazz, factory, finder);
+			Factory<T, CT> factory,
+			Finder<T, CT> finder) {
+		this.fsm = new FSMHarnessImpl<T, CT>(fsm, clazz, factory, finder);
 	}
 	
 	@Override

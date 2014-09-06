@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 
@@ -24,7 +25,7 @@ import org.statefulj.webapp.services.UserSessionService;
 
 @Service(value="userSessionService")
 @Transactional
-public class UserSessionServiceImpl implements UserSessionService, UserDetailsService, Finder<User> {
+public class UserSessionServiceImpl implements UserSessionService, UserDetailsService, Finder<User, HttpServletRequest> {
 	
 	@Resource
 	UserRepository userRepo;
@@ -41,12 +42,12 @@ public class UserSessionServiceImpl implements UserSessionService, UserDetailsSe
 	}
 
 	@Override
-	public User find() {
+	public User find(Class<User> clazz, String event, HttpServletRequest context) {
 		return findLoggedInUser();
 	}
 
 	@Override
-	public User find(Object id) {
+	public User find(Class<User> clazz, Object id, String event, HttpServletRequest context) {
 		return null;
 	}
 

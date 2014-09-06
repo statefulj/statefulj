@@ -1,8 +1,7 @@
 package org.statefulj.framework.core.model;
 
-public interface Factory<T> {
+public interface Factory<T, CT> {
 	
-	// TODO : Pass the class into the method so that we can deal with subclassing
-	T create(Class<T> clazz);
+	T create(Class<T> clazz, String event, CT context);
 
 }
