@@ -61,9 +61,15 @@ public class UserSessionServiceImpl implements UserSessionService, UserDetailsSe
 	@Override
 	public void login(HttpSession session, User user) {
       UserDetails userDetails = this.getDetails(user);
-      UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userDetails, user.getPassword(), userDetails.getAuthorities());
+      UsernamePasswordAuthenticationToken auth = 
+    		  new UsernamePasswordAuthenticationToken(
+    				  userDetails, 
+    				  user.getPassword(), 
+    				  userDetails.getAuthorities());
       SecurityContextHolder.getContext().setAuthentication(auth);  
-      session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());  
+      session.setAttribute(
+    		  HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, 
+    		  SecurityContextHolder.getContext());  
 	}
 	
 	private UserDetails getDetails(final User user) {
