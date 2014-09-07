@@ -5,7 +5,7 @@ import javax.servlet.Filter;
 import org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
-public class MVCInitializer  extends AbstractAnnotationConfigDispatcherServletInitializer {
+public class MVCInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 
 	@Override
 	protected Class<?>[] getRootConfigClasses() {

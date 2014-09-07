@@ -1,13 +1,8 @@
-<%@ page language="java" contentType="text/html; charset=US-ASCII"
-	pageEncoding="US-ASCII"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
-<c:set var="logoutUrl" value="/logout" />
 <c:url var="createAccountUrl" value="/accounts"/>
-<c:url var="deleteUrl" value="/delete"/>
 <html>
 <head>
-<title>User Page</title>
+	<title>User Page</title>
 </head>
 <body>
 	user.id=${user.id}

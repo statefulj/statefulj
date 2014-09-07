@@ -28,7 +28,7 @@ public class AppSecurityConfig extends WebSecurityConfigurerAdapter {
 	  http
 	  	.authorizeRequests()
 	  		.antMatchers("/css/**/*").permitAll()
-	  		.antMatchers("/index.jsp").permitAll()
+	  		.antMatchers("/").permitAll()
 	  		.antMatchers("/registration").permitAll()
 	  		.antMatchers("/user/register").permitAll()
 	  		.anyRequest().authenticated()
