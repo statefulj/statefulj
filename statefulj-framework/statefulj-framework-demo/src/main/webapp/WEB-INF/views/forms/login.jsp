@@ -23,6 +23,6 @@
 			</div>
 		</div>
 		<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-		<button type="submit" class="btn btn-default">Login</button>
+		<button type="submit" class="btn btn-default center-block">Login</button>
 	</fieldset>
 </form>

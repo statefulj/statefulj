@@ -16,6 +16,6 @@
 		</div>
 		<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
 		<input type="hidden" name="type" value="${type}" />
-		<button type="submit" class="btn btn-default">Confirm</button>
+		<button type="submit" class="btn btn-default center-block">Confirm</button>
 	</fieldset>
 </form>
