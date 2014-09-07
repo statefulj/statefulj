@@ -8,7 +8,7 @@
 				<div class="row">
 					<div class="col-lg-12">
 						<h1>StatefulJ Trust Bank</h1>
-						<p class="lead">A StatefulJ Banking Demo</p>
+						<p class="lead">A Banking Demo built on StatefulJ</p>
 					</div>
 				</div>
 			</div>
