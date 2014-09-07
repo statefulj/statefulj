@@ -1,5 +1,6 @@
 package org.statefulj.framework.core.actions;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.RetryException;
+import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.Action;
 
 public class MethodInvocationAction implements Action<Object> {
@@ -32,7 +34,6 @@ public class MethodInvocationAction implements Action<Object> {
 	@SuppressWarnings("unchecked")
 	private void invoke(Object entity, String event, Object... parms) {
 		try {
-			
 			// Remove the first Object in the parm list - it's our Return Value
 			//
 			ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
@@ -62,9 +63,21 @@ public class MethodInvocationAction implements Action<Object> {
 			} else {
 				returnValue.setValue(retVal);
 			}
-		} catch (Exception e) {
+		} catch (NoSuchMethodException e) {
 			throw new RuntimeException(e);
-		} 
+		} catch (SecurityException e) {
+			throw new RuntimeException(e);
+		} catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			if (e.getCause() instanceof RuntimeException) {
+				throw (RuntimeException)e.getCause();
+			}
+		} catch (TooBusyException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public Object getController() {

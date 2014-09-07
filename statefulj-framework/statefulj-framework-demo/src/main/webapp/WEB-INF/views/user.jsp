@@ -1,38 +1,36 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<c:url var="createAccountUrl" value="/accounts"/>
+<c:url var="createSavingsAccountUrl" value="/accounts/saving" />
+<c:url var="createCheckingAccount" value="/accounts/checking" />
+<c:url var="createLoanAccountUrl" value="/accounts/loan" />
+<c:url var="deleteUserUrl" value="/user/delete" />
 <html>
-<head>
-	<title>User Page</title>
-</head>
-<body>
-	user.id=${user.id}
-	<br /> user.state=${user.state}
-	<br /> event=${event}
-	<br />
-	<c:forEach items="${user.accounts}" var="account">
-		<li><a href="accounts/${account.id}">${account}</a></li>
-	</c:forEach>
-	<form action="${createAccountUrl}" method="post">
-		<input type="hidden" name="type"
-			value="checking" />
-		<input type="hidden" name="${_csrf.parameterName}"
-			value="${_csrf.token}" />
-		<button type="submit" class="btn btn-default">Add Checking Account</button>
-	</form>
-	<form action="${createAccountUrl}" method="post">
-		<input type="hidden" name="type"
-			value="savings" />
-		<input type="hidden" name="${_csrf.parameterName}"
-			value="${_csrf.token}" />
-		<button type="submit" class="btn btn-default">Add Savings Account</button>
-	</form>
-	<form action="${createAccountUrl}" method="post">
-		<input type="hidden" name="type"
-			value="loan" />
-		<input type="hidden" name="${_csrf.parameterName}"
-			value="${_csrf.token}" />
-		<button type="submit" class="btn btn-default">Add Loan Account</button>
-	</form>
-	<a href="${deleteUrl}" class="btn btn-default">Delete User</a>
-</body>
+	<head>
+		<title>User Page</title>
+	</head>
+	<body>
+		<div class="row">
+			<div class="col-md-offset-1 col-md-10">
+				<h2>${user.firstName} ${user.lastName}</h2>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-offset-1 col-md-10">
+				<h3>Accounts:</h3>
+				<c:if test="${empty user.accounts}">
+					<div class="alert alert-info">
+						You need to set up some accounts
+					</div>
+				</c:if>
+				<c:forEach items="${user.accounts}" var="account">
+					<li><a href="accounts/${account.id}">${account}</a></li>
+				</c:forEach>
+				<div class="account-create">
+					<a href="${createSavingsAccountUrl}" class="btn btn-default">+ Savings Account</a>
+					<a href="${createCheckingAccountUrl}" class="btn btn-default">+ Checking Account</a>
+					<a href="${createLoanAccountUrl}" class="btn btn-default">+ Loan Account</a>
+				</div>
+				<a href="${deleteUserUrl}" class="btn btn-default">Delete User</a>
+			</div>
+		</div>
+	</body>
 </html>

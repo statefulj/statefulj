@@ -4,9 +4,14 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.text.WordUtils;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -78,8 +83,16 @@ public class UserController {
 
 			// Save and flush to db - if there is a problem, fail before logging in
 			//
-			userService.save(user);
-			entityManager.flush();  
+			try {
+				userService.save(user);
+				entityManager.flush();  
+			} catch(Exception e) {
+				if (e.getCause() instanceof ConstraintViolationException) {
+					throw new DuplicateUserException();
+				} else {
+					throw e;
+				}
+			}
 			
 			// Login the newly registered User
 			//
@@ -142,6 +155,22 @@ public class UserController {
 		model.addAttribute("user", user);
 		model.addAttribute("event", event);
 		return "user";
+	}
+
+	@Transitions({
+		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/loan"),
+		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/saving"),
+		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/checking")
+	})
+	public String createAccountForm(User user, String event, Model model) {
+		String createAccountUri = (event.equals("/accounts/loans")) ? "/accounts/loan" : "/accounts";
+		String[] parts = event.split("/");
+		String type = parts[2];
+		String typeTitle = WordUtils.capitalize(type);
+		model.addAttribute("createAccountUri", createAccountUri);
+		model.addAttribute("type", type);
+		model.addAttribute("typeTitle", typeTitle);
+		return "createAccount";
 	}
 
 	@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/user/delete", to=User.DELETED)

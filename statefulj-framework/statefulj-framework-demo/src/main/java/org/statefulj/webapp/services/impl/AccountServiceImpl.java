@@ -38,7 +38,6 @@ public class AccountServiceImpl implements AccountService, Factory<Account, Http
 
 	@Override
 	public Account create(Class<Account> clazz, String event, HttpServletRequest request) {
-		User user = userSessionService.findLoggedInUser();
 		Account account = null;
 		
 		switch(request.getParameter("type")) {
@@ -51,15 +50,11 @@ public class AccountServiceImpl implements AccountService, Factory<Account, Http
 				account = new SavingsAccount();
 				break;
 				
-			case "loan" :
-				account = new LoanAccount();
-				break;
-				
 			default :
 				throw new RuntimeException("Unrecognized account type " + request.getParameter("type"));
 		}
 		
-		user.addAccount(account);
+		addAccount(account);
 		return account;
 	}
 
