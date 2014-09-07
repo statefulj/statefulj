@@ -10,7 +10,6 @@
 		<module>statefulj-fsm</module>
 		<module>statefulj-persistence-jpa</module>
 		<module>statefulj-framework</module>
-		<module>webapp</module>
 	</modules>
 
 	<name>statefulj</name>
