@@ -5,18 +5,15 @@
 	<title>Confirmation Page</title>
 </head>
 <body> 
-	confirmation token=${user.token}<br/>
-	<c:url value="/user/confirmation" var="confirmationUrl"/>
-<form action="${confirmationUrl}" method="post">
-    <p>
-        <label for="confirmation">Enter your confirmation token</label>
-        <input type="text" id="token" name="token"/>	
-    </p>
-    <input type="hidden"                        
-        name="${_csrf.parameterName}"
-        value="${_csrf.token}"/>
-    <button type="submit" class="btn btn-default">Confirm</button>
-</form>
-<a href="${logoutUrl}">logout</a>
+	<div class="row">
+		<div class="col-md-offset-3 col-md-6">
+			<div class="well bs-component">
+				<div class="alert alert-info">
+				  Your confirmation code is <strong>${user.token}</strong>
+				</div>
+				<%@ include file="/WEB-INF/views/forms/confirmation.jsp"%>
+			</div>
+		</div>
+	</div>
 </body>
 </html>

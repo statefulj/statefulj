@@ -12,7 +12,6 @@
 	<c:forEach items="${user.accounts}" var="account">
 		<li><a href="accounts/${account.id}">${account}</a></li>
 	</c:forEach>
-	<a href="${logoutUrl}">logout</a>
 	<form action="${createAccountUrl}" method="post">
 		<input type="hidden" name="type"
 			value="checking" />
