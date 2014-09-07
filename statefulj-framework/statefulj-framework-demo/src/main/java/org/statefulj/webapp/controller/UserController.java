@@ -161,7 +161,7 @@ public class UserController {
 
 	@Transitions({
 		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/loan"),
-		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/saving"),
+		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/savings"),
 		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/checking")
 	})
 	public String createAccountForm(User user, String event, Model model) {

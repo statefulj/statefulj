@@ -1,5 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<c:url var="createSavingsAccountUrl" value="/accounts/saving" />
+<c:url var="createSavingsAccountUrl" value="/accounts/savings" />
 <c:url var="createCheckingAccountUrl" value="/accounts/checking" />
 <c:url var="createLoanAccountUrl" value="/accounts/loan" />
 <c:url var="deleteUserUrl" value="/user/delete" />
