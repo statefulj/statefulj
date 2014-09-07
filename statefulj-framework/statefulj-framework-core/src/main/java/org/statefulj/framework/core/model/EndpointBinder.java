@@ -12,6 +12,7 @@ public interface EndpointBinder {
 	String getKey();
 
 	Class<?> bindEndpoints(
+			String beanName, 
 			Class<?> clazz, 
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory) throws CannotCompileException, NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException;

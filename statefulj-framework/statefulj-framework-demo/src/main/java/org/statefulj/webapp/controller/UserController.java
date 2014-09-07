@@ -14,7 +14,9 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
@@ -176,5 +178,13 @@ public class UserController {
 	@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/user/delete", to=User.DELETED)
 	public String deleteUser(User user, String event) {
 		return "redirect:/logout";
+	}
+	
+	@ExceptionHandler(DuplicateUserException.class)
+	public ModelAndView handleError(DuplicateUserException e) {
+		ModelAndView mv = new ModelAndView();
+		mv.getModel().put("message", "Ooops... That User is already registered.  Try a different email");
+		mv.getModel().put("reg", new RegistrationForm());
+		return mv;
 	}
 }

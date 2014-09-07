@@ -18,7 +18,9 @@ public class MockBinder implements EndpointBinder {
 	}
 
 	@Override
-	public Class<?> bindEndpoints(Class<?> clazz,
+	public Class<?> bindEndpoints(
+			String beanId,
+			Class<?> clazz,
 			Map<String, Method> eventMapping, ReferenceFactory refFactory)
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,

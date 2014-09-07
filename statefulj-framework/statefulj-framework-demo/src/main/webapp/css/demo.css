@@ -16,6 +16,10 @@
 	border-radius: 0px;
 }
 
+.navbar .navbar-brand {
+	font-family: 'Halant', "source-serif-pro",Georgia,"Times New Roman",Times,serif;
+}
+
 .create-accounts .btn {
 	float:left;
 	margin-right: 20px;

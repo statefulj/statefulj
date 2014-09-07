@@ -8,13 +8,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
@@ -96,6 +97,9 @@ public class StatefulControllerTest {
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FIVE_STATE, user.getState());
 
+		String retVal = ReflectionUtils.invoke(userControllerBinder, "$_handleError", String.class, new Exception());
+		assertEquals("called", retVal);
+		
 	}
 
 }

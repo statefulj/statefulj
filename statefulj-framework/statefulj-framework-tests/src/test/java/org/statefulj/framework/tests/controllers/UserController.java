@@ -2,6 +2,8 @@ package org.statefulj.framework.tests.controllers;
 
 import javax.annotation.Resource;
 
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.tests.dao.UserRepository;
@@ -47,5 +49,10 @@ public class UserController {
 	@Transition(event="springmvc:/{id}/any")
 	public User any(User user, String event) {
 		return user;
+	}
+	
+	@ExceptionHandler(Exception.class)
+	public String handleError(Exception e) {
+		return "called";
 	}
 }

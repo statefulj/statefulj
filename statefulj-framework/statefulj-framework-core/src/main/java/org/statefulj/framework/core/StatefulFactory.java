@@ -1,10 +1,13 @@
 package org.statefulj.framework.core;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -230,7 +233,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 
 			// Build out the Binder Class
 			//
-			Class<?> binderClass = binder.bindEndpoints(statefulControllerClass, entry.getValue(), referenceFactory);
+			Class<?> binderClass = binder.bindEndpoints(controllerBeanId, statefulControllerClass, entry.getValue(), referenceFactory);
 
 			// Add the new Binder Class to the Bean Registry
 			//

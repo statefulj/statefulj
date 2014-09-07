@@ -2,6 +2,8 @@ package org.statefulj.framework.binder.springmvc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -63,8 +67,16 @@ public class SpringMVCBinder implements EndpointBinder {
 	
 	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
 
-	public static String MVC_SUFFIX = "MVCProxy";
+	private final String MVC_SUFFIX = "MVCBinder";
 	
+	private final String HARNESS_VAR = "harness";
+	private final String CONTROLLER_VAR = "controller";
+	
+	private final Class<?>[] proxyable = new Class<?>[] {
+			ExceptionHandler.class, 
+			InitBinder.class 	
+	};
+
 	@Override
 	public String getKey() {
 		return KEY;
@@ -72,6 +84,7 @@ public class SpringMVCBinder implements EndpointBinder {
 
 	@Override
 	public Class<?> bindEndpoints(
+			String beanName, 
 			Class<?> clazz,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory)
@@ -96,11 +109,19 @@ public class SpringMVCBinder implements EndpointBinder {
 		
 		// Add the member variable referencing the StatefulController
 		//
-		addFSMHarnessReferenceId(mvcProxyClass, refFactory.getFSMHarnessId(), cp);
+		addControllerReference(mvcProxyClass, clazz, beanName, cp);
 		
-		// Copy methods from bean to the new proxy class
+		// Add the member variable referencing the StatefulController
 		//
-		addMethods(mvcProxyClass, eventMapping, cp);
+		addFSMHarnessReference(mvcProxyClass, refFactory.getFSMHarnessId(), cp);
+		
+		// Copy methods that have a Transition from the Stateful Controller to the Binder
+		//
+		addRequestMethods(mvcProxyClass, eventMapping, cp);
+		
+		// Copy Proxy methods that bypass the FSM
+		//
+		addProxyMethods(mvcProxyClass, clazz, cp);
 		
 		// Construct and return the Proxy Class
 		//
@@ -116,36 +137,73 @@ public class SpringMVCBinder implements EndpointBinder {
 		ccFile.addAttribute(attr);
 	}
 	
-	private void addFSMHarnessReferenceId(CtClass mvcProxyClass, String fsmHarnessId, ClassPool cp) throws NotFoundException, CannotCompileException {
-		CtClass type = cp.get(FSMHarness.class.getName());
-		CtField field = new CtField(type, "fsmHarness", mvcProxyClass);
-		FieldInfo fi = field.getFieldInfo();
+	private void addControllerReference(
+			CtClass mvcProxyClass,
+			Class<?> clazz,
+			String beanName, 
+			ClassPool cp) throws NotFoundException, CannotCompileException {
+		CtClass type = cp.get(clazz.getName());
+		CtField field = new CtField(type, CONTROLLER_VAR, mvcProxyClass);
+
+		addResourceAnnotation(field, beanName);
 		
-		AnnotationsAttribute attr = new AnnotationsAttribute(
-				field.getFieldInfo().getConstPool(), 
-				AnnotationsAttribute.visibleTag);
-		Annotation annot = new Annotation(Resource.class.getName(), fi.getConstPool());
-		
-		StringMemberValue nameValue = new StringMemberValue(fi.getConstPool());
-		nameValue.setValue(fsmHarnessId);
-		annot.addMemberValue("name", nameValue);
-		
-		attr.addAnnotation(annot);
-		fi.addAttribute(attr);
 		mvcProxyClass.addField(field);
 	}
 
-	
-	private void addMethods(CtClass mvcProxyClass, Map<String,Method> eventMapping, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	private void addFSMHarnessReference(CtClass mvcProxyClass, String fsmHarnessId, ClassPool cp) throws NotFoundException, CannotCompileException {
+		CtClass type = cp.get(FSMHarness.class.getName());
+		CtField field = new CtField(type, HARNESS_VAR, mvcProxyClass);
+
+		addResourceAnnotation(field, fsmHarnessId);
+		
+		mvcProxyClass.addField(field);
+	}
+
+	private void addRequestMethods(CtClass mvcProxyClass, Map<String,Method> eventMapping, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
 		// Build a method for each Event
 		//
 		for(String event : eventMapping.keySet()) {
-			addMethod(mvcProxyClass, event, eventMapping.get(event), cp);
+			addRequestMethod(mvcProxyClass, event, eventMapping.get(event), cp);
 		}
 	}
 	
-	private void addMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	@SuppressWarnings("unchecked")
+	private void addProxyMethods(CtClass mvcProxyClass, Class<?> ctrlClass, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+		
+		for(Class<?> annotation : this.proxyable) {
+			List<Method> methods = getMethodsAnnotatedWith(ctrlClass, (Class<java.lang.annotation.Annotation>)annotation);
+			for(Method method : methods) {
+				addProxyMethod(mvcProxyClass, method, cp);
+			}
+		}
+	}
+	
+	private void addProxyMethod(CtClass mvcProxyClass, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+		
+		// Create Method
+		//
+		CtClass returnClass = cp.get(method.getReturnType().getName());
+		CtMethod ctMethod = new CtMethod(returnClass, "$_" + method.getName(), null, mvcProxyClass);
+
+		// Clone method Annotations
+		//
+		addMethodAnnotations(ctMethod, method);
+		
+		// Copy parameters one-for-one
+		//
+		copyParameters(ctMethod, method, cp);
+
+		// Add the Method    
+		//
+		addProxyMethodBody(ctMethod, method);
+		
+		// Add the Method to the Proxy class
+		//
+		mvcProxyClass.addMethod(ctMethod);
+	}
+	
+	private void addRequestMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
 		Pair<String, String> methodEndpoint = this.parseMethod(event);
 		String requestMethod = methodEndpoint.getLeft();
@@ -159,7 +217,7 @@ public class SpringMVCBinder implements EndpointBinder {
 
 		// Clone Method from the StatefulController
 		//
-		CtMethod ctMethod = createMethod(mvcProxyClass, requestMethod, requestEvent, method, cp);
+		CtMethod ctMethod = createRequestMethod(mvcProxyClass, requestMethod, requestEvent, method, cp);
 
 		// Clone method Annotations
 		//
@@ -171,18 +229,18 @@ public class SpringMVCBinder implements EndpointBinder {
 
 		// Clone the parameters, along with the Annotations
 		//
-		addParameters(referencesId, ctMethod, method, cp);
+		addRequestParameters(referencesId, ctMethod, method, cp);
 
 		// Add the Method Body
 		//
-		addMethodBody(referencesId, ctMethod, event);
+		addRequestMethodBody(referencesId, ctMethod, event);
 		
 		// Add the Method to the Proxy class
 		//
 		mvcProxyClass.addMethod(ctMethod);
 	}
 	
-	private CtMethod createMethod(
+	private CtMethod createRequestMethod(
 			CtClass mvcProxyClass, 
 			String requestMethod, 
 			String requestEvent, 
@@ -207,8 +265,7 @@ public class SpringMVCBinder implements EndpointBinder {
 			for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
 				AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 
-				// If it's a Transition - convert a RequestMapping annotation; otherwise,
-				// clone the annotation
+				// If it's a Transition skip
 				//
 				Annotation clone = null;
 				if (anno instanceof Transitions || anno instanceof Transition) {
@@ -247,7 +304,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		methodInfo.addAttribute(attr);
 	}
 	
-	private void addMethodBody(boolean referencesId, CtMethod ctMethod, String event) throws CannotCompileException, NotFoundException {
+	private void addRequestMethodBody(boolean referencesId, CtMethod ctMethod, String event) throws CannotCompileException, NotFoundException {
 		String nullObjId = 
 				(referencesId) 
 				? "\"" 
@@ -267,10 +324,25 @@ public class SpringMVCBinder implements EndpointBinder {
 				+ nullObjId
 				+ ", $args); }";
 
-		ctMethod.setBody(methodBody, "this.fsmHarness","onEvent");
+		ctMethod.setBody(methodBody, "this." + HARNESS_VAR, "onEvent");
 	}
 	
-	private void addParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	private void addProxyMethodBody(CtMethod ctMethod, Method method) throws CannotCompileException, NotFoundException {
+		String returnType = ctMethod.getReturnType().getName();
+		
+		String returnStmt = 
+				(returnType.equals("void")) 
+				? ""
+				: "return (" + returnType + ")";
+		
+		String methodBody = "{ " 
+				+ returnStmt
+				+ "$proceed($$); }";
+
+		ctMethod.setBody(methodBody, "this." + CONTROLLER_VAR, method.getName());
+	}
+	
+	private void addRequestParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
  		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ParameterAnnotationsAttribute paramAtrributeInfo = 
@@ -340,6 +412,39 @@ public class SpringMVCBinder implements EndpointBinder {
 			paramArrays = new Annotation[2][];
 			paramArrays[0] = addIdParameter(ctMethod, cp);
 			paramArrays[1] = addHttpRequestParameter(ctMethod, cp);
+		}
+		paramAtrributeInfo.setAnnotations(paramArrays);
+		methodInfo.addAttribute(paramAtrributeInfo);
+	}
+	
+	private void copyParameters(CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+
+ 		MethodInfo methodInfo = ctMethod.getMethodInfo();
+		ParameterAnnotationsAttribute paramAtrributeInfo = 
+				new ParameterAnnotationsAttribute(
+						methodInfo.getConstPool(), 
+						ParameterAnnotationsAttribute.visibleTag);
+		
+		Annotation[][] paramArrays = new Annotation[method.getParameterTypes().length][];
+		java.lang.annotation.Annotation[][] parmAnnotations = method.getParameterAnnotations();
+		int parmIndex = 0;
+		for(Class<?> parm : method.getParameterTypes()) {
+				
+			// Clone the parameter Class
+			//
+			CtClass ctParm = cp.get(parm.getName());
+			
+			// Add the parameter to the method
+			//
+			ctMethod.addParameter(ctParm);
+			
+			// Add the Parameter Annotations to the Method
+			//
+			paramArrays[parmIndex] = createParameterAnnotations(
+					ctMethod.getMethodInfo(),
+					parmAnnotations[parmIndex],
+					paramAtrributeInfo.getConstPool());
+			parmIndex++;
 		}
 		paramAtrributeInfo.setAnnotations(paramArrays);
 		methodInfo.addAttribute(paramAtrributeInfo);
@@ -486,5 +591,39 @@ public class SpringMVCBinder implements EndpointBinder {
 			throw new RuntimeException("Unable to parse event=" + event);
 		}
 		return new ImmutablePair<String, String>(matcher.group(2), matcher.group(3));
+	}
+
+	private void addResourceAnnotation(CtField field, String beanName) {
+		FieldInfo fi = field.getFieldInfo();
+		
+		AnnotationsAttribute attr = new AnnotationsAttribute(
+				field.getFieldInfo().getConstPool(), 
+				AnnotationsAttribute.visibleTag);
+		Annotation annot = new Annotation(Resource.class.getName(), fi.getConstPool());
+		
+		StringMemberValue nameValue = new StringMemberValue(fi.getConstPool());
+		nameValue.setValue(beanName);
+		annot.addMemberValue("name", nameValue);
+		
+		attr.addAnnotation(annot);
+		fi.addAttribute(attr);
+	}
+	
+	
+	private List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends java.lang.annotation.Annotation> annotation) {
+	    final List<Method> methods = new ArrayList<Method>();
+	    Class<?> klass = type;
+	    while (klass != Object.class) { // need to iterated thought hierarchy in order to retrieve methods from above the current instance
+	        // iterate though the list of methods declared in the class represented by klass variable, and add those annotated with the specified annotation
+	        final List<Method> allMethods = new ArrayList<Method>(Arrays.asList(klass.getDeclaredMethods()));       
+	        for (final Method method : allMethods) {
+	            if (annotation == null || method.isAnnotationPresent(annotation)) {
+	                methods.add(method);
+	            }
+	        }
+	        // move to the upper class in the hierarchy in search for more methods
+	        klass = klass.getSuperclass();
+	    }
+	    return methods;
 	}
 }
