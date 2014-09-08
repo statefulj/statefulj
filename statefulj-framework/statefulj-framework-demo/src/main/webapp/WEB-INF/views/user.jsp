@@ -8,12 +8,10 @@
 		<title>User Page</title>
 	</head>
 	<body>
-		<div class="row">
-			<div class="col-md-offset-1 col-md-3">
-				<h2>${user.firstName} ${user.lastName}</h2>
-			</div>
-			<div class="col-md-offset-6 col-md-1">
-				<a href="${deleteUserUrl}" class="btn btn-default">Delete User</a>
+		<div class="user-header row">
+			<div class="col-md-offset-1 col-md-10">
+				<h2 class="pull-left">${user.firstName} ${user.lastName}</h2>
+				<a href="${deleteUserUrl}" class="pull-right btn btn-default">Delete User</a>
 			</div>
 		</div>
 		<div class="row">

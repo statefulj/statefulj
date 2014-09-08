@@ -24,3 +24,8 @@
 	float:left;
 	margin-right: 15px;
 }
+
+.user-header h2 {
+	margin-top: 0px;
+}
+}
