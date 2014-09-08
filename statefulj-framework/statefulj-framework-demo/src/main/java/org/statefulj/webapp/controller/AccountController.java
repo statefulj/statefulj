@@ -8,11 +8,12 @@ import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.webapp.form.AccountForm;
 import org.statefulj.webapp.model.Account;
+import static org.statefulj.webapp.model.Account.*;
 import org.statefulj.webapp.services.AccountService;
 
 @StatefulController(
 	clazz=Account.class,
-	startState=Account.NON_EXISTENT,
+	startState=NON_EXISTENT,
 	factoryId="accountService"
 )
 public class AccountController {
@@ -20,7 +21,7 @@ public class AccountController {
 	@Resource
 	AccountService accountService;
 	
-	@Transition(from=Account.NON_EXISTENT, event="springmvc:post:/accounts", to=Account.ACTIVE)
+	@Transition(from=NON_EXISTENT, event="springmvc:post:/accounts", to=ACTIVE)
 	public String createAccount(Account account, String event, AccountForm form) {
 		account.setAmount(form.getAmount());
 		accountService.save(account);

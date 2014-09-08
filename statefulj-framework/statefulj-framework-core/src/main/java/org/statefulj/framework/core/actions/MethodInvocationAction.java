@@ -47,6 +47,14 @@ public class MethodInvocationAction implements Action<Object> {
 			invokeParmList.add(event);
 			invokeParmList.addAll(parmList);
 			
+			if (invokeParmList.size() < this.parameters.length) {
+				throw new RuntimeException(
+						"Incoming parameter list is incorrect, expected " 
+						+ this.parameters.length 
+						+ " parameters, but have " 
+						+ invokeParmList.size());
+			}
+			
 			// Call the method on the Controller
 			// TODO : Add test case
 			//

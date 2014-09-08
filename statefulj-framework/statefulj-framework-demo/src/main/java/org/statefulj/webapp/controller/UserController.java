@@ -4,14 +4,11 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,12 +19,13 @@ import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.webapp.form.RegistrationForm;
 import org.statefulj.webapp.model.User;
+import static org.statefulj.webapp.model.User.*;
 import org.statefulj.webapp.services.UserService;
 import org.statefulj.webapp.services.UserSessionService;
 
 @StatefulController(
 	clazz=User.class, 
-	startState=User.UNREGISTERED,
+	startState=UNREGISTERED,
 	finderId="userSessionService"
 )
 public class UserController {
@@ -43,22 +41,22 @@ public class UserController {
 	
 	// -- UNREGISTERED -- //
 	
-	@Transition(from=User.UNREGISTERED, event="springmvc:/")
+	@Transition(from=UNREGISTERED, event="springmvc:/")
 	public String homePage() {
  		return "index";
 	}
 	
-	@Transition(from=User.UNREGISTERED, event="springmvc:/login")
+	@Transition(from=UNREGISTERED, event="springmvc:/login")
 	public String loginPage() {
  		return "login";
 	}
 	
-	@Transition(from=User.UNREGISTERED, event="springmvc:/registration")
+	@Transition(from=UNREGISTERED, event="springmvc:/registration")
 	public String registrationPage() {
  		return "registration";
 	}
 	
-	@Transition(from=User.UNREGISTERED, event="springmvc:post:/registration", to=User.REGISTERED_UNCONFIRMED)
+	@Transition(from=UNREGISTERED, event="springmvc:post:/registration", to=REGISTERED_UNCONFIRMED)
 	public String newUser(
 			User user, 
 			String event, 
@@ -108,18 +106,18 @@ public class UserController {
 	
 	// -- REGISTERED_UNCONFIRMED -- //
 
-	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:/user")
+	@Transition(from=REGISTERED_UNCONFIRMED, event="springmvc:/user")
 	public String redirectToConfirmation(User user) {
 		return "redirect:/confirmation";
 	}
 	
-	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:/confirmation")
+	@Transition(from=REGISTERED_UNCONFIRMED, event="springmvc:/confirmation")
 	public String confirmationPage(User user, String event, Model model) {
 		model.addAttribute("user", user);
 		return "confirmation";
 	}
 	
-	@Transition(from=User.REGISTERED_UNCONFIRMED, event="springmvc:post:/user/confirmation")
+	@Transition(from=REGISTERED_UNCONFIRMED, event="springmvc:post:/user/confirmation")
 	public String confirmUser(
 			User user, 
 			String event, 
@@ -138,7 +136,7 @@ public class UserController {
 	@Transitions({
 		// If we get a "successful-confirmation" event, transition into REGISTERD_CONFIRMED
 		//
-		@Transition(from=User.REGISTERED_UNCONFIRMED, event="successful-confirmation", to=User.REGISTERED_CONFIRMED),
+		@Transition(from=REGISTERED_UNCONFIRMED, event="successful-confirmation", to=REGISTERED_CONFIRMED),
 		
 		// If we're logged in, don't display either login or registration pages
 		//
@@ -146,13 +144,18 @@ public class UserController {
 		@Transition(event="springmvc:/login"),
 		@Transition(event="springmvc:/registration")
 	})
-	public String redirectToAccount() {
+	public String redirectToUser() {
+ 		return "redirect:/user";
+	}
+
+	@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/confirmation")
+	public String redirectToUser(User user, String event, Model model) {
  		return "redirect:/user";
 	}
 
 	// -- REGISTERED_CONFIRMED -- //
 
-	@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/user")
+	@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/user")
 	public String userPage(User user, String event, Model model) {
 		model.addAttribute("user", user);
 		model.addAttribute("event", event);
@@ -160,22 +163,24 @@ public class UserController {
 	}
 
 	@Transitions({
-		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/loan"),
-		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/savings"),
-		@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/accounts/checking")
+		@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/accounts/loan"),
+		@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/accounts/savings"),
+		@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/accounts/checking")
 	})
 	public String createAccountForm(User user, String event, Model model) {
 		String createAccountUri = (event.equals("/accounts/loan")) ? "/accounts/loan" : "/accounts";
 		String[] parts = event.split("/");
 		String type = parts[2];
 		String typeTitle = WordUtils.capitalize(type);
+		
 		model.addAttribute("createAccountUri", createAccountUri);
 		model.addAttribute("type", type);
 		model.addAttribute("typeTitle", typeTitle);
+		
 		return "createAccount";
 	}
 
-	@Transition(from=User.REGISTERED_CONFIRMED, event="springmvc:/user/delete", to=User.DELETED)
+	@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/user/delete", to=DELETED)
 	public String deleteUser(User user, String event) {
 		return "redirect:/logout";
 	}
