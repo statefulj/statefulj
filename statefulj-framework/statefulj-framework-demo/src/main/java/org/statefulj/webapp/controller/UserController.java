@@ -121,7 +121,7 @@ public class UserController {
 	public String confirmUser(
 			User user, 
 			String event, 
-			@RequestParam("token") int token) {
+			@RequestParam int token) {
 		
 		// If a valid token, emit a "successful-confirmation" event, this will
 		// transition the User into a REGISTERED_CONFIRMED state

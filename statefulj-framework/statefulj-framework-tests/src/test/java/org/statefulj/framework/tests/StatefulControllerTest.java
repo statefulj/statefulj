@@ -12,10 +12,8 @@ import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
@@ -28,9 +26,6 @@ import org.statefulj.fsm.TooBusyException;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-StatefulControllerTests.xml"})
 public class StatefulControllerTest {
-	
-	@Resource
-	JpaTransactionManager transactionManager;
 	
 	@Resource
 	ApplicationContext appContext;

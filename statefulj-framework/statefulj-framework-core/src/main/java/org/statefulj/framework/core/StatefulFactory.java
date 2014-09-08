@@ -1,13 +1,10 @@
 package org.statefulj.framework.core;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -65,11 +62,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	
 	private final Pattern binder = Pattern.compile("(([^:]*):)?(.*)");
 
-	public static String MVC_SUFFIX = "MVCProxy";
-	public static String FSM_SUFFIX = "FSM";
-	public static String STATE_SUFFIX = "State";
-	public static String PERSISTENCE_SUPPORT_SUFFIX = "PersistenceSupport";
-	
 	private Map<Class<?>, PersistenceSupportBeanFactory> persistenceFactories = new HashMap<Class<?>, PersistenceSupportBeanFactory>();
 	private Map<String, EndpointBinder> binders = new HashMap<String, EndpointBinder>();
 

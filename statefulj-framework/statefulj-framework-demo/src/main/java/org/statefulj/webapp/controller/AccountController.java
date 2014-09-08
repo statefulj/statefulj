@@ -28,7 +28,7 @@ public class AccountController {
 		return "redirect:/user";
 	}
 
-	// Make sure that only owner's can access the particular account
+	// Make sure that only the owner can access the account
 	//
 	@Transition(event="springmvc:/accounts/{id}")
 	@PreAuthorize("#account.owner.email == principal.username")

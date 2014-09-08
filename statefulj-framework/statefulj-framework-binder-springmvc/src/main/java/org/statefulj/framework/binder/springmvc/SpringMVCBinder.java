@@ -41,16 +41,19 @@ import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.model.EndpointBinder;
@@ -66,6 +69,8 @@ public class SpringMVCBinder implements EndpointBinder {
 	private Logger logger = LoggerFactory.getLogger(SpringMVCBinder.class);
 	
 	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
+	
+	private LocalVariableTableParameterNameDiscoverer parmDiscover = new LocalVariableTableParameterNameDiscoverer();
 
 	private final String MVC_SUFFIX = "MVCBinder";
 	
@@ -115,7 +120,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		//
 		addFSMHarnessReference(mvcProxyClass, refFactory.getFSMHarnessId(), cp);
 		
-		// Copy methods that have a Transition from the Stateful Controller to the Binder
+		// Copy methods that have a Transition annotation from the Stateful Controller to the Binder
 		//
 		addRequestMethods(mvcProxyClass, eventMapping, cp);
 		
@@ -343,7 +348,7 @@ public class SpringMVCBinder implements EndpointBinder {
 	}
 	
 	private void addRequestParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
-
+		String[] parmNames = (method != null) ? parmDiscover.getParameterNames(method) : null;
  		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ParameterAnnotationsAttribute paramAtrributeInfo = 
 				new ParameterAnnotationsAttribute(
@@ -399,7 +404,9 @@ public class SpringMVCBinder implements EndpointBinder {
 				
 				// Add the Parameter Annotations to the Method
 				//
+				String parmName = (parmNames != null && parmNames.length > parmCnt) ? parmNames[parmCnt] : null;
 				paramArrays[parmIndex] = createParameterAnnotations(
+						parmName,
 						ctMethod.getMethodInfo(),
 						parmAnnotations[parmCnt],
 						paramAtrributeInfo.getConstPool());
@@ -418,7 +425,7 @@ public class SpringMVCBinder implements EndpointBinder {
 	}
 	
 	private void copyParameters(CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
-
+		String[] parmNames = (method != null) ? parmDiscover.getParameterNames(method) : null;
  		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ParameterAnnotationsAttribute paramAtrributeInfo = 
 				new ParameterAnnotationsAttribute(
@@ -440,7 +447,9 @@ public class SpringMVCBinder implements EndpointBinder {
 			
 			// Add the Parameter Annotations to the Method
 			//
+			String parmName = (parmNames != null && parmNames.length > parmIndex) ? parmNames[parmIndex] : null;
 			paramArrays[parmIndex] = createParameterAnnotations(
+					parmName,
 					ctMethod.getMethodInfo(),
 					parmAnnotations[parmIndex],
 					paramAtrributeInfo.getConstPool());
@@ -495,15 +504,26 @@ public class SpringMVCBinder implements EndpointBinder {
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException
 	 */
-	private Annotation[] createParameterAnnotations(MethodInfo methodInfo, java.lang.annotation.Annotation[] annotations, ConstPool parameterConstPool) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+	private Annotation[] createParameterAnnotations(
+			String parmName, 
+			MethodInfo methodInfo, 
+			java.lang.annotation.Annotation[] annotations, 
+			ConstPool parameterConstPool) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 		List<Annotation> ctParmAnnotations = new LinkedList<Annotation>();
 
 		for(java.lang.annotation.Annotation annotation : annotations) {
 			Annotation clone = cloneAnnotation(parameterConstPool, annotation);
 			
-			// TODO : Special case: since Javaassist doesn't allow me to set the name of the parameter,
-			//        I need to ensure that RequestParam's value is set to the parm name if there isn't already
-			//        a value set
+			// Special case: since Javaassist doesn't allow me to set the name of the parameter,
+			// I need to ensure that RequestParam's value is set to the parm name if there isn't already
+			// a value set
+			//
+			if (RequestParam.class.isAssignableFrom(annotation.annotationType())) {
+				if ("".equals(((RequestParam)annotation).value()) && !StringUtils.isEmpty(parmName)) {
+					MemberValue value = this.createMemberValue(parameterConstPool, parmName);
+					clone.addMemberValue("value", value);
+				}
+			}
 			
 			AnnotationsAttribute attr = new AnnotationsAttribute(parameterConstPool, AnnotationsAttribute.visibleTag);
 			attr.addAnnotation(clone);
