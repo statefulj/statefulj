@@ -9,8 +9,11 @@
 	</head>
 	<body>
 		<div class="row">
-			<div class="col-md-offset-1 col-md-10">
+			<div class="col-md-offset-1 col-md-3">
 				<h2>${user.firstName} ${user.lastName}</h2>
+			</div>
+			<div class="col-md-offset-6 col-md-1">
+				<a href="${deleteUserUrl}" class="btn btn-default">Delete User</a>
 			</div>
 		</div>
 		<div class="row">
@@ -21,15 +24,27 @@
 						You need to set up some accounts
 					</div>
 				</c:if>
-				<c:forEach items="${user.accounts}" var="account">
-					<li><a href="accounts/${account.id}">${account}</a></li>
-				</c:forEach>
+				<c:if test="${not empty user.accounts}">
+					<table class="table table-striped table-hover ">
+						<tr>
+							<th>Type</th>
+							<th>State</th>
+							<th>Amount</th>
+						</tr>
+						<c:forEach items="${user.accounts}" var="account">
+						<tr>
+							<td>${account.type}</td>
+							<td>${account.state}</td>
+							<td>${account.amount}</td>
+						</tr>
+						</c:forEach>
+					</table>
+				</c:if>
 				<div class="account-create">
 					<a href="${createSavingsAccountUrl}" class="btn btn-default">+ Savings Account</a>
 					<a href="${createCheckingAccountUrl}" class="btn btn-default">+ Checking Account</a>
 					<a href="${createLoanAccountUrl}" class="btn btn-default">+ Loan Account</a>
 				</div>
-				<a href="${deleteUserUrl}" class="btn btn-default">Delete User</a>
 			</div>
 		</div>
 	</body>

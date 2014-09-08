@@ -20,7 +20,7 @@
 	font-family: 'Halant', "source-serif-pro",Georgia,"Times New Roman",Times,serif;
 }
 
-.create-accounts .btn {
+.account-create .btn {
 	float:left;
-	margin-right: 20px;
+	margin-right: 15px;
 }

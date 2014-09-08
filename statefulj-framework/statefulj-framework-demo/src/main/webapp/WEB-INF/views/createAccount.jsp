@@ -10,7 +10,9 @@
 	<body>
 		<div class="row">
 			<div class="col-md-offset-1 col-md-10">
-				<%@ include file="/WEB-INF/views/forms/account.jsp"%>
+				<div class="well bs-component">
+					<%@ include file="/WEB-INF/views/forms/account.jsp"%>
+				</div>
 			</div>
 		</div>
 	</body>

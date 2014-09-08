@@ -50,12 +50,21 @@ public class AccountServiceImpl implements AccountService, Factory<Account, Http
 				account = new SavingsAccount();
 				break;
 				
+			case "loan" :
+				account = new LoanAccount();
+				break;
+				
 			default :
 				throw new RuntimeException("Unrecognized account type " + request.getParameter("type"));
 		}
 		
 		addAccount(account);
 		return account;
+	}
+
+	@Override
+	public void save(Account account) {
+		this.accountRepo.save(account);
 	}
 
 }

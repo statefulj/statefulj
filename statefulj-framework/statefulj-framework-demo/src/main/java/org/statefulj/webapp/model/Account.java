@@ -1,5 +1,7 @@
 package org.statefulj.webapp.model;
 
+import java.math.BigDecimal;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -31,7 +33,7 @@ public abstract class Account extends StatefulEntity {
 	@ManyToOne(optional=false)
 	User owner;
 	
-	Long amount;
+	BigDecimal amount;
 
 	public Long getId() {
 		return id;
@@ -49,11 +51,11 @@ public abstract class Account extends StatefulEntity {
 		this.owner = owner;
 	}
 
-	public Long getAmount() {
+	public BigDecimal getAmount() {
 		return amount;
 	}
 
-	public void setAmount(Long amount) {
+	public void setAmount(BigDecimal amount) {
 		this.amount = amount;
 	}
 	
