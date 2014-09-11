@@ -12,7 +12,7 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.statefulj.webapp.messaging.LoanReviewCompleteMessage;
+import org.statefulj.webapp.messaging.LoanApplication;
 
 /**
  * A simple example router from a file system to an ActiveMQ queue and then to a file system
@@ -32,7 +32,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     	final Predicate loanApproved = new Predicate() {
 			@Override
 			public boolean matches(Exchange exchange) {
-				return getMessage(exchange, LoanReviewCompleteMessage.class).isApproved();
+				return getMessage(exchange, LoanApplication.class).isApproved();
 			}
 		};
 		
@@ -42,7 +42,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 			
 			@Override
 			public void process(Exchange exchange) throws Exception {
-				LoanReviewCompleteMessage msg = getMessage(exchange, LoanReviewCompleteMessage.class);
+				LoanApplication msg = getMessage(exchange, LoanApplication.class);
 				boolean approved = RandomUtils.nextBoolean();
 				msg.setApproved(approved);
 				msg.setReason((approved) 

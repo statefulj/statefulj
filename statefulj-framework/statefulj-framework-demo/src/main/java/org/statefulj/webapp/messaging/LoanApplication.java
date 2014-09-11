@@ -2,7 +2,7 @@ package org.statefulj.webapp.messaging;
 
 import javax.persistence.Id;
 
-public class LoanReviewCompleteMessage {
+public class LoanApplication {
 	
 	@Id
 	private Long accountId;
@@ -34,7 +34,4 @@ public class LoanReviewCompleteMessage {
 	public void setReason(String reason) {
 		this.reason = reason;
 	}
-	
-	
-
 }

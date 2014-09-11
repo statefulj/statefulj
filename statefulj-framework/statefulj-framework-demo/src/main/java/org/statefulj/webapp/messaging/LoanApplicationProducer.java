@@ -2,6 +2,6 @@ package org.statefulj.webapp.messaging;
 
 public interface LoanApplicationProducer {
 
-	public void onApplicationSubmitted(LoanReviewCompleteMessage msg);
+	public void onApplicationSubmitted(LoanApplication msg);
 
 }
