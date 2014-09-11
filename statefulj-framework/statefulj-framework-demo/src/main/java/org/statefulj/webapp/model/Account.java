@@ -25,7 +25,9 @@ public abstract class Account extends StatefulEntity {
 	public static final String NON_EXISTENT = "NON_EXISTENT";
 	public static final String ACTIVE = "ACTIVE";
 	public static final String DELETED = "DELETED";
-
+	public static final String APPROVAL_PENDING = "APPROVAL_PENDING";
+	public static final String REJECTED = "REJECTED";
+	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE)
 	Long id;

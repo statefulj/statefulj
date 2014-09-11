@@ -162,7 +162,7 @@ public class UserController {
 		@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/accounts/checking")
 	})
 	public String createAccountForm(User user, String event, Model model) {
-		String createAccountUri = (event.equals("/accounts/loan")) ? "/accounts/loan" : "/accounts";
+		String createAccountUri =  "/accounts"; //(event.equals("/accounts/loan")) ? "/accounts/loan" : "/accounts";
 		String[] parts = event.split("/");
 		String type = parts[2];
 		String typeTitle = WordUtils.capitalize(type);

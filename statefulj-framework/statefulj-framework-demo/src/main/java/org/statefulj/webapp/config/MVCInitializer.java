@@ -40,7 +40,8 @@ public class MVCInitializer extends AbstractAnnotationConfigDispatcherServletIni
 
         DispatcherServlet dispatcherServlet = new DispatcherServlet(servletAppContext);
 
-        // throw NoHandlerFoundException to Controller
+        // throw NoHandlerFoundException to Controller when a User requests a non-existent page
+        //
         dispatcherServlet.setThrowExceptionIfNoHandlerFound(true);
 
         ServletRegistration.Dynamic registration = servletContext.addServlet(servletName, dispatcherServlet);

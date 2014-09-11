@@ -2,7 +2,7 @@ package org.statefulj.webapp.messaging;
 
 import javax.persistence.Id;
 
-public class LoanApplication {
+public class AccountApplication {
 	
 	@Id
 	private Long accountId;
@@ -10,6 +10,8 @@ public class LoanApplication {
 	private boolean approved;
 	
 	private String reason;
+	
+	private String type;
 
 	public Long getAccountId() {
 		return accountId;
@@ -33,5 +35,13 @@ public class LoanApplication {
 
 	public void setReason(String reason) {
 		this.reason = reason;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 }

@@ -6,9 +6,11 @@ import javax.persistence.Transient;
 @Entity
 public class SavingsAccount extends Account {
 	
+	public final static String TYPE = "Savings";
+	
 	@Transient
 	public String getType() {
-		return "Savings";
+		return TYPE;
 	}
 
 }
