@@ -24,7 +24,6 @@ public class AccountController {
 	@Transition(from=NON_EXISTENT, event="springmvc:post:/accounts", to=ACTIVE)
 	public String createAccount(Account account, String event, AccountForm form) {
 		account.setAmount(form.getAmount());
-		accountService.save(account);
 		return "redirect:/user";
 	}
 

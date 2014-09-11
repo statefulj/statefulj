@@ -7,6 +7,7 @@ import javax.persistence.Transient;
 public class LoanAccount extends Account {
 	
 	public static final String APPROVAL_PENDING = "APPROVAL_PENDING";
+	public static final String REJECTED = "REJECTED";
 	
 	@Transient
 	public String getType() {

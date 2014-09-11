@@ -31,7 +31,26 @@ public class ReflectionUtils {
 				parmClasses.add(parm.getClass());
 			}
 		}
-		Method method = obj.getClass().getDeclaredMethod(methodName, parmClasses.toArray(new Class<?>[]{}));
+		Method method = null;
+		for(Method m : obj.getClass().getDeclaredMethods()) {
+			if (m.getName().equals(methodName) && m.getParameterTypes().length == parmClasses.size()) {
+				method = m;
+				int i = 0;
+				for(Class<?> parmClass : m.getParameterTypes()) {
+					if (!parmClass.isAssignableFrom(parmClasses.get(i))) {
+						m = null;
+						break;
+					}
+					i++;
+				}
+			}
+			if (method != null) {
+				break;
+			}
+		}
+		if (method == null) {
+			throw new RuntimeException("Couldn't find method " + methodName);
+		}
 		method.invoke(obj, parms);
 	}
 }

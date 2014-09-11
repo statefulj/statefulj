@@ -1,8 +1,6 @@
 package org.statefulj.webapp.controller;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
@@ -35,9 +33,6 @@ public class UserController {
 	
 	@Resource
 	UserSessionService userSessionService;
-	
-	@PersistenceContext
-	EntityManager entityManager;
 	
 	// -- UNREGISTERED -- //
 	
@@ -81,11 +76,10 @@ public class UserController {
 			user.setPassword(regForm.getPassword());
 			user.setToken(RandomUtils.nextInt(1, 99999999));
 
-			// Save and flush to db - if there is a problem, fail before logging in
+			// Save to the db - if there is a problem, fail before logging in
 			//
 			try {
 				userService.save(user);
-				entityManager.flush();  
 			} catch(Exception e) {
 				if (e.getCause() instanceof ConstraintViolationException) {
 					throw new DuplicateUserException();

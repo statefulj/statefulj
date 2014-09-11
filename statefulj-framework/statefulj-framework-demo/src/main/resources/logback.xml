@@ -11,6 +11,14 @@
 	<logger name="org.statefulj">
 		<level value="DEBUG" />
 	</logger>
+	
+	<logger name="org.apache.camel">
+		<level value="DEBUG" />
+	</logger>
+
+	<logger name="org.apache.activemq">
+		<level value="DEBUG" />
+	</logger>
 
 	<!-- Root Logger -->
 	<root level="WARN">

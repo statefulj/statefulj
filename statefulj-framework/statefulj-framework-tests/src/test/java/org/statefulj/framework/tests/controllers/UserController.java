@@ -54,7 +54,11 @@ public class UserController {
 	}
 	
 	@Transition(event="camel:camelOne")
-	public void camelOne(User user, String event, Object msg) {
+	public void camelOne(User user, String event, Long id) {
+	}
+	
+	@Transition(event="camel:camelTwo")
+	public void camelTwo(User user, String event, Long id) {
 	}
 	
 	@ExceptionHandler(Exception.class)

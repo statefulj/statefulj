@@ -37,6 +37,7 @@ import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
 import org.apache.camel.Consume;
+import org.apache.camel.component.bean.BeanInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.framework.core.annotations.Transition;
@@ -65,6 +66,9 @@ public class CamelBinder implements EndpointBinder {
 		if (msg instanceof String || Number.class.isAssignableFrom(msg.getClass())) {
 			id = msg;
 		} else {
+			if (BeanInvocation.class.isAssignableFrom(msg.getClass())) {
+				msg = ((BeanInvocation)msg).getArgs()[0];
+			}
 			Field idField = getAnnotatedField(msg.getClass(), Id.class);
 			if (idField != null) {
 				try {
@@ -165,7 +169,7 @@ public class CamelBinder implements EndpointBinder {
 
 		// Clone the parameters, along with the Annotations
 		//
-		addMessageParameter(ctMethod, cp);
+		addMessageParameter(ctMethod, method, cp);
 
 		// Add the Method Body
 		//
@@ -181,7 +185,7 @@ public class CamelBinder implements EndpointBinder {
 			String event, 
 			Method method, 
 			ClassPool cp) throws NotFoundException {
-		String methodName = ("$_" + event.replace("/", "_").replace(":", "_").replace("{", "").replace("}", "")).toLowerCase();
+		String methodName = ("$_" + event.replaceAll("[/:\\.]", "_").replace("{", "").replace("}", "")).toLowerCase();
 
 		logger.debug(
 				"createMethod : Create method {} for {}", 
@@ -220,7 +224,7 @@ public class CamelBinder implements EndpointBinder {
 		Annotation consume = new Annotation(Consume.class.getName(), constPool);
 		StringMemberValue valueVal = new StringMemberValue(constPool);
 		valueVal.setValue(uri);
-		consume.addMemberValue("value", valueVal);
+		consume.addMemberValue("uri", valueVal);
 
 		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 		attr.addAnnotation(consume);
@@ -237,11 +241,12 @@ public class CamelBinder implements EndpointBinder {
 		ctMethod.setBody(methodBody, "this." + HARNESS_VAR, "onEvent");
 	}
 	
-	private void addMessageParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	private void addMessageParameter(CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
 		// Only one parameter - a message object
 		//
-		CtClass ctParm = cp.get(Long.class.getName());
+		Class<?> msgClass = (method != null && method.getParameterTypes().length == 3) ? method.getParameterTypes()[2] : Object.class;
+		CtClass ctParm = cp.get(msgClass.getName());
 		
 		// Add the parameter to the method
 		//

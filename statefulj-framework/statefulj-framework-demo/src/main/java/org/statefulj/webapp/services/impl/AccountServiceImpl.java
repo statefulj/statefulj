@@ -1,6 +1,8 @@
 package org.statefulj.webapp.services.impl;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
@@ -24,6 +26,9 @@ public class AccountServiceImpl implements AccountService, Factory<Account, Http
 
 	@Resource
 	UserSessionService userSessionService;
+	
+	@PersistenceContext
+	EntityManager entityManager;
 	
 	@Override
 	public Account find(Long Id) {
@@ -65,6 +70,7 @@ public class AccountServiceImpl implements AccountService, Factory<Account, Http
 	@Override
 	public void save(Account account) {
 		this.accountRepo.save(account);
+		this.entityManager.flush();
 	}
 
 }
