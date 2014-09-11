@@ -40,7 +40,7 @@ public class StatefulFactoryTest {
 		
 		factory.postProcessBeanDefinitionRegistry(registry);
 		
-		BeanDefinition userControllerMVCProxy = registry.getBeanDefinition(refFactory.getBinderId());
+		BeanDefinition userControllerMVCProxy = registry.getBeanDefinition(refFactory.getBinderId("mock"));
 		
 		assertNotNull(userControllerMVCProxy);
 		

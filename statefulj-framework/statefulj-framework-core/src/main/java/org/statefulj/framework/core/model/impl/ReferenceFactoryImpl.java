@@ -5,6 +5,7 @@ import static java.beans.Introspector.decapitalize;
 import java.beans.Introspector;
 import java.lang.reflect.Method;
 
+import org.apache.commons.lang3.StringUtils;
 import org.statefulj.framework.core.model.ReferenceFactory;
 
 public class ReferenceFactoryImpl implements ReferenceFactory {
@@ -16,8 +17,9 @@ public class ReferenceFactoryImpl implements ReferenceFactory {
 	}
 
 	@Override
-	public String getBinderId() {
-		return decapitalize(ctrl + ".binder");
+	public String getBinderId(String key) {
+		key = (!StringUtils.isEmpty(key)) ? "." + key : "";
+		return decapitalize(ctrl + ".binder" + key);
 	}
 
 	@Override

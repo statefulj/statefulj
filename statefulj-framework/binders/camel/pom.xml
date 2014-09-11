@@ -3,15 +3,15 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.statefulj.framework</groupId>
-	<artifactId>statefulj-framework-binder-springmvc</artifactId>
+	<artifactId>statefulj-framework-binder-camel</artifactId>
 	<packaging>jar</packaging>
 
-	<name>statefulj-framework-binder-springmvc</name>
+	<name>statefulj-framework-binder-camel</name>
 	<url>http://statefulj.org</url>
 
 	<parent>
 		<groupId>org.statefulj.framework</groupId>
-		<artifactId>statefulj-framework</artifactId>
+		<artifactId>statefulj-framework-binders</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
@@ -22,23 +22,23 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
+			<groupId>javax</groupId>
+			<artifactId>javaee-web-api</artifactId>
+			<version>6.0</version>
 			<scope>provided</scope>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-
+		
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${org.springframework-version}</version>
-		</dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-core</artifactId>
+			<version>2.13.2</version>
+		</dependency>		
 
 		<dependency>
 			<groupId>junit</groupId>

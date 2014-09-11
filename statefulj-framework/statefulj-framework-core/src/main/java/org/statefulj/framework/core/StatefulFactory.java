@@ -229,7 +229,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 
 			// Add the new Binder Class to the Bean Registry
 			//
-			registerBinderBean(referenceFactory, binderClass, reg);
+			registerBinderBean(entry.getKey(), referenceFactory, binderClass, reg);
 		}
 		
 		// -- Build the FSM infrastructure --
@@ -544,13 +544,14 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 	}
 
 	private String registerBinderBean(
+			String key,
 			ReferenceFactory referenceFactory,
 			Class<?> binderClass, 
 			BeanDefinitionRegistry reg) {
 		BeanDefinition def = BeanDefinitionBuilder
 				.genericBeanDefinition(binderClass)
 				.getBeanDefinition();
-		String binderId = referenceFactory.getBinderId();
+		String binderId = referenceFactory.getBinderId(key);
 		reg.registerBeanDefinition(binderId, def);
 		return binderId;
 	}

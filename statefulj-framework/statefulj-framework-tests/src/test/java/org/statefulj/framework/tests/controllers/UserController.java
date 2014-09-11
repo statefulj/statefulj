@@ -14,7 +14,8 @@ import org.statefulj.framework.tests.model.User;
 	startState=UserController.ONE_STATE,
 	noops={
 		@Transition(event="springmvc:/{id}/four", to=UserController.FOUR_STATE),
-		@Transition(event="five", to=UserController.FIVE_STATE)
+		@Transition(event="five", to=UserController.FIVE_STATE),
+		@Transition(event="camel:six", to=UserController.SIX_STATE)
 	}
 )
 public class UserController {
@@ -29,6 +30,7 @@ public class UserController {
 	public static final String THREE_STATE = "three";
 	public static final String FOUR_STATE = "four";
 	public static final String FIVE_STATE = "five";
+	public static final String SIX_STATE = "six";
 	
 	@Transition(from=ONE_STATE, event="springmvc:get:/first", to=TWO_STATE)
 	public User oneToTwo(User user, String event) {
@@ -49,6 +51,10 @@ public class UserController {
 	@Transition(event="springmvc:/{id}/any")
 	public User any(User user, String event) {
 		return user;
+	}
+	
+	@Transition(event="camel:camelOne")
+	public void camelOne(User user, String event, Object msg) {
 	}
 	
 	@ExceptionHandler(Exception.class)

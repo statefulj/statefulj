@@ -21,4 +21,17 @@ public class ReflectionUtils {
 		Method method = obj.getClass().getDeclaredMethod(methodName, parmClasses.toArray(new Class<?>[]{}));
 		return (T)method.invoke(obj, parms);
 	}
+
+	public static void invoke(Object obj, String methodName, Object... parms) throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+		ArrayList<Class<?>> parmClasses = new ArrayList<Class<?>>();
+		for (Object parm : parms) {
+			if (HttpServletRequest.class.isAssignableFrom(parm.getClass())) {
+				parmClasses.add(HttpServletRequest.class);
+			} else {
+				parmClasses.add(parm.getClass());
+			}
+		}
+		Method method = obj.getClass().getDeclaredMethod(methodName, parmClasses.toArray(new Class<?>[]{}));
+		method.invoke(obj, parms);
+	}
 }

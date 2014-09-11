@@ -45,13 +45,15 @@ public class StatefulControllerTest {
 		
 		// Make sure proxy is constructed
 		//
-		Object userControllerBinder = this.appContext.getBean(refFactory.getBinderId());
-		assertNotNull(userControllerBinder);
+		Object mvcBinder = this.appContext.getBean(refFactory.getBinderId("springmvc"));
+		Object camelBinder = this.appContext.getBean(refFactory.getBinderId("camel"));
+		assertNotNull(mvcBinder);
+		assertNotNull(camelBinder);
 		
 		// Verify new User scenario
 		//
 		HttpServletRequest context = mock(HttpServletRequest.class);
-		User user = ReflectionUtils.invoke(userControllerBinder, "$_get_first", User.class, context );
+		User user = ReflectionUtils.invoke(mvcBinder, "$_get_first", User.class, context );
 
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -59,7 +61,7 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId(), context);
+		user = ReflectionUtils.invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -67,14 +69,14 @@ public class StatefulControllerTest {
 		
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
-		user = ReflectionUtils.invoke(userControllerBinder, "$_post_id_second", User.class, user.getId(), context);
+		user = ReflectionUtils.invoke(mvcBinder, "$_post_id_second", User.class, user.getId(), context);
 
 		assertTrue(user.getId() > 0);
 		assertEquals(UserController.THREE_STATE, user.getState());
 
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(userControllerBinder, "$_get_id_any", User.class, user.getId(), context);
+		user = ReflectionUtils.invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -82,7 +84,7 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		Object nulObj = ReflectionUtils.invoke(userControllerBinder, "$_get_id_four", User.class, user.getId(), context);
+		Object nulObj = ReflectionUtils.invoke(mvcBinder, "$_get_id_four", User.class, user.getId(), context);
 		
 		assertNull(nulObj);
 		user = userRepo.findOne(user.getId());
@@ -92,9 +94,14 @@ public class StatefulControllerTest {
 		user = userRepo.findOne(user.getId());
 		assertEquals(UserController.FIVE_STATE, user.getState());
 
-		String retVal = ReflectionUtils.invoke(userControllerBinder, "$_handleError", String.class, new Exception());
+		String retVal = ReflectionUtils.invoke(mvcBinder, "$_handleError", String.class, new Exception());
 		assertEquals("called", retVal);
 		
+		ReflectionUtils.invoke(camelBinder, "$_camelone", user.getId());
+		ReflectionUtils.invoke(camelBinder, "$_six", user.getId());
+		user = userRepo.findOne(user.getId());
+		assertEquals(UserController.SIX_STATE, user.getState());
+
 	}
 
 }

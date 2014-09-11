@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 
 public interface ReferenceFactory {
 	
-	String getBinderId();
+	String getBinderId(String key);
 
 	String getFinderId();
 	
