@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>statefulj-framework-binder-springmvc</artifactId>
+	<artifactId>statefulj-framework-persistence-mongo</artifactId>
 	<packaging>jar</packaging>
 
-	<name>statefulj-framework-binder-springmvc</name>
+	<name>statefulj-framework-persistence-mongo</name>
 	<url>http://statefulj.org</url>
 
 	<parent>
@@ -19,14 +19,6 @@
 	</properties>
 
 	<dependencies>
-
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>provided</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-core</artifactId>
@@ -34,9 +26,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-			<version>${org.springframework-version}</version>
+			<groupId>org.statefulj</groupId>
+			<artifactId>statefulj-persistence-mongo</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -63,7 +55,7 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>4.0.5.RELEASE</version>
+			<version>4.0.6.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -73,6 +65,5 @@
 			<version>1.0.13</version>
 			<scope>test</scope>
 		</dependency>
-		
 	</dependencies>
 </project>

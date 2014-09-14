@@ -14,6 +14,7 @@
 	<packaging>war</packaging>
 	<name>StatefulJ Framework Demo</name>
 	<url>http://www.statefulj.org</url>
+	
 	<properties>
 		<jdk.version>1.6</jdk.version>
 		<spring.version>4.0.3.RELEASE</spring.version>

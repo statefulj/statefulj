@@ -3,10 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.statefulj.framework</groupId>
-	<artifactId>statefulj-framework-binders</artifactId>
+	<artifactId>statefulj-framework-persistence</artifactId>
 	<packaging>pom</packaging>
 
-	<name>statefulj-framework-binders</name>
+	<name>statefulj-framework-persistence</name>
 	<url>http://statefulj.org</url>
 
 	<parent>
@@ -23,6 +23,6 @@
 
 	</dependencies>
 	<modules>
-		<module>camel</module>
+		<module>mongo</module>
 	</modules>
 </project>

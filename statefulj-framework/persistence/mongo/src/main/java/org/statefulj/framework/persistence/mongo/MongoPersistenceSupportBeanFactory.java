@@ -1,4 +1,4 @@
-package org.statefulj.framework.persistence.jpa;
+package org.statefulj.framework.persistence.mongo;
 
 import java.util.List;
 
@@ -6,17 +6,18 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.data.mongodb.repository.support.MongoRepositoryFactoryBean;
 import org.statefulj.framework.core.model.impl.CrudRepositoryFinderImpl;
+import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
 import org.statefulj.framework.core.model.impl.FactoryImpl;
 import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
-import org.statefulj.persistence.jpa.JPAPerister;
+import org.statefulj.persistence.mongo.MongoPersister;
 
-public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanFactory {
+public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBeanFactory {
 
 	@Override
 	public Class<?> getKey() {
-		return JpaRepositoryFactoryBean.class;
+		return MongoRepositoryFactoryBean.class;
 	}
 
 	@Override
@@ -42,7 +43,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans) {
 		BeanDefinition persisterBean = BeanDefinitionBuilder
-				.genericBeanDefinition(JPAPerister.class)
+				.genericBeanDefinition(MongoPersister.class)
 				.getBeanDefinition();
 		ConstructorArgumentValues args = persisterBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, stateBeans);
@@ -60,7 +61,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 			String finderId) {
 
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
-				.genericBeanDefinition(JPAFSMHarnessImpl.class)
+				.genericBeanDefinition(FSMHarnessImpl.class)
 				.getBeanDefinition();
 		ConstructorArgumentValues args = fsmHarness.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fsmBeanId));

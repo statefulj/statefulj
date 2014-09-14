@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
@@ -11,6 +13,8 @@ import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
 public class FSMHarnessImpl<T, CT> implements FSMHarness {
+	
+	private Logger logger = LoggerFactory.getLogger(FSMHarnessImpl.class);
 	
 	private Factory<T, CT> factory;
 	
@@ -50,9 +54,14 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 
 		if ( obj == null ) {
 			if (id != null) {
-				throw new RuntimeException("Unable to locate " + clazz.getName() + ", id=" + id);
+				logger.error("Unable to locate object of type {}, id={}, event={}", clazz.getName(), id, event);
+				throw new RuntimeException("Unable to locate object of type " + clazz.getName() + ", id=" + ((id == null) ? "null" : id) + ", event=" + event);
 			} else {
 				obj = this.factory.create(this.clazz, event, context);
+				if (obj == null) {
+					logger.error("Unable to create object of type {}, event={}", clazz.getName(), event);
+					throw new RuntimeException("Unable to create object of type " + clazz.getName() + ", event=" + event);
+				}
 			}
 		}
 		
