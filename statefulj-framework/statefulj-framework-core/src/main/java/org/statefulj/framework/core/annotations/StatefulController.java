@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 // TODO : Add in Blocking support
 // TODO : Add in multiple State field support
 // TODO : Add in explicit Mongo or jpa persistence
+// TODO : Add in licensing
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
