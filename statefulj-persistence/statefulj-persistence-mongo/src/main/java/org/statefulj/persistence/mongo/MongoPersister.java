@@ -31,8 +31,6 @@ import org.statefulj.fsm.model.State;
 import org.statefulj.persistence.common.AbstractPersister;
 import org.statefulj.persistence.mongo.model.StateDocument;
 
-// TODO : Rewrite this to use "safe" query building instead of string construction
-//
 public class MongoPersister<T> extends AbstractPersister<T> implements Persister<T>, ApplicationContextAware, BeanDefinitionRegistryPostProcessor {
 	
 	public static final String COLLECTION = "managedState";

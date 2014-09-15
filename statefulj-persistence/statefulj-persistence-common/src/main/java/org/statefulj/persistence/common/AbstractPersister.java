@@ -10,8 +10,6 @@ import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 
-// TODO : Rewrite this to use "safe" query building instead of string construction
-//
 public abstract class AbstractPersister<T> implements Persister<T> {
 	
 	private Field idField;
