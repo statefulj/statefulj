@@ -1,0 +1,44 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.statefulj.persistence</groupId>
+	<artifactId>statefulj-persistence</artifactId>
+	<packaging>pom</packaging>
+
+	<parent>
+		<groupId>org.statefulj</groupId>
+		<artifactId>statefulj</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<name>statefulj-persistence</name>
+	<url>http://www.statefulj.org</url>
+	<description>Parent project for StatefulJ persistence</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<java-version>1.6</java-version>
+		<org.springframework-version>4.0.6.RELEASE</org.springframework-version>
+	</properties>
+
+	<dependencies>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.17</version>
+				<configuration>
+					<reuseForks>false</reuseForks>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<modules>
+		<module>statefulj-persistence-common</module>
+		<module>statefulj-persistence-jpa</module>
+		<module>statefulj-persistence-mongo</module>
+	</modules>
+</project>

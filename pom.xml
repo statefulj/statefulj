@@ -8,8 +8,8 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>statefulj-fsm</module>
-		<module>statefulj-persistence-jpa</module>
-		<module>statefulj-persistence-mongo</module>
+		<module>statefulj-common</module>
+		<module>statefulj-persistence</module>
 		<module>statefulj-framework</module>
 	</modules>
 
