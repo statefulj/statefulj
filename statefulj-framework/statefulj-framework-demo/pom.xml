@@ -12,7 +12,7 @@
 
 	<artifactId>statefulj-framework-demo</artifactId>
 	<packaging>war</packaging>
-	<name>StatefulJ Framework Demo</name>
+	<name>statefulj-framework-demo</name>
 	<url>http://www.statefulj.org</url>
 	
 	<properties>
