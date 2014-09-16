@@ -247,39 +247,6 @@ public class CamelBinder implements EndpointBinder {
 		ctMethod.addParameter(ctParm);
 	}
 	
-	
-	/**
-	 * Clone an annotation and all of it's methods
-	 * @param constPool
-	 * @param annotation
-	 * @return
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 */
-	private Annotation cloneAnnotation(ConstPool constPool, java.lang.annotation.Annotation annotation) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		logger.debug("cloneAnnotation : Create annotation = {}", annotation.annotationType().getName());
-		Class<?> clazz = annotation.annotationType();
-
-		Annotation annot = new Annotation(clazz.getName(), constPool);
-		for(Method method : clazz.getDeclaredMethods()) {
-			MemberValue memberVal = null;
-			
-			if (method.getReturnType().isArray()) {
-				List<MemberValue> memberVals = new LinkedList<MemberValue>();
-				for(Object val : (Object[])method.invoke(annotation)) {
-					memberVals.add(createMemberValue(constPool, val));
-				}
-				memberVal = new ArrayMemberValue(constPool);
-				((ArrayMemberValue)memberVal).setValue(memberVals.toArray(new MemberValue[]{}));
-			} else {
-				memberVal = createMemberValue(constPool, method.invoke(annotation));
-			}
-			annot.addMemberValue(method.getName(), memberVal);
-		}
-		return annot;
-	}
-		
 	private void addResourceAnnotation(CtField field, String beanName) {
 		FieldInfo fi = field.getFieldInfo();
 		
