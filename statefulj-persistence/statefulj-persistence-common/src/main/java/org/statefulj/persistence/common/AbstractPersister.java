@@ -9,6 +9,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
@@ -107,7 +108,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	protected Field findStateField(String stateFieldName, Class<?> clazz) {
 		Field stateField = null;;
 		if (StringUtils.isEmpty(stateFieldName)) {
-			stateField = getAnnotatedField(clazz, org.statefulj.persistence.common.annotations.State.class);
+			stateField = ReflectionUtils.getAnnotatedField(clazz, org.statefulj.persistence.common.annotations.State.class);
 		} else {
 			try {
 				stateField = clazz.getDeclaredField(stateFieldName);
@@ -123,26 +124,6 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	
 	protected abstract Class<?> getStateFieldType(); 
 
-	private Field getAnnotatedField(
-			Class<?> clazz,
-			Class<? extends Annotation> annotationClass) {
-		Field match = null;
-		if (clazz != null) {
-			match = getAnnotatedField(clazz.getSuperclass(), annotationClass);
-			if (match == null) {
-				for(Field field : clazz.getDeclaredFields()) {
-					if (field.isAnnotationPresent(annotationClass)) {
-						match = field;
-						break;
-					}
-				}
-				
-			}
-		}
-		
-		return match;
-	}
-	
 	protected Field getIdField() {
 		return idField;
 	}
