@@ -23,6 +23,7 @@
 
 	</dependencies>
 	<modules>
+                <module>statefulj-framework-binders-common</module>
 		<module>statefulj-framework-binders-springmvc</module>
 		<module>statefulj-framework-binders-camel</module>
 	</modules>

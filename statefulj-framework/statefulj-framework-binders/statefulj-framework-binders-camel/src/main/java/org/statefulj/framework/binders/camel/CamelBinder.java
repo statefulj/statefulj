@@ -1,4 +1,4 @@
-package org.statefulj.framework.binder.camel;
+package org.statefulj.framework.binders.camel;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
