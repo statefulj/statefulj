@@ -29,7 +29,7 @@
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-core</artifactId>
+			<artifactId>statefulj-framework-binders-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 

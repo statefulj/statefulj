@@ -28,17 +28,8 @@ import javassist.bytecode.MethodInfo;
 import javassist.bytecode.ParameterAnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.ArrayMemberValue;
-import javassist.bytecode.annotation.BooleanMemberValue;
-import javassist.bytecode.annotation.ByteMemberValue;
-import javassist.bytecode.annotation.CharMemberValue;
-import javassist.bytecode.annotation.ClassMemberValue;
-import javassist.bytecode.annotation.DoubleMemberValue;
 import javassist.bytecode.annotation.EnumMemberValue;
-import javassist.bytecode.annotation.FloatMemberValue;
-import javassist.bytecode.annotation.IntegerMemberValue;
-import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.MemberValue;
-import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +45,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.*;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.model.EndpointBinder;
@@ -520,7 +513,7 @@ public class SpringMVCBinder implements EndpointBinder {
 			//
 			if (RequestParam.class.isAssignableFrom(annotation.annotationType())) {
 				if ("".equals(((RequestParam)annotation).value()) && !StringUtils.isEmpty(parmName)) {
-					MemberValue value = this.createMemberValue(parameterConstPool, parmName);
+					MemberValue value = createMemberValue(parameterConstPool, parmName);
 					clone.addMemberValue("value", value);
 				}
 			}
@@ -564,47 +557,6 @@ public class SpringMVCBinder implements EndpointBinder {
 		return annot;
 	}
 		
-	private MemberValue createMemberValue(ConstPool constPool, Object val) {
-		MemberValue memberVal = null;
-		
-		if (val instanceof Boolean) {
-			memberVal = new BooleanMemberValue((Boolean)val, constPool);
-		}
-		else if (val instanceof Byte) {
-			memberVal = new ByteMemberValue((Byte)val, constPool);
-		}
-		else if (val instanceof Character) {
-			memberVal = new CharMemberValue((Byte)val, constPool);
-		}
-		else if (val instanceof Class) {
-			memberVal = new ClassMemberValue(((Class<?>)val).getName(), constPool);
-		}
-		else if (val instanceof Double) {
-			memberVal = new DoubleMemberValue((Double)val, constPool);
-		}
-		else if (val instanceof Float) {
-			memberVal = new FloatMemberValue((Float)val, constPool);
-		}
-		else if (val instanceof Integer) {
-			memberVal = new IntegerMemberValue((Integer)val, constPool);
-		}
-		else if (val instanceof Short) {
-			memberVal = new ShortMemberValue((Short)val, constPool);
-		}
-		else if (val instanceof Long) {
-			memberVal = new LongMemberValue((Long)val, constPool);
-		}
-		else if (val instanceof String) {
-			memberVal = new StringMemberValue((String)val, constPool); 
-		}
-		else if (val instanceof Enum) {
-			memberVal = new EnumMemberValue(constPool);
-			((EnumMemberValue)memberVal).setType(val.getClass().getName());
-			((EnumMemberValue)memberVal).setValue(((Enum<?>)val).toString());
-		}
-		return memberVal;
-	}
-
 	private Pair<String, String> parseMethod(String event) {
 		Matcher matcher = this.methodPattern.matcher(event);
 		if (!matcher.matches()) {
@@ -628,7 +580,6 @@ public class SpringMVCBinder implements EndpointBinder {
 		attr.addAnnotation(annot);
 		fi.addAttribute(attr);
 	}
-	
 	
 	private List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends java.lang.annotation.Annotation> annotation) {
 	    final List<Method> methods = new ArrayList<Method>();

@@ -28,11 +28,17 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-core</artifactId>
+			<groupId>org.statefulj</groupId>
+			<artifactId>statefulj-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>org.statefulj.framework</groupId>
+			<artifactId>statefulj-framework-binders-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-core</artifactId>
