@@ -1,4 +1,4 @@
-package org.statefulj.framework.binder.springmvc;
+package org.statefulj.framework.binders.springmvc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

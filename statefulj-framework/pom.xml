@@ -38,11 +38,10 @@
 	</build>
 	<modules>
 		<module>statefulj-framework-core</module>
+		<module>statefulj-framework-binders</module>
 		<module>statefulj-framework-persistence-jpa</module>
-		<module>statefulj-framework-binder-springmvc</module>
-        <module>statefulj-framework-tests</module>
-        <module>statefulj-framework-demo</module>
-	<module>statefulj-binders</module>
-	<module>persistence</module>
+		<module>statefulj-framework-tests</module>
+		<module>statefulj-framework-demo</module>
+		<module>statefulj-framework-persistence</module>
 	</modules>
 </project>

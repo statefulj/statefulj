@@ -2,15 +2,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>statefulj-framework-binders-camel</artifactId>
+	<artifactId>statefulj-framework-persistence-mongo</artifactId>
 	<packaging>jar</packaging>
 
-	<name>statefulj-framework-binders-camel</name>
+	<name>statefulj-framework-persistence-mongo</name>
 	<url>http://statefulj.org</url>
 
 	<parent>
 		<groupId>org.statefulj.framework</groupId>
-		<artifactId>statefulj-framework-binders</artifactId>
+		<artifactId>statefulj-framework</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
@@ -19,25 +19,17 @@
 	</properties>
 
 	<dependencies>
-
-		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-web-api</artifactId>
-			<version>6.0</version>
-			<scope>provided</scope>
-		</dependency>
-		
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-core</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
+
 		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-core</artifactId>
-			<version>2.13.2</version>
-		</dependency>		
+			<groupId>org.statefulj.persistence</groupId>
+			<artifactId>statefulj-persistence-mongo</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -63,16 +55,8 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>4.0.5.RELEASE</version>
+			<version>4.0.6.RELEASE</version>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.0.13</version>
-			<scope>test</scope>
-		</dependency>
-		
 	</dependencies>
 </project>
