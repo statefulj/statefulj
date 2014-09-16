@@ -190,27 +190,6 @@ public class CamelBinder implements EndpointBinder {
 		return ctMethod;
 	}
 	
-	private void addMethodAnnotations(CtMethod ctMethod, Method method) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		if (method != null) {
-			MethodInfo methodInfo = ctMethod.getMethodInfo();
-			ConstPool constPool = methodInfo.getConstPool();
-			for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
-				AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-
-				// If it's a Transition skip
-				//
-				Annotation clone = null;
-				if (anno instanceof Transitions || anno instanceof Transition) {
-					// skip
-				} else {
-					clone = cloneAnnotation(constPool, anno);
-					attr.addAnnotation(clone);
-					methodInfo.addAttribute(attr);
-				}
-			}
-		}
-	}
-	
 	private void addConsumeAnnotation(CtMethod ctMethod, String uri) {
 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ConstPool constPool = methodInfo.getConstPool();
@@ -247,19 +226,4 @@ public class CamelBinder implements EndpointBinder {
 		ctMethod.addParameter(ctParm);
 	}
 	
-	private void addResourceAnnotation(CtField field, String beanName) {
-		FieldInfo fi = field.getFieldInfo();
-		
-		AnnotationsAttribute attr = new AnnotationsAttribute(
-				field.getFieldInfo().getConstPool(), 
-				AnnotationsAttribute.visibleTag);
-		Annotation annot = new Annotation(Resource.class.getName(), fi.getConstPool());
-		
-		StringMemberValue nameValue = new StringMemberValue(fi.getConstPool());
-		nameValue.setValue(beanName);
-		annot.addMemberValue("name", nameValue);
-		
-		attr.addAnnotation(annot);
-		fi.addAttribute(attr);
-	}
 }

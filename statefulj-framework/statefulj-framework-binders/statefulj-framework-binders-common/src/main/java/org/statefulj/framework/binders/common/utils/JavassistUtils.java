@@ -1,5 +1,6 @@
 package org.statefulj.framework.binders.common.utils;
 
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.cloneAnnotation;
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.createMemberValue;
 
 import java.lang.reflect.InvocationTargetException;
@@ -9,7 +10,17 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.annotation.Resource;
+
+import org.statefulj.framework.core.annotations.Transition;
+import org.statefulj.framework.core.annotations.Transitions;
+
+import javassist.CtField;
+import javassist.CtMethod;
+import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.FieldInfo;
+import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.ArrayMemberValue;
 import javassist.bytecode.annotation.BooleanMemberValue;
@@ -58,6 +69,43 @@ public class JavassistUtils {
 		return annot;
 	}
 		
+	public static void addResourceAnnotation(CtField field, String beanName) {
+		FieldInfo fi = field.getFieldInfo();
+		
+		AnnotationsAttribute attr = new AnnotationsAttribute(
+				field.getFieldInfo().getConstPool(), 
+				AnnotationsAttribute.visibleTag);
+		Annotation annot = new Annotation(Resource.class.getName(), fi.getConstPool());
+		
+		StringMemberValue nameValue = new StringMemberValue(fi.getConstPool());
+		nameValue.setValue(beanName);
+		annot.addMemberValue("name", nameValue);
+		
+		attr.addAnnotation(annot);
+		fi.addAttribute(attr);
+	}
+	
+	public static void addMethodAnnotations(CtMethod ctMethod, Method method) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		if (method != null) {
+			MethodInfo methodInfo = ctMethod.getMethodInfo();
+			ConstPool constPool = methodInfo.getConstPool();
+			for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
+				AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+
+				// If it's a Transition skip
+				//
+				Annotation clone = null;
+				if (anno instanceof Transitions || anno instanceof Transition) {
+					// skip
+				} else {
+					clone = cloneAnnotation(constPool, anno);
+					attr.addAnnotation(clone);
+					methodInfo.addAttribute(attr);
+				}
+			}
+		}
+	}
+	
 	
 	public static List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends java.lang.annotation.Annotation> annotation) {
 	    final List<Method> methods = new ArrayList<Method>();
