@@ -234,7 +234,7 @@ public class CamelBinder implements EndpointBinder {
 	private void addMethodBody(CtMethod ctMethod, String event) throws CannotCompileException, NotFoundException {
 		String methodBody = 
 				"{ " +
-					"Object id = org.statefulj.framework.binder.camel.CamelBinder.lookupId($1); " +
+					"Object id = org.statefulj.framework.binders.camel.CamelBinder.lookupId($1); " +
 					"$proceed(\"" + event + "\", id, new Object[]{$1, $1});" +
 				"}";
 
