@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 
 
 // TODO : Add in Blocking support
-// TODO : Add in multiple State field support
 // TODO : Add in explicit Mongo or jpa persistence
 // TODO : Add in licensing
 @Target({ElementType.TYPE})
@@ -49,6 +48,14 @@ public @interface StatefulController {
 	 * @return
 	 */
 	Class<?> clazz();
+
+	/**
+	 * The name of the managed State field.  If blank, the Entity will be inspected
+	 * for a field annotated with State
+	 * 
+	 * @return
+	 */
+	String stateField() default "";
 
 	/**
 	 * Optional Ids of the Persistence beans for this class. 

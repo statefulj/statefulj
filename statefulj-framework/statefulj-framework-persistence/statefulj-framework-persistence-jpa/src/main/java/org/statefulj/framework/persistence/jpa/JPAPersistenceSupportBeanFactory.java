@@ -38,7 +38,9 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	}
 
 	@Override
-	public BeanDefinition buildPersisterBean(Class<?> statefulClass,
+	public BeanDefinition buildPersisterBean(
+			Class<?> statefulClass,
+			String stateFieldName,
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans) {
 		BeanDefinition persisterBean = BeanDefinitionBuilder
@@ -46,8 +48,9 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 				.getBeanDefinition();
 		ConstructorArgumentValues args = persisterBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, stateBeans);
-		args.addIndexedArgumentValue(1, new RuntimeBeanReference(startStateId));
-		args.addIndexedArgumentValue(2, statefulClass);
+		args.addIndexedArgumentValue(1, stateFieldName);
+		args.addIndexedArgumentValue(2, new RuntimeBeanReference(startStateId));
+		args.addIndexedArgumentValue(3, statefulClass);
 		return persisterBean;
 	}
 

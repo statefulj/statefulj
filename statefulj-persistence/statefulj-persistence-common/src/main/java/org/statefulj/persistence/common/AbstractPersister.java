@@ -6,11 +6,16 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 
 public abstract class AbstractPersister<T> implements Persister<T> {
+	
+	Logger logger = LoggerFactory.getLogger(AbstractPersister.class);
 	
 	private Field idField;
 	private Field stateField;
@@ -18,7 +23,11 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	private Class<T> clazz;
 	private HashMap<String, State<T>> states = new HashMap<String, State<T>>();
 	
-	public AbstractPersister(List<State<T>> states, State<T> start, Class<T> clazz) {
+	public AbstractPersister(
+			List<State<T>> states, 
+			String stateFieldName, 
+			State<T> start, 
+			Class<T> clazz) {
 		
 		this.clazz = clazz;
 		
@@ -31,7 +40,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		}
 		this.idField.setAccessible(true);
 		
-		this.stateField = findStateField(clazz);
+		this.stateField = findStateField(stateFieldName, clazz);
 
 		if (this.stateField == null) {
 			throw new RuntimeException("No State field defined");
@@ -95,8 +104,21 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	
 	protected abstract Field findIdField(Class<?> clazz); 
 
-	protected Field findStateField(Class<?> clazz) {
-		return getAnnotatedField(clazz, org.statefulj.persistence.common.annotations.State.class);
+	protected Field findStateField(String stateFieldName, Class<?> clazz) {
+		Field stateField = null;;
+		if (StringUtils.isEmpty(stateFieldName)) {
+			stateField = getAnnotatedField(clazz, org.statefulj.persistence.common.annotations.State.class);
+		} else {
+			try {
+				stateField = clazz.getDeclaredField(stateFieldName);
+			} catch (NoSuchFieldException e) {
+				logger.error("Unable to locate state field for {}, stateFieldName={}", clazz.getName(), stateFieldName);
+			} catch (SecurityException e) {
+				logger.error("Security exception trying to locate state field for {}, stateFieldName={}", clazz.getName(), stateFieldName);
+				logger.error("Exception", e);
+			}
+		}
+		return stateField;
 	}
 	
 	protected abstract Class<?> getStateFieldType(); 

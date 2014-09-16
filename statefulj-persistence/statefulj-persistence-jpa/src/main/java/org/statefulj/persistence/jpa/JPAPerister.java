@@ -24,8 +24,8 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 	@PersistenceContext
 	private EntityManager entityManager;
 	
-	public JPAPerister(List<State<T>> states, State<T> start, Class<T> clazz) {
-		super(states, start, clazz);
+	public JPAPerister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz) {
+		super(states, stateFieldName, start, clazz);
 	}
 
 	/**

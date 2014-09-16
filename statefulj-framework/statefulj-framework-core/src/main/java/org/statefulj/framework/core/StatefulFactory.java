@@ -620,7 +620,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor {
 			persisterId = referenceFactory.getPersisterId();
 			reg.registerBeanDefinition(
 					persisterId, 
-					persistenceFactory.buildPersisterBean(statefulClass, startStateId, stateBeans));
+					persistenceFactory.buildPersisterBean(
+							statefulClass, 
+							statefulContollerAnnotation.stateField(),
+							startStateId, 
+							stateBeans));
 		}
 		
 		return persisterId;

@@ -23,6 +23,7 @@
 
     <bean id="mongoPersister" class="org.statefulj.persistence.mongo.MongoPersister">
     	<constructor-arg name="clazz" value="org.statefulj.persistence.mongo.Order"/>
+    	<constructor-arg name="stateFieldName" value=""/>
     	<constructor-arg name="start" ref="stateA"/>
     	<constructor-arg name="states">
 		    <util:list>

@@ -85,8 +85,8 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		}
 	}
 	
-	public MongoPersister(List<State<T>> states, State<T> start, Class<T> clazz) {
-		super(states, start,clazz);
+	public MongoPersister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz) {
+		super(states, stateFieldName, start,clazz);
 	}
 
 	@Override

@@ -27,8 +27,11 @@ public class MockPersistenceSupportBeanFactory implements
 	}
 
 	@Override
-	public BeanDefinition buildPersisterBean(Class<?> statefulClass,
-			String startStateId, List<RuntimeBeanReference> stateBeans) {
+	public BeanDefinition buildPersisterBean(
+			Class<?> statefulClass,
+			String stateFieldName,
+			String startStateId, 
+			List<RuntimeBeanReference> stateBeans) {
 		return mockDef();
 	}
 
