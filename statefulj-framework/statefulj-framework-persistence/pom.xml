@@ -23,6 +23,7 @@
 
 	</dependencies>
 	<modules>
+                <module>statefulj-framework-persistence-jpa</module>
 		<module>statefulj-framework-persistence-mongo</module>
 	</modules>
 </project>

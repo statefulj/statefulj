@@ -39,9 +39,8 @@
 	<modules>
 		<module>statefulj-framework-core</module>
 		<module>statefulj-framework-binders</module>
-		<module>statefulj-framework-persistence-jpa</module>
+		<module>statefulj-framework-persistence</module>
 		<module>statefulj-framework-tests</module>
 		<module>statefulj-framework-demo</module>
-		<module>statefulj-framework-persistence</module>
 	</modules>
 </project>

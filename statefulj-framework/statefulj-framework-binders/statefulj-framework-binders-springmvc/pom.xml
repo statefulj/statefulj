@@ -10,7 +10,7 @@
 
 	<parent>
 		<groupId>org.statefulj.framework</groupId>
-		<artifactId>statefulj-framework</artifactId>
+		<artifactId>statefulj-framework-binders</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
