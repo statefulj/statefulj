@@ -42,7 +42,7 @@
 		<module>statefulj-framework-binder-springmvc</module>
         <module>statefulj-framework-tests</module>
         <module>statefulj-framework-demo</module>
-	<module>binders</module>
+	<module>statefulj-binders</module>
 	<module>persistence</module>
 	</modules>
 </project>

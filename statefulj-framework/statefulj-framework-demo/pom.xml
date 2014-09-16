@@ -116,7 +116,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-binder-camel</artifactId>
+			<artifactId>statefulj-framework-binders-camel</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 

@@ -23,6 +23,6 @@
 
 	</dependencies>
 	<modules>
-		<module>camel</module>
+		<module>statefulj-framework-binders-camel</module>
 	</modules>
 </project>
