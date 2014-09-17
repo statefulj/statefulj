@@ -6,7 +6,7 @@ import org.statefulj.webapp.model.User;
 
 public interface NotificationService  {
 	
-	void onNotification(User user, Account account, String msg);
+	void notify(User user, Account account, String msg);
 	
 	void save(Notification notification);
 	

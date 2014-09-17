@@ -22,16 +22,22 @@ import org.statefulj.webapp.services.NotificationService;
 @StatefulController(
 	clazz=Account.class,
 	startState=NON_EXISTENT,
-	factoryId="accountService"
+	factoryId="accountService",
+	noops={
+		@Transition(from=APPROVAL_PENDING, event=AccountController.ACCOUNT_APPROVED_EVENT, to=ACTIVE),
+		@Transition(from=APPROVAL_PENDING, event=AccountController.ACCOUNT_REJECTED_EVENT, to=REJECTED)
+	}
 )
 public class AccountController {
 	
-	// EVENTS
+	// Events
 	//
-	final String ACCOUNT_APPROVED_EVENT = "camel:" + ACCOUNT_APPROVED;
-	final String ACCOUNT_REJECTED_EVENT = "camel:" + ACCOUNT_REJECTED;
-	final String ACCOUNT_CREATE_EVENT = "springmvc:post:/accounts";
-	final String ACCOUNT_DISPLAY_EVENT = "springmvc:/accounts/{id}";
+	static final String ACCOUNT_APPROVED_EVENT = "camel:" + ACCOUNT_APPROVED;
+	static final String ACCOUNT_REJECTED_EVENT = "camel:" + ACCOUNT_REJECTED;
+	static final String LOAN_APPROVED_EVENT = "camel:" + LOAN_APPROVED;
+	static final String LOAN_REJECTED_EVENT = "camel:" + LOAN_REJECTED;
+	static final String ACCOUNT_CREATE_EVENT = "springmvc:post:/accounts";
+	static final String ACCOUNT_DISPLAY_EVENT = "springmvc:/accounts/{id}";
 	
 	@Resource
 	AccountService accountService;
@@ -62,11 +68,11 @@ public class AccountController {
 	}
 
 	@Transitions({
-		@Transition(from=APPROVAL_PENDING, event=ACCOUNT_APPROVED_EVENT, to=ACTIVE),
-		@Transition(from=APPROVAL_PENDING, event=ACCOUNT_REJECTED_EVENT, to=REJECTED)
+		@Transition(from=APPROVAL_PENDING, event=LOAN_APPROVED_EVENT, to=ACTIVE),
+		@Transition(from=APPROVAL_PENDING, event=LOAN_REJECTED_EVENT, to=REJECTED)
 	})
 	public void accountReviewed(Account account, String event, AccountApplication msg) {
-		notificationService.onNotification(account.getOwner(), account, msg.getReason());
+		notificationService.notify(account.getOwner(), account, msg.getReason());
 	}
 	
 	// Make sure that only the owner can access the account

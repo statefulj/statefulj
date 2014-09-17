@@ -16,10 +16,6 @@
 		<level value="DEBUG" />
 	</logger>
 
-	<logger name="org.apache.activemq">
-		<level value="DEBUG" />
-	</logger>
-
 	<!-- Root Logger -->
 	<root level="WARN">
 		<appender-ref ref="STDOUT" />

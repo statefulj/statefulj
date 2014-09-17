@@ -16,6 +16,21 @@
 		</div>
 		<div class="row">
 			<div class="col-md-offset-1 col-md-10">
+				<c:if test="${not empty user.accounts}">
+					<div class="notifications">
+						<c:forEach items="${user.notifications}" var="notification">
+							<c:if test="${notification.type.equals('rejected')}">
+								<c:set var="alertType" value="alert-warning"/>
+							</c:if>
+							<c:if test="${not notification.type.equals('rejected')}">
+								<c:set var="alertType" value="alert-info"/>
+							</c:if>
+							<div class="alert ${alertType}">
+								${notification.message}
+							</div>
+						</c:forEach>
+					</div>
+				</c:if>
 				<h3>Accounts:</h3>
 				<c:if test="${empty user.accounts}">
 					<div class="alert alert-info">

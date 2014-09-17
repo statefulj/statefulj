@@ -1,5 +1,8 @@
 package org.statefulj.webapp.rules;
 
+import java.util.Calendar;
+import java.util.Random;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
@@ -13,12 +16,15 @@ import org.statefulj.webapp.model.LoanAccount;
 import static org.apache.camel.ExchangePattern.*;
 
 public class AccountRules {
+	static Random random = new Random(Calendar.getInstance().getTimeInMillis());
 	
 	// Public Queues
 	//
 	public static final String REVIEW_APPLICATION = "vm:account.application";
 	public static final String ACCOUNT_APPROVED = "vm:account.approved";
 	public static final String ACCOUNT_REJECTED = "vm:account.rejected";
+	public static final String LOAN_APPROVED = "vm:account.loan.approved";
+	public static final String LOAN_REJECTED = "vm:account.loan.rejected";
 	
 	// Private Queues
 	//
@@ -49,7 +55,7 @@ public class AccountRules {
 		@Override
 		public void process(Exchange exchange) throws Exception {
 			AccountApplication msg = getApplication(exchange);
-			boolean approved = RandomUtils.nextBoolean();
+			boolean approved = RandomUtils.nextBoolean(random);
 			msg.setApproved(approved);
 			msg.setReason((approved) 
 					? "You're approved cause we like you" 
@@ -80,9 +86,9 @@ public class AccountRules {
                 	process(reviewApplication).
                 	choice().
                     	when(loanApproved).
-                        	to(ACCOUNT_APPROVED).
+                        	to(LOAN_APPROVED).
                         otherwise().
-                        	to(ACCOUNT_REJECTED);
+                        	to(LOAN_REJECTED);
            }
         };
 	}

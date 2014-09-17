@@ -20,8 +20,6 @@ import org.statefulj.webapp.form.RegistrationForm;
 import org.statefulj.webapp.model.User;
 
 import static org.statefulj.webapp.model.User.*;
-import static org.statefulj.webapp.rules.AccountRules.ACCOUNT_APPROVED;
-import static org.statefulj.webapp.rules.AccountRules.ACCOUNT_REJECTED;
 
 import org.statefulj.webapp.services.UserService;
 import org.statefulj.webapp.services.UserSessionService;

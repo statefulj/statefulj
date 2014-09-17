@@ -16,8 +16,6 @@ public class MockPersister<T> extends AbstractPersister<T> {
 	@Override
 	public void setCurrent(T stateful, State<T> current, State<T> next)
 			throws StaleStateException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
@@ -31,10 +29,8 @@ public class MockPersister<T> extends AbstractPersister<T> {
 		try {
 			idField = clazz.getDeclaredField("idField");
 		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return idField;

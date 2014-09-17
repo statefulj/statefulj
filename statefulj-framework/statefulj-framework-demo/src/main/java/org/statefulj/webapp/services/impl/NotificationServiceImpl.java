@@ -30,7 +30,7 @@ public class NotificationServiceImpl implements NotificationService {
 	EntityManager entityManager;
 	
 	@Override
-	public void onNotification(User user, Account account, String msg) {
+	public void notify(User user, Account account, String msg) {
 		try {
 			notificationFSM.onEvent(NOTIFY, user, account, msg);
 		} catch (TooBusyException e) {

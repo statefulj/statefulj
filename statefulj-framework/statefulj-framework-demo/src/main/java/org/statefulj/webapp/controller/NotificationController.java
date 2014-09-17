@@ -27,7 +27,7 @@ public class NotificationController {
 	
 	@Transition(from=NON_EXISTENT, event=NOTIFY, to=SHOWING)
 	public void createNotification(Notification notification, String event, User user, Account account, String msg) {
-		notification.setType(account.getState());
+		notification.setType(account.getState().toLowerCase());
 		notification.setMessage(msg);
 		user.addNotification(notification);
 	}
