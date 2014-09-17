@@ -39,9 +39,10 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 	}
 
 	@Override
-	public BeanDefinition buildPersisterBean(Class<?> statefulClass,
-			String startStateId, 
+	public BeanDefinition buildPersisterBean(
+			Class<?> statefulClass,
 			String stateFieldName,
+			String startStateId,
 			List<RuntimeBeanReference> stateBeans) {
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(MongoPersister.class)

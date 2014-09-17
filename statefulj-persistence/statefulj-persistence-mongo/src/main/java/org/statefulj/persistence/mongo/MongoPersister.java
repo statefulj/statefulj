@@ -203,7 +203,7 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		return ReflectionUtils.getAnnotatedField(this.getClazz(), Id.class);
+		return ReflectionUtils.getFirstAnnotatedField(this.getClazz(), Id.class);
 	}
 
 	@Override

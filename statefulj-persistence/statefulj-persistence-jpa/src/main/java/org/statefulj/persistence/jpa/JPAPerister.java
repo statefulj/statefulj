@@ -144,7 +144,7 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		return ReflectionUtils.getAnnotatedField(clazz, Id.class);
+		return ReflectionUtils.getFirstAnnotatedField(clazz, Id.class);
 	}
 
 	@Override

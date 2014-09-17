@@ -9,18 +9,19 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.framework.core.model.FSMHarness;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
+public class JPAFSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
 	
 	ThreadLocal<TransactionStatus> tl = new ThreadLocal<TransactionStatus>();
 	
 	@Resource
 	JpaTransactionManager transactionManager;
 	
-	FSMHarness fsm;
+	FSMHarnessImpl<T, CT> fsm;
 	
 	public JPAFSMHarnessImpl(
 			FSM<T> fsm, 
@@ -58,9 +59,25 @@ public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
 					return fsm.onEvent(event, parms);
 				} catch (TooBusyException e) {
 					throw new RuntimeException(e);
-				} catch (InstantiationException e) {
+				} 
+			}
+			
+		});
+	}
+
+	@Override
+	public Object onEvent(final T stateful, final String event, final Object... parms)
+			throws TooBusyException {
+		TransactionTemplate tt = new TransactionTemplate(transactionManager);
+		return tt.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus status) {
+				try {
+					return fsm.onEvent(stateful, event, parms);
+				} catch (TooBusyException e) {
 					throw new RuntimeException(e);
-				}
+				} 
 			}
 			
 		});

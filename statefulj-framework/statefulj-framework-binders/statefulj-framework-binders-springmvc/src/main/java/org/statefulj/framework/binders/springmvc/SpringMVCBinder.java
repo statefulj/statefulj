@@ -2,15 +2,12 @@ package org.statefulj.framework.binders.springmvc;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import javassist.CannotCompileException;
@@ -23,7 +20,6 @@ import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
-import javassist.bytecode.FieldInfo;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.ParameterAnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
@@ -47,8 +43,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.*;
-import org.statefulj.framework.core.annotations.Transition;
-import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.ReferenceFactory;
@@ -254,27 +248,6 @@ public class SpringMVCBinder implements EndpointBinder {
 		CtClass returnClass = (method == null) ? CtClass.voidType : cp.get(method.getReturnType().getName());
 		CtMethod ctMethod = new CtMethod(returnClass, methodName, null, mvcProxyClass);
 		return ctMethod;
-	}
-	
-	private void addMethodAnnotations(CtMethod ctMethod, Method method) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		if (method != null) {
-			MethodInfo methodInfo = ctMethod.getMethodInfo();
-			ConstPool constPool = methodInfo.getConstPool();
-			for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
-				AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-
-				// If it's a Transition skip
-				//
-				Annotation clone = null;
-				if (anno instanceof Transitions || anno instanceof Transition) {
-					// skip
-				} else {
-					clone = cloneAnnotation(constPool, anno);
-					attr.addAnnotation(clone);
-					methodInfo.addAttribute(attr);
-				}
-			}
-		}
 	}
 	
 	private void addRequestMapping(CtMethod ctMethod, String method, String request) {
@@ -525,38 +498,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		return ctParmAnnotations.toArray(new Annotation[]{});
 	}
 	
-	/**
-	 * Clone an annotation and all of it's methods
-	 * @param constPool
-	 * @param annotation
-	 * @return
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
-	 */
-	private Annotation cloneAnnotation(ConstPool constPool, java.lang.annotation.Annotation annotation) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		logger.debug("cloneAnnotation : Create annotation = {}", annotation.annotationType().getName());
-		Class<?> clazz = annotation.annotationType();
 
-		Annotation annot = new Annotation(clazz.getName(), constPool);
-		for(Method method : clazz.getDeclaredMethods()) {
-			MemberValue memberVal = null;
-			
-			if (method.getReturnType().isArray()) {
-				List<MemberValue> memberVals = new LinkedList<MemberValue>();
-				for(Object val : (Object[])method.invoke(annotation)) {
-					memberVals.add(createMemberValue(constPool, val));
-				}
-				memberVal = new ArrayMemberValue(constPool);
-				((ArrayMemberValue)memberVal).setValue(memberVals.toArray(new MemberValue[]{}));
-			} else {
-				memberVal = createMemberValue(constPool, method.invoke(annotation));
-			}
-			annot.addMemberValue(method.getName(), memberVal);
-		}
-		return annot;
-	}
-		
 	private Pair<String, String> parseMethod(String event) {
 		Matcher matcher = this.methodPattern.matcher(event);
 		if (!matcher.matches()) {
@@ -565,36 +507,4 @@ public class SpringMVCBinder implements EndpointBinder {
 		return new ImmutablePair<String, String>(matcher.group(2), matcher.group(3));
 	}
 
-	private void addResourceAnnotation(CtField field, String beanName) {
-		FieldInfo fi = field.getFieldInfo();
-		
-		AnnotationsAttribute attr = new AnnotationsAttribute(
-				field.getFieldInfo().getConstPool(), 
-				AnnotationsAttribute.visibleTag);
-		Annotation annot = new Annotation(Resource.class.getName(), fi.getConstPool());
-		
-		StringMemberValue nameValue = new StringMemberValue(fi.getConstPool());
-		nameValue.setValue(beanName);
-		annot.addMemberValue("name", nameValue);
-		
-		attr.addAnnotation(annot);
-		fi.addAttribute(attr);
-	}
-	
-	private List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends java.lang.annotation.Annotation> annotation) {
-	    final List<Method> methods = new ArrayList<Method>();
-	    Class<?> clazz = type;
-	    while (clazz != Object.class) { // need to iterated thought hierarchy in order to retrieve methods from above the current instance
-	        // iterate though the list of methods declared in the class represented by clazz variable, and add those annotated with the specified annotation
-	        final List<Method> allMethods = new ArrayList<Method>(Arrays.asList(clazz.getDeclaredMethods()));       
-	        for (final Method method : allMethods) {
-	            if (annotation == null || method.isAnnotationPresent(annotation)) {
-	                methods.add(method);
-	            }
-	        }
-	        // move to the upper class in the hierarchy in search for more methods
-	        clazz = clazz.getSuperclass();
-	    }
-	    return methods;
-	}
 }

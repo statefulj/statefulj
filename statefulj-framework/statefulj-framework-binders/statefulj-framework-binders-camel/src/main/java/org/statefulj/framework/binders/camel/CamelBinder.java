@@ -34,8 +34,6 @@ import org.slf4j.LoggerFactory;
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.*;
 
 import org.statefulj.common.utils.ReflectionUtils;
-import org.statefulj.framework.core.annotations.Transition;
-import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.ReferenceFactory;
@@ -63,7 +61,7 @@ public class CamelBinder implements EndpointBinder {
 			if (BeanInvocation.class.isAssignableFrom(msg.getClass())) {
 				msg = ((BeanInvocation)msg).getArgs()[0];
 			}
-			Field idField = ReflectionUtils.getAnnotatedField(msg.getClass(), Id.class);
+			Field idField = ReflectionUtils.getFirstAnnotatedField(msg.getClass(), Id.class);
 			if (idField != null) {
 				try {
 					idField.setAccessible(true);

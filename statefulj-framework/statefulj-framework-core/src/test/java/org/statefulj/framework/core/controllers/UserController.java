@@ -1,7 +1,9 @@
 package org.statefulj.framework.core.controllers;
 
+import org.statefulj.framework.core.annotations.FSM;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.User;
 
 @StatefulController(
@@ -21,6 +23,9 @@ public class UserController {
 	public static final String THREE_STATE = "three";
 	public static final String FOUR_STATE = "four";
 	public static final String FIVE_STATE = "five";
+	
+	@FSM
+	StatefulFSM<User> fsm;
 	
 	@Transition(from=ONE_STATE, event="mock:one", to=TWO_STATE)
 	public User oneToTwo(User user, String event) {

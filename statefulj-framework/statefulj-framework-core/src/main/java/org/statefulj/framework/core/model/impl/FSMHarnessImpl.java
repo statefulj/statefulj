@@ -9,10 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class FSMHarnessImpl<T, CT> implements FSMHarness {
+public class FSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
 	
 	private Logger logger = LoggerFactory.getLogger(FSMHarnessImpl.class);
 	
@@ -36,13 +37,30 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	}
 	
 	@Override
+	public Object onEvent(T stateful, String event, Object... parms) throws TooBusyException {
+		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
+		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length + 1);
+		
+		
+		// Create a Mutable Object and add it to the Parameter List - it will be used
+		// to return the returned value from the Controller as the FSM returns the State
+		//
+		MutableObject<T> returnValue = new MutableObject<T>();
+		invokeParmlist.add(returnValue);
+		invokeParmlist.addAll(parmList);
+		
+		// Call the FSM
+		// 
+		fsm.onEvent(stateful, event, invokeParmlist.toArray());
+		return returnValue.getValue();
+	}
+	
+	@Override
 	@SuppressWarnings("unchecked")
 	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException {
 		
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		CT context = (parmList.size() > 0) ? (CT)parmList.remove(0) : null;
-		
-		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length + 1);
 		
 		T obj = null;
 		
@@ -65,17 +83,7 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 			}
 		}
 		
-		// Create a Mutable Object and add it to the Parameter List - it will be used
-		// to return the returned value from the Controller as the FSM returns the State
-		//
-		MutableObject<T> returnValue = new MutableObject<T>();
-		invokeParmlist.add(returnValue);
-		invokeParmlist.addAll(parmList);
-		
-		// Call the FSM
-		// 
-		fsm.onEvent(obj, event, invokeParmlist.toArray());
-		return returnValue.getValue();
+		return onEvent(obj, event, parmList.toArray());
 	}
 	
 	@Override
