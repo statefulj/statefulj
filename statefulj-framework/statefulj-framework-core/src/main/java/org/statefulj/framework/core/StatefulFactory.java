@@ -50,9 +50,11 @@ import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.fsm.FSM;
 import org.statefulj.framework.core.fsm.TransitionImpl;
 import org.statefulj.framework.core.model.EndpointBinder;
+import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
+import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
 import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
 import org.statefulj.fsm.model.impl.StateImpl;
 
@@ -411,13 +413,22 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				persisterId, 
 				reg);
 
+		// Build out the StatefulFSM Bean
+		//
+		String statefulFSMBeanId = registerStatefulFSMBean(
+				referenceFactory,
+				statefulClass, 
+				fsmBeanId, 
+				factoryId, 
+				reg);
+
 		// Build out the FSMHarness Bean
 		//
 		registerFSMHarness(
 				referenceFactory,
 				factory, 
 				statefulClass, 
-				fsmBeanId, 
+				statefulFSMBeanId, 
 				factoryId, 
 				finderId, 
 				reg);
@@ -624,6 +635,24 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		return fsmBeanId;
 	}
 
+	private String registerStatefulFSMBean(
+			ReferenceFactory referenceFactory,
+			Class<?> statefulClass, 
+			String fsmBeanId, 
+			String factoryId,
+			BeanDefinitionRegistry reg) {
+		String statefulFSMBeanId = referenceFactory.getStatefulFSMId();
+		BeanDefinition statefulFSMBean = BeanDefinitionBuilder
+				.genericBeanDefinition(StatefulFSMImpl.class)
+				.getBeanDefinition();
+		ConstructorArgumentValues args = statefulFSMBean.getConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fsmBeanId));
+		args.addIndexedArgumentValue(1, statefulClass);
+		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
+		reg.registerBeanDefinition(statefulFSMBeanId, statefulFSMBean);
+		return statefulFSMBeanId;
+	}
+
 	private String registerBinderBean(
 			String key,
 			ReferenceFactory referenceFactory,
@@ -720,8 +749,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				String finderId, 
 				BeanDefinitionRegistry reg) {
 		String fsmHarnessId = referenceFactory.getFSMHarnessId();
-		reg.registerBeanDefinition(fsmHarnessId, 
-				persistenceFactory.buildFSMHarnessBean(statefulClass, fsmBeanId, factoryId, finderId));
+		reg.registerBeanDefinition(
+				fsmHarnessId, 
+				persistenceFactory.buildFSMHarnessBean(
+						statefulClass, 
+						fsmBeanId, 
+						factoryId, 
+						finderId));
 		return fsmHarnessId;
 	}
 	
@@ -813,7 +847,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				}
 				FSMWiring wiring = new FSMWiring();
 				wiring.setField(field);
-				wiring.setFsmId(refFactory.getFSMHarnessId());
+				wiring.setFsmId(refFactory.getStatefulFSMId());
 				wirings.add(wiring);
 			}
 		}

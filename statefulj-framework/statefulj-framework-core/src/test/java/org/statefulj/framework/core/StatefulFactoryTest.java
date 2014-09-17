@@ -67,7 +67,7 @@ public class StatefulFactoryTest {
 
 		assertNotNull(fsmWiring);
 		assertEquals("fsm", fsmWiring.getField().getName());
-		assertEquals("userController.fsmHarness", fsmWiring.getFsmId());
+		assertEquals("userController.statefulFSM", fsmWiring.getFsmId());
 	}
  
 }

@@ -13,7 +13,7 @@ import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class FSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
+public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	
 	private Logger logger = LoggerFactory.getLogger(FSMHarnessImpl.class);
 	
@@ -21,12 +21,12 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
 	
 	private Finder<T, CT> finder;
 	
-	private FSM<T> fsm;
+	private StatefulFSM<T> fsm;
 	
 	private Class<T> clazz;
 	
 	public FSMHarnessImpl(
-			FSM<T> fsm, 
+			StatefulFSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T, CT> factory,
 			Finder<T, CT> finder) {
@@ -37,53 +37,34 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
 	}
 	
 	@Override
-	public Object onEvent(T stateful, String event, Object... parms) throws TooBusyException {
-		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
-		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length + 1);
-		
-		
-		// Create a Mutable Object and add it to the Parameter List - it will be used
-		// to return the returned value from the Controller as the FSM returns the State
-		//
-		MutableObject<T> returnValue = new MutableObject<T>();
-		invokeParmlist.add(returnValue);
-		invokeParmlist.addAll(parmList);
-		
-		// Call the FSM
-		// 
-		fsm.onEvent(stateful, event, invokeParmlist.toArray());
-		return returnValue.getValue();
-	}
-	
-	@Override
 	@SuppressWarnings("unchecked")
 	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException {
 		
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		CT context = (parmList.size() > 0) ? (CT)parmList.remove(0) : null;
 		
-		T obj = null;
+		T stateful = null;
 		
 		if (id == null) {
-			obj = this.finder.find(clazz, event, context);
+			stateful = this.finder.find(clazz, event, context);
 		} else {
-			obj = this.finder.find(clazz, id, event, context);
+			stateful = this.finder.find(clazz, id, event, context);
 		}
 
-		if ( obj == null ) {
+		if ( stateful == null ) {
 			if (id != null) {
 				logger.error("Unable to locate object of type {}, id={}, event={}", clazz.getName(), id, event);
 				throw new RuntimeException("Unable to locate object of type " + clazz.getName() + ", id=" + ((id == null) ? "null" : id) + ", event=" + event);
 			} else {
-				obj = this.factory.create(this.clazz, event, context);
-				if (obj == null) {
+				stateful = this.factory.create(this.clazz, event, context);
+				if (stateful == null) {
 					logger.error("Unable to create object of type {}, event={}", clazz.getName(), event);
 					throw new RuntimeException("Unable to create object of type " + clazz.getName() + ", event=" + event);
 				}
 			}
 		}
 		
-		return onEvent(obj, event, parmList.toArray());
+		return fsm.onEvent(stateful, event, parmList.toArray());
 	}
 	
 	@Override

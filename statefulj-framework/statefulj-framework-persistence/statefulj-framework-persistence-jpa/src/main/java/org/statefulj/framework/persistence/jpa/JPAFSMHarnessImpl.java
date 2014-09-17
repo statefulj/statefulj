@@ -11,10 +11,9 @@ import org.statefulj.framework.core.model.Finder;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
-import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
-public class JPAFSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
+public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
 	
 	ThreadLocal<TransactionStatus> tl = new ThreadLocal<TransactionStatus>();
 	
@@ -24,7 +23,7 @@ public class JPAFSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
 	FSMHarnessImpl<T, CT> fsm;
 	
 	public JPAFSMHarnessImpl(
-			FSM<T> fsm, 
+			StatefulFSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T, CT> factory,
 			Finder<T, CT> finder) {
@@ -57,24 +56,6 @@ public class JPAFSMHarnessImpl<T, CT> implements FSMHarness, StatefulFSM<T> {
 			public Object doInTransaction(TransactionStatus status) {
 				try {
 					return fsm.onEvent(event, parms);
-				} catch (TooBusyException e) {
-					throw new RuntimeException(e);
-				} 
-			}
-			
-		});
-	}
-
-	@Override
-	public Object onEvent(final T stateful, final String event, final Object... parms)
-			throws TooBusyException {
-		TransactionTemplate tt = new TransactionTemplate(transactionManager);
-		return tt.execute(new TransactionCallback<Object>() {
-
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				try {
-					return fsm.onEvent(stateful, event, parms);
 				} catch (TooBusyException e) {
 					throw new RuntimeException(e);
 				} 

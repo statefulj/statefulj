@@ -14,6 +14,8 @@ public interface ReferenceFactory {
 
 	String getFactoryId();
 
+	String getStatefulFSMId();
+	
 	String getFSMId();
 	
 	String getStateId(String state);

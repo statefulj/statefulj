@@ -17,6 +17,7 @@ import static org.statefulj.webapp.model.Account.*;
 import static org.statefulj.webapp.rules.AccountRules.*;
 
 import org.statefulj.webapp.services.AccountService;
+import org.statefulj.webapp.services.NotificationService;
 
 @StatefulController(
 	clazz=Account.class,
@@ -29,6 +30,8 @@ public class AccountController {
 	//
 	final String ACCOUNT_APPROVED_EVENT = "camel:" + ACCOUNT_APPROVED;
 	final String ACCOUNT_REJECTED_EVENT = "camel:" + ACCOUNT_REJECTED;
+	final String ACCOUNT_CREATE_EVENT = "springmvc:post:/accounts";
+	final String ACCOUNT_DISPLAY_EVENT = "springmvc:/accounts/{id}";
 	
 	@Resource
 	AccountService accountService;
@@ -36,7 +39,10 @@ public class AccountController {
 	@Produce(uri=REVIEW_APPLICATION)
 	AccountApplicationReviewer applicationReviewer;
 	
-	@Transition(from=NON_EXISTENT, event="springmvc:post:/accounts", to=APPROVAL_PENDING)
+	@Resource
+	NotificationService notificationService;
+	
+	@Transition(from=NON_EXISTENT, event=ACCOUNT_CREATE_EVENT, to=APPROVAL_PENDING)
 	public String createAccount(Account account, String event, AccountForm form) {
 		
 		// Save to database prior to emitting events
@@ -60,12 +66,12 @@ public class AccountController {
 		@Transition(from=APPROVAL_PENDING, event=ACCOUNT_REJECTED_EVENT, to=REJECTED)
 	})
 	public void accountReviewed(Account account, String event, AccountApplication msg) {
-		String foo = "bar";
+		notificationService.onNotification(account.getOwner(), account, msg.getReason());
 	}
 	
 	// Make sure that only the owner can access the account
 	//
-	@Transition(event="springmvc:/accounts/{id}")
+	@Transition(event=ACCOUNT_DISPLAY_EVENT)
 	@PreAuthorize("#account.owner.email == principal.username")
 	public ModelAndView displayAccount(Account account, String event) {
 		ModelAndView mv = new ModelAndView("account");

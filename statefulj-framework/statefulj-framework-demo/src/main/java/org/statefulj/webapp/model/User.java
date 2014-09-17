@@ -17,7 +17,6 @@ import org.statefulj.persistence.jpa.model.StatefulEntity;
 
 
 @Entity
-@Table(name="users")
 public class User extends StatefulEntity {
 	
 	// States
@@ -44,6 +43,9 @@ public class User extends StatefulEntity {
 	
 	@OneToMany(mappedBy="owner", cascade=CascadeType.ALL)
 	List<Account> accounts;
+
+	@OneToMany(mappedBy="owner", cascade=CascadeType.ALL)
+	List<Notification> notifications;
 
 	public Long getId() {
 		return id;
@@ -104,5 +106,18 @@ public class User extends StatefulEntity {
 
 	public void setAccounts(List<Account> accounts) {
 		this.accounts = accounts;
+	}
+
+	public void addNotification(Notification notification) {
+		notification.setOwner(this);
+		this.notifications.add(notification);
+	}
+	
+	public List<Notification> getNotifications() {
+		return notifications;
+	}
+
+	public void setNotifications(List<Notification> notifications) {
+		this.notifications = notifications;
 	}
 }

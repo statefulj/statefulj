@@ -4,10 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.statefulj.framework.core.model.Factory;
-import org.statefulj.framework.core.model.Finder;
-import org.statefulj.fsm.FSM;
 
 public interface PersistenceSupportBeanFactory {
 
@@ -33,5 +29,4 @@ public interface PersistenceSupportBeanFactory {
 			String fsmBeanId,
 			String factoryId,
 			String finderId);
-
 }

@@ -138,7 +138,7 @@ public class FSM<T> {
 	
 	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> transition, Object... args) throws RetryException {
 		StateActionPair<T> pair = transition.getStateActionPair();
-		persister.setCurrent(stateful, current, pair.getState());
+		setCurrent(stateful, current, pair.getState());
 		executeAction(
 				pair.getAction(), 
 				stateful, 
@@ -147,6 +147,10 @@ public class FSM<T> {
 				pair.getState().getName(),
 				args);
 		return pair.getState();
+	}
+	
+	protected void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
+		persister.setCurrent(stateful, current, next);
 	}
 	
 	protected void executeAction(

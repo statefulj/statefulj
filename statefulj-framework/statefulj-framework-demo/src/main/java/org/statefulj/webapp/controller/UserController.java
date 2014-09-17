@@ -15,9 +15,14 @@ import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
+import org.statefulj.webapp.controller.exceptions.DuplicateUserException;
 import org.statefulj.webapp.form.RegistrationForm;
 import org.statefulj.webapp.model.User;
+
 import static org.statefulj.webapp.model.User.*;
+import static org.statefulj.webapp.rules.AccountRules.ACCOUNT_APPROVED;
+import static org.statefulj.webapp.rules.AccountRules.ACCOUNT_REJECTED;
+
 import org.statefulj.webapp.services.UserService;
 import org.statefulj.webapp.services.UserSessionService;
 
@@ -28,6 +33,23 @@ import org.statefulj.webapp.services.UserSessionService;
 )
 public class UserController {
 	 
+	// Events
+	//
+	final String HOMEPAGE_EVENT = "springmvc:/";
+	final String LOGIN_PAGE_EVENT = "springmvc:/login";
+	final String DETAILS_PAGE_EVENT = "springmvc:/user";
+	final String REGISTRATION_PAGE_EVENT = "springmvc:/registration";
+	final String CONFIRMATION_PAGE_EVENT = "springmvc:/confirmation";
+	final String LOAN_PAGE_EVENT = "springmvc:/accounts/loan";
+	final String SAVINGS_PAGE_EVENT = "springmvc:/accounts/savings";
+	final String CHECKING_PAGE_EVENT = "springmvc:/accounts/checking";
+
+	final String REGISTER_EVENT = "springmvc:post:/registration";
+	final String CONFIRMATION_EVENT = "springmvc:post:/user/confirmation";
+	final String DELETE_EVENT = "springmvc:/user/delete";
+	
+	final String SUCCESSFUL_CONFIRMATION_EVENT = "successful-confirmation";
+	
 	@Resource
 	UserService userService;
 	
@@ -36,22 +58,22 @@ public class UserController {
 	
 	// -- UNREGISTERED -- //
 	
-	@Transition(from=UNREGISTERED, event="springmvc:/")
+	@Transition(from=UNREGISTERED, event=HOMEPAGE_EVENT)
 	public String homePage() {
  		return "index";
 	}
 	
-	@Transition(from=UNREGISTERED, event="springmvc:/login")
+	@Transition(from=UNREGISTERED, event=LOGIN_PAGE_EVENT)
 	public String loginPage() {
  		return "login";
 	}
 	
-	@Transition(from=UNREGISTERED, event="springmvc:/registration")
+	@Transition(from=UNREGISTERED, event=REGISTRATION_PAGE_EVENT)
 	public String registrationPage() {
  		return "registration";
 	}
 	
-	@Transition(from=UNREGISTERED, event="springmvc:post:/registration", to=REGISTERED_UNCONFIRMED)
+	@Transition(from=UNREGISTERED, event=REGISTER_EVENT, to=REGISTERED_UNCONFIRMED)
 	public String newUser(
 			User user, 
 			String event, 
@@ -100,18 +122,18 @@ public class UserController {
 	
 	// -- REGISTERED_UNCONFIRMED -- //
 
-	@Transition(from=REGISTERED_UNCONFIRMED, event="springmvc:/user")
+	@Transition(from=REGISTERED_UNCONFIRMED, event=DETAILS_PAGE_EVENT)
 	public String redirectToConfirmation(User user) {
 		return "redirect:/confirmation";
 	}
 	
-	@Transition(from=REGISTERED_UNCONFIRMED, event="springmvc:/confirmation")
+	@Transition(from=REGISTERED_UNCONFIRMED, event=CONFIRMATION_PAGE_EVENT)
 	public String confirmationPage(User user, String event, Model model) {
 		model.addAttribute("user", user);
 		return "confirmation";
 	}
 	
-	@Transition(from=REGISTERED_UNCONFIRMED, event="springmvc:post:/user/confirmation")
+	@Transition(from=REGISTERED_UNCONFIRMED, event=CONFIRMATION_EVENT)
 	public String confirmUser(
 			User user, 
 			String event, 
@@ -121,7 +143,7 @@ public class UserController {
 		// transition the User into a REGISTERED_CONFIRMED state
 		//
 		if (user.getToken() == token) {
-			return "event:successful-confirmation";
+			return "event:" + SUCCESSFUL_CONFIRMATION_EVENT;
 		} else {
 			return "redirect:/user?msg=bad+token";
 		}
@@ -130,26 +152,26 @@ public class UserController {
 	@Transitions({
 		// If we get a "successful-confirmation" event, transition into REGISTERD_CONFIRMED
 		//
-		@Transition(from=REGISTERED_UNCONFIRMED, event="successful-confirmation", to=REGISTERED_CONFIRMED),
+		@Transition(from=REGISTERED_UNCONFIRMED, event=SUCCESSFUL_CONFIRMATION_EVENT, to=REGISTERED_CONFIRMED),
 		
 		// If we're logged in, don't display either login or registration pages
 		//
-		@Transition(event="springmvc:/"),
-		@Transition(event="springmvc:/login"),
-		@Transition(event="springmvc:/registration")
+		@Transition(event=HOMEPAGE_EVENT),
+		@Transition(event=LOGIN_PAGE_EVENT),
+		@Transition(event=REGISTRATION_PAGE_EVENT)
 	})
 	public String redirectToUser() {
  		return "redirect:/user";
 	}
 
-	@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/confirmation")
+	@Transition(from=REGISTERED_CONFIRMED, event=CONFIRMATION_PAGE_EVENT)
 	public String redirectToUser(User user, String event, Model model) {
  		return "redirect:/user";
 	}
 
 	// -- REGISTERED_CONFIRMED -- //
 
-	@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/user")
+	@Transition(from=REGISTERED_CONFIRMED, event=DETAILS_PAGE_EVENT)
 	public String userPage(User user, String event, Model model) {
 		model.addAttribute("user", user);
 		model.addAttribute("event", event);
@@ -157,12 +179,12 @@ public class UserController {
 	}
 
 	@Transitions({
-		@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/accounts/loan"),
-		@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/accounts/savings"),
-		@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/accounts/checking")
+		@Transition(from=REGISTERED_CONFIRMED, event=LOAN_PAGE_EVENT),
+		@Transition(from=REGISTERED_CONFIRMED, event=SAVINGS_PAGE_EVENT),
+		@Transition(from=REGISTERED_CONFIRMED, event=CHECKING_PAGE_EVENT)
 	})
 	public String createAccountForm(User user, String event, Model model) {
-		String createAccountUri =  "/accounts"; //(event.equals("/accounts/loan")) ? "/accounts/loan" : "/accounts";
+		String createAccountUri =  "/accounts"; 
 		String[] parts = event.split("/");
 		String type = parts[2];
 		String typeTitle = WordUtils.capitalize(type);
@@ -174,7 +196,7 @@ public class UserController {
 		return "createAccount";
 	}
 
-	@Transition(from=REGISTERED_CONFIRMED, event="springmvc:/user/delete", to=DELETED)
+	@Transition(from=REGISTERED_CONFIRMED, event=DELETE_EVENT, to=DELETED)
 	public String deleteUser(User user, String event) {
 		return "redirect:/logout";
 	}

@@ -43,6 +43,11 @@ public class ReferenceFactoryImpl implements ReferenceFactory {
 	}
 	
 	@Override
+	public String getStatefulFSMId() {
+		return decapitalize(ctrl + ".statefulFSM");
+	}
+	
+	@Override
 	public String getFSMId() {
 		return decapitalize(ctrl + ".fsm");
 	}

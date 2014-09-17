@@ -1,31 +1,21 @@
 package org.statefulj.webapp.model;
 
-import java.math.BigDecimal;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 
 import org.statefulj.persistence.jpa.model.StatefulEntity;
 
-
 @Entity
-@Inheritance(strategy=InheritanceType.SINGLE_TABLE)
-public abstract class Account extends StatefulEntity {
+public class Notification extends StatefulEntity {
 	
 	// States
 	//
 	public static final String NON_EXISTENT = "NON_EXISTENT";
-	public static final String ACTIVE = "ACTIVE";
+	public static final String SHOWING = "SHOWING";
 	public static final String DELETED = "DELETED";
-	public static final String APPROVAL_PENDING = "APPROVAL_PENDING";
-	public static final String REJECTED = "REJECTED";
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE)
@@ -34,7 +24,9 @@ public abstract class Account extends StatefulEntity {
 	@ManyToOne(optional=false)
 	User owner;
 	
-	BigDecimal amount;
+	String type;
+	
+	String message;
 
 	public Long getId() {
 		return id;
@@ -52,18 +44,19 @@ public abstract class Account extends StatefulEntity {
 		this.owner = owner;
 	}
 
-	public BigDecimal getAmount() {
-		return amount;
+	public String getType() {
+		return type;
 	}
 
-	public void setAmount(BigDecimal amount) {
-		this.amount = amount;
+	public void setType(String type) {
+		this.type = type;
 	}
-	
-	@Transient
-	public abstract String getType();
 
-	public String toString() {
-		return getType() + ": state=" + getState();
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 }

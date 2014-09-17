@@ -1,4 +1,4 @@
-package org.statefulj.webapp.controller;
+package org.statefulj.webapp.controller.exceptions;
 
 public class DuplicateUserException extends RuntimeException {
 
