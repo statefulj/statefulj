@@ -102,11 +102,11 @@ public class SpringMVCBinder implements EndpointBinder {
 		//
 		addControllerReference(mvcProxyClass, clazz, beanName, cp);
 		
-		// Add the member variable referencing the StatefulController
+		// Add the member variable referencing the FSMHarness
 		//
 		addFSMHarnessReference(mvcProxyClass, refFactory.getFSMHarnessId(), cp);
 		
-		// Copy methods that have a Transition annotation from the Stateful Controller to the Binder
+		// Copy methods that have a Transition annotation from the StatefulController to the Binder
 		//
 		addRequestMethods(mvcProxyClass, eventMapping, cp);
 		
@@ -312,7 +312,12 @@ public class SpringMVCBinder implements EndpointBinder {
 		ctMethod.setBody(methodBody, "this." + CONTROLLER_VAR, method.getName());
 	}
 	
-	private void addRequestParameters(boolean referencesId, CtMethod ctMethod, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	private void addRequestParameters(
+			boolean referencesId, 
+			CtMethod ctMethod, 
+			Method method, 
+			ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+
 		String[] parmNames = (method != null) ? parmDiscover.getParameterNames(method) : null;
  		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ParameterAnnotationsAttribute paramAtrributeInfo = 
@@ -462,6 +467,7 @@ public class SpringMVCBinder implements EndpointBinder {
 	
 	/**
 	 * Clone all the parameter Annotations from the StatefulController to the Proxy
+	 * 
 	 * @param methodInfo
 	 * @param parmIndex
 	 * @param annotations
