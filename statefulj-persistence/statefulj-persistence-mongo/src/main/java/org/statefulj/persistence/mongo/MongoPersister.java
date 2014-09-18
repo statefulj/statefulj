@@ -1,11 +1,9 @@
 
 package org.statefulj.persistence.mongo;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 

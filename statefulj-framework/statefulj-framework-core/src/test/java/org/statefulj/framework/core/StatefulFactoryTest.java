@@ -1,17 +1,12 @@
 package org.statefulj.framework.core;
 
-import java.util.Map;
-import java.util.Set;
-
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.statefulj.framework.core.StatefulFactory.FSMWiring;
 import org.statefulj.framework.core.controllers.UserController;
 import org.statefulj.framework.core.dao.UserRepository;
 import org.statefulj.framework.core.mocks.MockBeanDefinitionRegistryImpl;
@@ -55,19 +50,6 @@ public class StatefulFactoryTest {
 		
 		assertEquals(MockProxy.class, proxyClass);
 		
-		Map<String, Set<FSMWiring>> fsmWiringsMapping = factory.getFsmWirings();
-		
-		assertNotNull(fsmWiringsMapping);
-		
-		Set<FSMWiring> fsmWirings = fsmWiringsMapping.get("userController");
-		
-		assertNotNull(fsmWirings);
-		
-		FSMWiring fsmWiring = fsmWirings.iterator().next();
-
-		assertNotNull(fsmWiring);
-		assertEquals("fsm", fsmWiring.getField().getName());
-		assertEquals("userController.statefulFSM", fsmWiring.getFsmId());
 	}
  
 }

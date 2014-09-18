@@ -26,23 +26,22 @@ import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.MutablePropertyValues;
-import org.springframework.beans.PropertyValue;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.annotation.QualifierAnnotationAutowireCandidateResolver;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
+import org.springframework.beans.factory.config.DependencyDescriptor;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.ManagedList;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
-import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.framework.core.actions.MethodInvocationAction;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
@@ -50,9 +49,7 @@ import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.fsm.FSM;
 import org.statefulj.framework.core.fsm.TransitionImpl;
 import org.statefulj.framework.core.model.EndpointBinder;
-import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.ReferenceFactory;
-import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
 import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
@@ -76,72 +73,77 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 	private Map<Class<?>, PersistenceSupportBeanFactory> persistenceFactories = new HashMap<Class<?>, PersistenceSupportBeanFactory>();
 	private Map<String, EndpointBinder> binders = new HashMap<String, EndpointBinder>();
-	private Map<String, Set<FSMWiring>> fsmWirings = new HashMap<String, Set<FSMWiring>>();
+	private Map<Class<?>, Set<String>> entityToControllers = new HashMap<Class<?>, Set<String>>();
 	
-	class FSMWiring {
+	// Resolver that injects the FSM for a given controller.  It is inferred by the ClassType or will use the bean Id specified by the value of the 
+	// FSM Annotation
+	//
+	class FSMAnnotationResolver extends QualifierAnnotationAutowireCandidateResolver {
 		
-		Field field;
-		
-		String fsmId;
-		
-		public Field getField() {
-			return field;
-		}
-		
-		public void setField(Field field) {
-			this.field = field;
-		}
-		
-		public String getFsmId() {
-			return fsmId;
-		}
-		
-		public void setFsmId(String fsmId) {
-			this.fsmId = fsmId;
-		}
-	}
+		@Override
+		public Object getSuggestedValue(DependencyDescriptor descriptor) {
+			Object suggested = null;
+			
+			if (contains(descriptor.getAnnotations(), org.statefulj.framework.core.annotations.FSM.class)) {
+				
+				Field field = descriptor.getField();
+				org.statefulj.framework.core.annotations.FSM fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
+				String controllerId = fsmAnnotation.value();
+				
+				if (StringUtils.isEmpty(controllerId)) {
 	
+					Type genericFieldType = field.getGenericType();
+					Class<?> managedClass = null;
 	
-	public Map<String, Set<FSMWiring>> getFsmWirings() {
-		return fsmWirings;
-	}
+					if(genericFieldType instanceof ParameterizedType){
+					    ParameterizedType aType = (ParameterizedType) genericFieldType;
+					    Type[] fieldArgTypes = aType.getActualTypeArguments();
+					    for(Type fieldArgType : fieldArgTypes){
+					    	managedClass = (Class<?>) fieldArgType;
+					    	break;
+					    }
+					}
+					
+					if (managedClass == null) {
+						logger.error("Field {} isn't paramertized", field.getName());
+						throw new RuntimeException("Field " + field.getName() + " isn't paramertized");
+					}
+					
+					Set<String> controllers = entityToControllers.get(managedClass);
+					if (controllers == null) {
+						throw new RuntimeException("Unable to resolve FSM for field " + field.getName());
+					}
+					if (controllers.size() > 1) {
+						throw new RuntimeException("Ambiguous fsm for " + field.getName());
+					}
+					controllerId = controllers.iterator().next();
+				}
+				ReferenceFactory refFactory = new ReferenceFactoryImpl(controllerId);
+				suggested = appContext.getBean(refFactory.getStatefulFSMId());
+			} 
+			return (suggested != null) ? suggested : super.getSuggestedValue(descriptor);
+		}
 
-	/**
-	 * On post processing, wiring all the FSM annotations
+	}
+	
+	
+	/* Set the FSMAnnotationResolver to resolve all FSM annotations
 	 * 
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.config.BeanFactoryPostProcessor#postProcessBeanFactory(org.springframework.beans.factory.config.ConfigurableListableBeanFactory)
 	 */
 	public void postProcessBeanFactory(final ConfigurableListableBeanFactory reg)
 			throws BeansException {
-		reg.addBeanPostProcessor(new BeanPostProcessor() {
-			
-			@Override
-			public Object postProcessBeforeInitialization(Object bean, String beanName)
-					throws BeansException {
-				if (fsmWirings.containsKey(beanName)) {
-					for(FSMWiring wiring : fsmWirings.get(beanName)) {
-						Field field = wiring.getField();
-						field.setAccessible(true);
-						StatefulFSM<?> fsm = (StatefulFSM<?>)appContext.getBean(wiring.getFsmId());
-						try {
-							field.set(bean, fsm);
-						} catch (IllegalArgumentException e) {
-							throw new RuntimeException(e);
-						} catch (IllegalAccessException e) {
-							throw new RuntimeException(e);
-						}
-					}
-				}
-				return bean;
-			}
-			
-			@Override
-			public Object postProcessAfterInitialization(Object bean, String beanName)
-					throws BeansException {
-				return bean;
-			}
-		});
+		DefaultListableBeanFactory  bf = (DefaultListableBeanFactory) reg;
+		bf.setAutowireCandidateResolver(new FSMAnnotationResolver());
 	}
 
+	/* 
+	 * Override postProcessBeanDefinitionRegistry to dynamically generate all the StatefulJ beans for each StatefulController
+	 * s
+	 * (non-Javadoc)
+	 * @see org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)
+	 */
 	public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry reg)
 			throws BeansException {
 		logger.debug("postProcessBeanDefinitionRegistry : enter");
@@ -172,21 +174,15 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			//
 			Map<String, Class<?>> controllerMapping = new HashMap<String, Class<?>>();
 			Map<Class<?>, String> entityMappings = new HashMap<Class<?>, String>();
-			Map<Class<?>, Set<String>> entityToControllers = new HashMap<Class<?>, Set<String>>();
-			Map<String, Class<?>> fsmAnnotationMappings = new HashMap<String, Class<?>>();
 			
-			mapControllerAndEntityClasses(reg, controllerMapping, entityMappings, entityToControllers, fsmAnnotationMappings);
+			mapControllerAndEntityClasses(reg, controllerMapping, entityMappings, entityToControllers);
 
 			// Iterate thru all StatefulControllers and build the framework 
 			//
 			for (Entry<String, Class<?>> entry : controllerMapping.entrySet()) {
 				buildFramework(entry.getKey(), entry.getValue(), reg, entityMappings);
 			}
-			
-			// Loop through all the Beans that have a FSM annotated field and inject a reference to the 
-			// FSM
-			//
-			mapFSMWirings(fsmAnnotationMappings, entityToControllers, reg);
+
 		} catch(Exception e) {
 			throw new BeanCreationException("Unable to create bean", e);
 		}
@@ -204,8 +200,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			BeanDefinitionRegistry reg,
 			Map<String, Class<?>> controllerMapping,
 			Map<Class<?>, String> entityMapping,
-			Map<Class<?>, Set<String>> entityToController,
-			Map<String, Class<?>> fsmAnnotationMappings) throws ClassNotFoundException {
+			Map<Class<?>, Set<String>> entityToControllers) throws ClassNotFoundException {
 		
 		// Loop thru the bean registry
 		//
@@ -218,24 +213,23 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				throw new RuntimeException("Unable to resolve class for bean " + bfName);
 			}
 			
-			// Does this Bean have at least one FSM annotation?
-			//
-			if (ReflectionUtils.getFirstAnnotatedField(clazz, org.statefulj.framework.core.annotations.FSM.class) != null) {
-				fsmAnnotationMappings.put(bfName, clazz);
-			}
-			
-			// If it's a StatefulController, add it to the mapping
+			// If it's a StatefulController, map controller to the entity and the entity to the controller
 			//
 			if (clazz.isAnnotationPresent(StatefulController.class)) {
 				
 				logger.debug("mapControllerAndEntityClasses : found StatefulController, class = \"{}\"", clazz.getName());
 
-				controllerMapping.put(bfName, clazz);
+				// Ctrl -> Entity
+				//
+				controllerMapping.put(bfName, clazz); 
+				
+				// Entity -> Ctrls
+				//
 				Class<?> managedEntity = ((StatefulController)clazz.getAnnotation(StatefulController.class)).clazz();
-				Set<String> controllers = entityToController.get(managedEntity);
+				Set<String> controllers = entityToControllers.get(managedEntity);
 				if (controllers == null) {
 					controllers = new HashSet<String>();
-					entityToController.put(managedEntity, controllers);
+					entityToControllers.put(managedEntity, controllers);
 				}
 				controllers.add(bfName);
 			}
@@ -300,6 +294,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				anyMapping, 
 				states);
 		
+		// Iterate thru the providers - building and registering each Binder
+		//
 		for(Entry<String, Map<String, Method>> entry : providersMappings.entrySet()) {
 			
 			// Fetch the binder
@@ -466,11 +462,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				BeanDefinition actionBean = BeanDefinitionBuilder
 						.genericBeanDefinition(MethodInvocationAction.class)
 						.getBeanDefinition();
-				MutablePropertyValues props = actionBean.getPropertyValues();
-				props.add("controller", controllerRef);
-				props.add("method", method.getName());
-				props.add("parameters", method.getParameterTypes());
-				props.add("fsm", new RuntimeBeanReference(referenceFactory.getFSMId()));
+				ConstructorArgumentValues args = actionBean.getConstructorArgumentValues();
+				args.addIndexedArgumentValue(0, controllerRef);
+				args.addIndexedArgumentValue(1, method.getName());
+				args.addIndexedArgumentValue(2, method.getParameterTypes());
+				args.addIndexedArgumentValue(3, new RuntimeBeanReference(referenceFactory.getFSMId()));
 				reg.registerBeanDefinition(actionId, actionBean);
 			}
 			actionRef = new RuntimeBeanReference(actionId);
@@ -803,53 +799,15 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		this.appContext = applicationContext;
 	}
 
-	private void mapFSMWirings(
-			Map<String, Class<?>>  fsmAnnotationMappings, 
-			Map<Class<?>, Set<String>> entityToControllers, 
-			BeanDefinitionRegistry reg) {
-		for(Entry<String, Class<?>> entry : fsmAnnotationMappings.entrySet()) {
-			Class<?> clazz = entry.getValue();
-			for (Field field : ReflectionUtils.getAllAnnotatedFields(clazz, org.statefulj.framework.core.annotations.FSM.class)) {
-				Type genericFieldType = field.getGenericType();
-				Class<?> managedClass = null;
-
-				if(genericFieldType instanceof ParameterizedType){
-				    ParameterizedType aType = (ParameterizedType) genericFieldType;
-				    Type[] fieldArgTypes = aType.getActualTypeArguments();
-				    for(Type fieldArgType : fieldArgTypes){
-				    	managedClass = (Class<?>) fieldArgType;
-				    	break;
-				    }
-				}
-				
-				if (managedClass == null) {
-					logger.error("Field {} of class {} isn't paramertized", field.getName(), clazz.getName());
-					throw new RuntimeException("Field " + field.getName() + " of class " + clazz.getName() + " isn't paramertized");
-				}
-				
-				org.statefulj.framework.core.annotations.FSM fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
-				String controllerId = fsmAnnotation.value();
-				if (StringUtils.isEmpty(controllerId)) {
-					Set<String> controllers = entityToControllers.get(managedClass);
-					if (controllers == null) {
-						throw new RuntimeException("Unable to resolve FSM for field " + field.getName() + " for class " + clazz.getName());
-					}
-					if (controllers.size() > 1) {
-						throw new RuntimeException("Ambiguous fsm for " + field.getName() + " of class " + clazz.getName());
-					}
-					controllerId = controllers.iterator().next();
-				}
-				ReferenceFactory refFactory = new ReferenceFactoryImpl(controllerId);
-				Set<FSMWiring> wirings = this.fsmWirings.get(entry.getKey());
-				if (wirings == null) {
-					wirings = new HashSet<FSMWiring>();
-					this.fsmWirings.put(entry.getKey(), wirings);
-				}
-				FSMWiring wiring = new FSMWiring();
-				wiring.setField(field);
-				wiring.setFsmId(refFactory.getStatefulFSMId());
-				wirings.add(wiring);
+	private boolean contains(Annotation[] annotations, Class<? extends Annotation> clazz) {
+		boolean contains = false;
+		for(Annotation annotation : annotations) {
+			if (clazz.isAssignableFrom(annotation.getClass())) {
+				contains = true;
+				break;
 			}
 		}
+		return contains;
 	}
+
 }

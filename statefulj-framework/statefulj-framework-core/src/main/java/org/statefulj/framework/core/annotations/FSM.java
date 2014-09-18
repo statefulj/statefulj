@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+@Autowired
 public @interface FSM {
 	
 	public String value() default "";

@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 @ControllerAdvice
-public class ExceptionHandlingController {
+class ExceptionHandlingController {
 	
 	private Logger logger = LoggerFactory.getLogger(ExceptionHandlingController.class);
 

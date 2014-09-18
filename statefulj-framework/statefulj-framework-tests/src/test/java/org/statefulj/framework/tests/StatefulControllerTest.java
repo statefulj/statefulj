@@ -14,8 +14,10 @@ import static org.junit.Assert.*;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.statefulj.framework.core.annotations.FSM;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.FSMHarness;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
@@ -36,10 +38,15 @@ public class StatefulControllerTest {
 	@Resource(name="userController.fsmHarness")
 	FSMHarness fsmHarness;
 	
+	@FSM
+	StatefulFSM<User> fsm;
+	
 	// TODO : Need to test for annotated parameters
 	
 	@Test
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
+		
+		assertNotNull(fsm);
 
 		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
 		

@@ -26,6 +26,17 @@ public class MethodInvocationAction implements Action<Object> {
 	private Class<?>[] parameters;
 
 	private FSM<Object> fsm;
+	
+	public MethodInvocationAction(
+			Object controller,
+			String method,
+			Class<?>[] parameters,
+			FSM<Object> fsm) {
+		this.controller = controller;
+		this.method = method;
+		this.parameters = parameters;
+		this.fsm = fsm;	
+	}
 
 	public void execute(Object stateful, String event, Object... parms) throws RetryException {
 		invoke(stateful, event, parms);
@@ -86,42 +97,6 @@ public class MethodInvocationAction implements Action<Object> {
 		} catch (TooBusyException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public Object getController() {
-		return controller;
-	}
-
-	public void setController(Object controller) {
-		this.controller = controller;
-	}
-
-	public String getMethod() {
-		return method;
-	}
-
-	public void setMethod(String method) {
-		this.method = method;
-	}
-
-	public Class<?>[] getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(Class<?>[] parameters) {
-		this.parameters = parameters;
-	}
-	
-	public FSM<?> getFsm() {
-		return fsm;
-	}
-
-	public void setFsm(FSM<Object> fsm) {
-		this.fsm = fsm;
-	}
-
-	public String toString() {
-		return this.method;
 	}
 
 	private Pair<String, String> parseResponse(String response) {
