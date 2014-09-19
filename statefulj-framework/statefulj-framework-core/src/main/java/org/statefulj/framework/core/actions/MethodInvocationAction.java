@@ -42,8 +42,12 @@ public class MethodInvocationAction implements Action<Object> {
 		invoke(stateful, event, parms);
 	}
 	
+	public String toString() {
+		return this.method;
+	}
+	
 	@SuppressWarnings("unchecked")
-	private void invoke(Object entity, String event, Object... parms) {
+	protected void invoke(Object entity, String event, Object... parms) {
 		try {
 			// Remove the first Object in the parm list - it's our Return Value
 			//
