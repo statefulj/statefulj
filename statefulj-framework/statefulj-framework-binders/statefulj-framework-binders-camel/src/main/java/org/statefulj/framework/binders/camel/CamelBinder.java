@@ -3,11 +3,8 @@ package org.statefulj.framework.binders.camel;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
 import javax.persistence.Id;
 
 import javassist.CannotCompileException;
@@ -19,11 +16,8 @@ import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
-import javassist.bytecode.FieldInfo;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
-import javassist.bytecode.annotation.ArrayMemberValue;
-import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
 import org.apache.camel.Consume;
@@ -62,26 +56,22 @@ public class CamelBinder implements EndpointBinder {
 				msg = ((BeanInvocation)msg).getArgs()[0];
 			}
 			Field idField = ReflectionUtils.getFirstAnnotatedField(msg.getClass(), Id.class);
+			if (idField == null) {
+				idField = ReflectionUtils.getFirstAnnotatedField(msg.getClass(), org.springframework.data.annotation.Id.class);
+			}
+			if (idField == null) {
+				try {
+					idField = msg.getClass().getField("id");
+				} catch (NoSuchFieldException e) {
+					// swallow
+				} catch (SecurityException e) {
+					throw new RuntimeException(e);
+				}
+			}
 			if (idField != null) {
 				try {
 					idField.setAccessible(true);
 					id = idField.get(msg);
-				} catch (IllegalArgumentException e) {
-					throw new RuntimeException(e);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException(e);
-				}
-			} else {
-				try {
-					idField = msg.getClass().getField("id");
-					if (idField != null) {
-						idField.setAccessible(true);
-						id = idField.get(msg);
-					}
-				} catch (NoSuchFieldException e) {
-					throw new RuntimeException(e);
-				} catch (SecurityException e) {
-					throw new RuntimeException(e);
 				} catch (IllegalArgumentException e) {
 					throw new RuntimeException(e);
 				} catch (IllegalAccessException e) {

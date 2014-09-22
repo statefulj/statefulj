@@ -15,8 +15,6 @@ import org.statefulj.fsm.TooBusyException;
 
 public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
 	
-	ThreadLocal<TransactionStatus> tl = new ThreadLocal<TransactionStatus>();
-	
 	@Resource
 	JpaTransactionManager transactionManager;
 	

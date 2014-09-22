@@ -111,7 +111,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-binder-springmvc</artifactId>
+			<artifactId>statefulj-framework-binders-springmvc</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>

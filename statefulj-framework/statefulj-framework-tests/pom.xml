@@ -21,14 +21,14 @@
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-binder-springmvc</artifactId>
+			<artifactId>statefulj-framework-binders-springmvc</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-binder-camel</artifactId>
+			<artifactId>statefulj-framework-binders-camel</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
