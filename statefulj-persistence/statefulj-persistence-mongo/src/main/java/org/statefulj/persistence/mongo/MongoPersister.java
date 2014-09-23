@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import org.bson.types.ObjectId;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -191,41 +192,16 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	}
 
 	@SuppressWarnings("unchecked")
-	public void onBeforeConvert(final Object obj) {
+	public void onAfterSave(Object obj, DBObject dbo) {
 		if (obj.getClass().equals(getClazz())) {
 			try {
 				StateDocumentImpl stateDoc = this.getStateDocument((T)obj);
 				if (stateDoc == null) {
 					stateDoc = createStateDocument((T)obj);
 				}
-				if (stateDoc.getId() == null) {
+				if (stateDoc.getOwner() == null) {
+					stateDoc.setOwner(obj);
 					this.mongoTemplate.save(stateDoc);
-				}
-			} catch (IllegalArgumentException e) {
-				throw new RuntimeException(e);
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			}
-			
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public void onAfterSave(Object obj, DBObject dbo) {
-		if (obj.getClass().equals(getClazz())) {
-			try {
-				StateDocumentImpl stateDoc = this.getStateDocument((T)obj);
-				if (stateDoc != null && stateDoc.getOwner() == null) {
-					//
-					Field idField = getFirstAnnotatedField(obj.getClass(), Id.class);
-					if (idField != null) {
-						idField.setAccessible(true);
-						Object id = idField.get(obj);
-						if (id != null) {
-							stateDoc.setOwner(obj);
-							this.mongoTemplate.save(stateDoc);
-						}
-					}
 				}
 			} catch (IllegalArgumentException e) {
 				throw new RuntimeException(e);
@@ -285,6 +261,7 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	
 	protected StateDocumentImpl createStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException {
 		StateDocumentImpl stateDoc = new StateDocumentImpl();
+		stateDoc.setId(new ObjectId().toHexString());
 		stateDoc.setState(getStart().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;

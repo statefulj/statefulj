@@ -21,11 +21,6 @@ class MongoCascadeSupport<T> extends AbstractMongoEventListener<Object> {
 	 * @see org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener#onBeforeConvert(java.lang.Object)
 	 */
 	@Override
-	public void onBeforeConvert(final Object obj) {
-		this.persister.onBeforeConvert(obj);
-	}	
-
-	@Override
 	public void onAfterSave(Object source, DBObject dbo) {
 		this.persister.onAfterSave(source, dbo);
 	}
