@@ -51,7 +51,7 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		String id;
 		
 		@Transient
-		boolean firstSave = false;
+		boolean persisted = true;
 		
 		String state;
 		
@@ -70,12 +70,12 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 			this.id = id;
 		}
 
-		public boolean isFirstSave() {
-			return firstSave;
+		public boolean isPersisted() {
+			return persisted;
 		}
 
-		public void setFirstSave(boolean firstSave) {
-			this.firstSave = firstSave;
+		public void setPersisted(boolean persisted) {
+			this.persisted = persisted;
 		}
 
 		public void setState(String state) {
@@ -137,7 +137,7 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 			// Has this Entity been persisted to Mongo? 
 			//
 			StateDocumentImpl stateDoc = this.getStateDocument(stateful);
-			if (stateDoc != null && stateDoc.getId() != null) {
+			if (stateDoc != null && stateDoc.isPersisted()) {
 				
 				// Entity is in the database - perform qualified update based off 
 				// the current State value
@@ -207,14 +207,19 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	public void onAfterSave(Object obj, DBObject dbo) {
 		if (obj.getClass().equals(getClazz())) {
 			try {
+				boolean updateStateful = false;
 				StateDocumentImpl stateDoc = this.getStateDocument((T)obj);
 				if (stateDoc == null) {
 					stateDoc = createStateDocument((T)obj);
+					updateStateful = true;
 				}
-				if (stateDoc.isFirstSave()) {
+				if (!stateDoc.isPersisted()) {
 					stateDoc.setOwner(obj);
 					this.mongoTemplate.save(stateDoc);
-					stateDoc.setFirstSave(false);
+					stateDoc.setPersisted(true);
+					if (updateStateful) {
+						this.mongoTemplate.save(obj);
+					}
 				}
 			} catch (IllegalArgumentException e) {
 				throw new RuntimeException(e);
@@ -274,8 +279,8 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	
 	protected StateDocumentImpl createStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException {
 		StateDocumentImpl stateDoc = new StateDocumentImpl();
+		stateDoc.setPersisted(false);
 		stateDoc.setId(new ObjectId().toHexString());
-		stateDoc.setFirstSave(true);
 		stateDoc.setState(getStart().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
