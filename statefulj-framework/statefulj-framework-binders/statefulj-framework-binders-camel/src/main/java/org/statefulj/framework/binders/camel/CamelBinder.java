@@ -62,10 +62,8 @@ public class CamelBinder implements EndpointBinder {
 			if (idField == null) {
 				try {
 					idField = msg.getClass().getField("id");
-				} catch (NoSuchFieldException e) {
+				} catch (Exception e) {
 					// swallow
-				} catch (SecurityException e) {
-					throw new RuntimeException(e);
 				}
 			}
 			if (idField != null) {

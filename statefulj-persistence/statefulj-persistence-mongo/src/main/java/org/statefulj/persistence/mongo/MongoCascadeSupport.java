@@ -2,6 +2,8 @@ package org.statefulj.persistence.mongo;
 
 import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
 
+import com.mongodb.DBObject;
+
 class MongoCascadeSupport<T> extends AbstractMongoEventListener<Object> {
 
 	MongoPersister<T> persister;
@@ -23,4 +25,8 @@ class MongoCascadeSupport<T> extends AbstractMongoEventListener<Object> {
 		this.persister.onBeforeConvert(obj);
 	}	
 
+	@Override
+	public void onAfterSave(Object source, DBObject dbo) {
+		this.persister.onAfterSave(source, dbo);
+	}
 }

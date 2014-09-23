@@ -22,12 +22,16 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.statefulj.common.utils.ReflectionUtils;
+
+import static org.statefulj.common.utils.ReflectionUtils.*;
+
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 import org.statefulj.persistence.common.AbstractPersister;
 import org.statefulj.persistence.mongo.model.StateDocument;
+
+import com.mongodb.DBObject;
 
 public class MongoPersister<T> extends AbstractPersister<T> implements Persister<T>, ApplicationContextAware, BeanDefinitionRegistryPostProcessor {
 	
@@ -46,6 +50,8 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		String state;
 		
 		String prevState;
+		
+		Object ownerId;
 		
 		Date updated;
 		
@@ -72,6 +78,14 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 
 		public void setPrevState(String prevState) {
 			this.prevState = prevState;
+		}
+
+		public Object getOwnerId() {
+			return ownerId;
+		}
+
+		public void setOwnerId(Object ownerId) {
+			this.ownerId = ownerId;
 		}
 
 		public Date getUpdated() {
@@ -193,7 +207,33 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 			
 		}
 	}
-	  
+
+	@SuppressWarnings("unchecked")
+	public void onAfterSave(Object obj, DBObject dbo) {
+		if (obj.getClass().equals(getClazz())) {
+			try {
+				StateDocumentImpl stateDoc = this.getStateDocument((T)obj);
+				if (stateDoc != null && stateDoc.getOwnerId() == null) {
+					//
+					Field idField = getFirstAnnotatedField(obj.getClass(), Id.class);
+					if (idField != null) {
+						idField.setAccessible(true);
+						Object id = idField.get(obj);
+						if (id != null) {
+							stateDoc.setOwnerId(id);
+							this.mongoTemplate.save(stateDoc);
+						}
+					}
+				}
+			} catch (IllegalArgumentException e) {
+				throw new RuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			}
+			
+		}
+	}
+	
 	@Override
 	protected boolean validStateField(Field stateField) {
 		return stateField.getType().equals(StateDocument.class);
@@ -201,7 +241,7 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		return ReflectionUtils.getFirstAnnotatedField(this.getClazz(), Id.class);
+		return getFirstAnnotatedField(this.getClazz(), Id.class);
 	}
 
 	@Override
@@ -251,7 +291,6 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	protected void setStateDocument(T stateful, StateDocument stateDoc) throws IllegalArgumentException, IllegalAccessException {
 		getStateField().set(stateful, stateDoc);
 	}
-	
 	
 	protected void updateInMemory(T stateful, StateDocumentImpl stateDoc, String current, String next) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException, StaleStateException {
 		synchronized(stateful) {

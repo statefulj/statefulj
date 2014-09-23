@@ -12,5 +12,7 @@ public interface StateDocument {
 	String getPrevState();
 	
 	Date getUpdated();
+	
+	Object getOwnerId();
 
 }
