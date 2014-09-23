@@ -65,7 +65,7 @@ public class MongoPersisterTest {
 		dbOrder = orderRepo.findOne(order.getId());
 		assertEquals(order.getStateDocument().getState(), dbOrder.getStateDocument().getState());
 		
-		// Verify that updating the state without going through the Persister doesn't wok
+		// Verify that updating the state without going through the Persister doesn't work
 		//
 		order = new Order();
 		mongoPersister.setCurrent(order, stateA, stateB);
