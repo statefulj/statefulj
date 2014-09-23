@@ -18,6 +18,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -49,6 +50,9 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		@Id
 		String id;
 		
+		@Transient
+		boolean firstSave = false;
+		
 		String state;
 		
 		String prevState;
@@ -64,6 +68,14 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 
 		public void setId(String id) {
 			this.id = id;
+		}
+
+		public boolean isFirstSave() {
+			return firstSave;
+		}
+
+		public void setFirstSave(boolean firstSave) {
+			this.firstSave = firstSave;
 		}
 
 		public void setState(String state) {
@@ -199,9 +211,10 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 				if (stateDoc == null) {
 					stateDoc = createStateDocument((T)obj);
 				}
-				if (stateDoc.getOwner() == null) {
+				if (stateDoc.isFirstSave()) {
 					stateDoc.setOwner(obj);
 					this.mongoTemplate.save(stateDoc);
+					stateDoc.setFirstSave(false);
 				}
 			} catch (IllegalArgumentException e) {
 				throw new RuntimeException(e);
@@ -262,6 +275,7 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	protected StateDocumentImpl createStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException {
 		StateDocumentImpl stateDoc = new StateDocumentImpl();
 		stateDoc.setId(new ObjectId().toHexString());
+		stateDoc.setFirstSave(true);
 		stateDoc.setState(getStart().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
