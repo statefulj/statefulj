@@ -13,6 +13,6 @@ public interface StateDocument {
 	
 	Date getUpdated();
 	
-	Object getOwnerId();
+	Object getOwner();
 
 }

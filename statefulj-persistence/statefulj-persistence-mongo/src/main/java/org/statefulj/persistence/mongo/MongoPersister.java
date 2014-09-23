@@ -18,6 +18,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -51,7 +52,8 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		
 		String prevState;
 		
-		Object ownerId;
+		@DBRef(lazy=true)
+		Object owner;
 		
 		Date updated;
 		
@@ -80,12 +82,12 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 			this.prevState = prevState;
 		}
 
-		public Object getOwnerId() {
-			return ownerId;
+		public Object getOwner() {
+			return owner;
 		}
 
-		public void setOwnerId(Object ownerId) {
-			this.ownerId = ownerId;
+		public void setOwner(Object owner) {
+			this.owner = owner;
 		}
 
 		public Date getUpdated() {
@@ -213,14 +215,14 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		if (obj.getClass().equals(getClazz())) {
 			try {
 				StateDocumentImpl stateDoc = this.getStateDocument((T)obj);
-				if (stateDoc != null && stateDoc.getOwnerId() == null) {
+				if (stateDoc != null && stateDoc.getOwner() == null) {
 					//
 					Field idField = getFirstAnnotatedField(obj.getClass(), Id.class);
 					if (idField != null) {
 						idField.setAccessible(true);
 						Object id = idField.get(obj);
 						if (id != null) {
-							stateDoc.setOwnerId(id);
+							stateDoc.setOwner(obj);
 							this.mongoTemplate.save(stateDoc);
 						}
 					}
