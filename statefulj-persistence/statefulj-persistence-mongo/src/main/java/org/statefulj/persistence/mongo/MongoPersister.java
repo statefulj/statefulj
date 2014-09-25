@@ -10,6 +10,7 @@ import java.util.Random;
 import org.bson.types.ObjectId;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.BeanReference;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
@@ -17,6 +18,9 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -36,11 +40,17 @@ import org.statefulj.persistence.mongo.model.StateDocument;
 
 import com.mongodb.DBObject;
 
-public class MongoPersister<T> extends AbstractPersister<T> implements Persister<T>, ApplicationContextAware, BeanDefinitionRegistryPostProcessor {
+public class MongoPersister<T> extends AbstractPersister<T> implements Persister<T>, BeanDefinitionRegistryPostProcessor, ApplicationListener<ApplicationEvent>, ApplicationContextAware {
 	
 	public static final String COLLECTION = "managedState";
 	
 	MongoTemplate mongoTemplate;
+	
+	ApplicationContext appContext; 
+	
+	String repoId;
+	
+	String templateId;
 
 	// Private class
 	//
@@ -112,14 +122,20 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		}
 	}
 	
-	public MongoPersister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz) {
+	public MongoPersister(
+			List<State<T>> states, 
+			String stateFieldName, 
+			State<T> start, 
+			Class<T> clazz, 
+			String repoId) {
 		super(states, stateFieldName, start,clazz);
+		this.repoId = repoId;
 	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
-		this.mongoTemplate = (MongoTemplate)applicationContext.getBean("mongoTemplate");
+		this.appContext = applicationContext;
 	}
 
 	/**
@@ -195,6 +211,14 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	@Override
 	public void postProcessBeanDefinitionRegistry(
 			BeanDefinitionRegistry registry) throws BeansException {
+		
+		// Fetch the MongoTemplate Bean Id
+		//
+		BeanDefinition repo = registry.getBeanDefinition(this.repoId);
+		this.templateId = ((BeanReference)repo.getPropertyValues().get("mongoOperations")).getBeanName();
+		
+		// Add in CascadeSupport
+		//
 		BeanDefinition mongoCascadeSupportBean = BeanDefinitionBuilder
 				.genericBeanDefinition(MongoCascadeSupport.class)
 				.getBeanDefinition();
@@ -310,5 +334,12 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 				current,
 				next);
 		throw new StaleStateException(err);
+	}
+
+	@Override
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (ContextRefreshedEvent.class.isAssignableFrom(event.getClass())) {
+			this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
+		}
 	}
 }

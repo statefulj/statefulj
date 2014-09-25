@@ -32,6 +32,7 @@
 		    	<ref bean="stateC"/>
 		    </util:list>
     	</constructor-arg>
+    	<constructor-arg name="repoId" value="orderRepository"/>
     </bean>
 
 </beans>
