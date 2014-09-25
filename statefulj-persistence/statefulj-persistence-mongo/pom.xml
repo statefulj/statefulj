@@ -17,10 +17,7 @@
 	<url>http://www.statefulj.org</url>
 
 	<properties>
-		<statefulj.version>0.0.1-SNAPSHOT</statefulj.version>
-		<spring.data.version>1.5.0.RELEASE</spring.data.version>
-		<spring.test.version>4.0.6.RELEASE</spring.test.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<spring.mongo.data.version>1.5.0.RELEASE</spring.mongo.data.version>
 	</properties>
 
 	<dependencies>
@@ -38,7 +35,7 @@
 		<dependency>
 		    <groupId>org.springframework.data</groupId>
 		    <artifactId>spring-data-mongodb</artifactId>
-		    <version>${spring.data.version}</version>
+		    <version>${spring.mongo.data.version}</version>
 		</dependency>
 
 		<dependency>
@@ -50,7 +47,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.test.version}</version>
 			<scope>test</scope>
 		</dependency>
 

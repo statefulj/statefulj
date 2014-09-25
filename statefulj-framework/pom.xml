@@ -17,13 +17,46 @@
 	<description>StatefulJ application framework.  Provides automatic binding of event endpoints with Stateful Controllers</description>
 
 	<properties>
+		<spring.version>4.0.6.RELEASE</spring.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java-version>1.6</java-version>
-		<org.springframework-version>4.0.6.RELEASE</org.springframework-version>
 	</properties>
 
-	<dependencies>
-	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.statefulj</groupId>
+				<artifactId>statefulj-common</artifactId>
+				<version>${statefulj.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.statefulj</groupId>
+				<artifactId>statefulj-fsm</artifactId>
+				<version>${statefulj.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.statefulj.persistence</groupId>
+				<artifactId>statefulj-persistence-common</artifactId>
+				<version>${statefulj.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-test</artifactId>
+				<version>${spring.version}</version>
+				<scope>test</scope>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

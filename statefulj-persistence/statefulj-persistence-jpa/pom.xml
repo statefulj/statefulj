@@ -17,12 +17,8 @@
 	<url>http://www.statefulj.org</url>
 
 	<properties>
-		<statefulj.version>0.0.1-SNAPSHOT</statefulj.version>
-		<spring.data.version>1.6.2.RELEASE</spring.data.version>
-		<spring.test.version>4.0.6.RELEASE</spring.test.version>
 		<hibernate.version>4.3.5.Final</hibernate.version>
 		<javax.api.version>1.2</javax.api.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<hsql.version>1.8.0.10</hsql.version>
 	</properties>
 
@@ -84,7 +80,6 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>${spring.test.version}</version>
 			<scope>test</scope>
 		</dependency>
 
