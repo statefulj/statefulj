@@ -18,8 +18,6 @@
 
 	<properties>
 		<spring.version>4.0.6.RELEASE</spring.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java-version>1.6</java-version>
 	</properties>
 
 	<dependencyManagement>

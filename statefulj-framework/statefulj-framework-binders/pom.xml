@@ -2,7 +2,6 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>org.statefulj.framework</groupId>
 	<artifactId>statefulj-framework-binders</artifactId>
 	<packaging>pom</packaging>
 
@@ -16,14 +15,15 @@
 	</parent>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
-	<dependencies>
+	<dependencyManagement>
+		<dependencies>
+		</dependencies>
+	</dependencyManagement>
 
-	</dependencies>
 	<modules>
-                <module>statefulj-framework-binders-common</module>
+		<module>statefulj-framework-binders-common</module>
 		<module>statefulj-framework-binders-springmvc</module>
 		<module>statefulj-framework-binders-camel</module>
 	</modules>
