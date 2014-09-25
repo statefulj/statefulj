@@ -1,7 +1,6 @@
 
 package org.statefulj.persistence.common;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;

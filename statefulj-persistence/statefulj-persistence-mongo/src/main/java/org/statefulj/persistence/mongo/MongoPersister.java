@@ -211,6 +211,7 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 				StateDocumentImpl stateDoc = this.getStateDocument((T)obj);
 				if (stateDoc == null) {
 					stateDoc = createStateDocument((T)obj);
+					stateDoc.setUpdated(Calendar.getInstance().getTime());
 					updateStateful = true;
 				}
 				if (!stateDoc.isPersisted()) {

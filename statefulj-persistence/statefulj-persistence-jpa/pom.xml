@@ -17,7 +17,13 @@
 	<url>http://www.statefulj.org</url>
 
 	<properties>
+		<statefulj.version>0.0.1-SNAPSHOT</statefulj.version>
+		<spring.data.version>1.6.2.RELEASE</spring.data.version>
+		<spring.test.version>4.0.6.RELEASE</spring.test.version>
+		<hibernate.version>4.3.5.Final</hibernate.version>
+		<javax.api.version>1.2</javax.api.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<hsql.version>1.8.0.10</hsql.version>
 	</properties>
 
 	<dependencies>
@@ -25,19 +31,17 @@
 		<dependency>
 			<groupId>org.statefulj.persistence</groupId>
 			<artifactId>statefulj-persistence-common</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
-			<version>4.0.5.RELEASE</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-jpa</artifactId>
-			<version>1.6.2.RELEASE</version>
+			<version>${spring.data.version}</version>
 			<exclusions>
 				<exclusion>
 					<artifactId>spring-context</artifactId>
@@ -61,34 +65,33 @@
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-entitymanager</artifactId>
-			<version>4.3.5.Final</version>
+			<version>${hibernate.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.11</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>hsqldb</groupId>
 			<artifactId>hsqldb</artifactId>
-			<version>1.8.0.10</version>
+			<version>${hsql.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
-			<version>4.0.6.RELEASE</version>
+			<version>${spring.test.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>javax.annotation</groupId>
 			<artifactId>javax.annotation-api</artifactId>
-			<version>1.2</version>
+			<version>${javax.api.version}</version>
 			<scope>test</scope>
 		</dependency>
 

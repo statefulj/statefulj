@@ -17,13 +17,42 @@
 	<description>Parent project for StatefulJ persistence</description>
 
 	<properties>
+		<statefulj.version>0.0.1-SNAPSHOT</statefulj.version>
+		<spring.version>4.0.5.RELEASE</spring.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<java-version>1.6</java-version>
 		<org.springframework-version>4.0.6.RELEASE</org.springframework-version>
 	</properties>
 
-	<dependencies>
-	</dependencies>
+	<dependencyManagement>
+		<dependencies>
+		
+			<dependency>
+				<groupId>org.statefulj</groupId>
+				<artifactId>statefulj-common</artifactId>
+				<version>${statefulj.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>org.statefulj</groupId>
+				<artifactId>statefulj-fsm</artifactId>
+				<version>${statefulj.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.statefulj.persistence</groupId>
+				<artifactId>statefulj-persistence-common</artifactId>
+				<version>${statefulj.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>
