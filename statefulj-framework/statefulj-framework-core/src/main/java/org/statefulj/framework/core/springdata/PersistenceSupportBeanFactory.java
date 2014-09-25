@@ -20,6 +20,7 @@ public interface PersistenceSupportBeanFactory {
 	
 	BeanDefinition buildPersisterBean(
 			Class<?> statefulClass,
+			String repoBeanId,
 			String stateFieldName,
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans);

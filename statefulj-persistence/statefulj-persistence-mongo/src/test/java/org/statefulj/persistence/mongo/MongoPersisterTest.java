@@ -6,7 +6,6 @@ import javax.annotation.Resource;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.fsm.Persister;
@@ -22,9 +21,6 @@ public class MongoPersisterTest {
 	
 	@Resource
 	OrderRepository orderRepo;
-	
-	@Resource
-	MongoTemplate mongoTemplate;
 	
 	@Resource
 	State<Order> stateA;

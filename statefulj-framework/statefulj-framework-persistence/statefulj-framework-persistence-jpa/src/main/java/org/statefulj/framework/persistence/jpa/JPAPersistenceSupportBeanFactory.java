@@ -40,6 +40,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	@Override
 	public BeanDefinition buildPersisterBean(
 			Class<?> statefulClass,
+			String repoBeanId,
 			String stateFieldName,
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans) {

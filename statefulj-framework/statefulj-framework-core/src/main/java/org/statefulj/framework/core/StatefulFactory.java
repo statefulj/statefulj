@@ -364,6 +364,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		// Fetch Repo info
 		//
 		String repoBeanId = getRepoId(entityMappings, statefulClass);
+		
+		if (repoBeanId == null) {
+			throw new RuntimeException("Unable to determine Repository for class " + statefulClass.getName());
+		}
+		
 		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
 		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
 
@@ -398,6 +403,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				factory, 
 				statefulContollerAnnotation, 
 				statefulClass, 
+				repoBeanId,
 				stateBeans, 
 				reg);
 
@@ -713,6 +719,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			PersistenceSupportBeanFactory persistenceFactory,
 			StatefulController statefulContollerAnnotation,
 			Class<?> statefulClass,
+			String repoBeanId,
 			List<RuntimeBeanReference> stateBeans, 
 			BeanDefinitionRegistry reg) {
 
@@ -728,6 +735,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					persisterId, 
 					persistenceFactory.buildPersisterBean(
 							statefulClass, 
+							repoBeanId,
 							statefulContollerAnnotation.stateField(),
 							startStateId, 
 							stateBeans));

@@ -41,6 +41,7 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 	@Override
 	public BeanDefinition buildPersisterBean(
 			Class<?> statefulClass,
+			String repoBeanId,
 			String stateFieldName,
 			String startStateId,
 			List<RuntimeBeanReference> stateBeans) {
@@ -52,6 +53,7 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 		args.addIndexedArgumentValue(1, stateFieldName);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(startStateId));
 		args.addIndexedArgumentValue(3, statefulClass);
+		args.addIndexedArgumentValue(4, repoBeanId);
 		return persisterBean;
 	}
 
