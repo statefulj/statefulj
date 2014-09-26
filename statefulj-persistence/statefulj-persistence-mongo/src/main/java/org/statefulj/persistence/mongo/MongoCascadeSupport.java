@@ -13,9 +13,7 @@ class MongoCascadeSupport<T> extends AbstractMongoEventListener<Object> {
 	}
 	
 	/**
-	 * If this is the first time the Entity is being saved to Mongo - then 
-	 * we need to cascade the save to the StateDocument.  If one doesn't exist,
-	 * create one and set to initial state
+	 * Pass the Save event to the MongoPersister to cascade to the StateDocument
 	 * 
 	 * (non-Javadoc)
 	 * @see org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener#onBeforeConvert(java.lang.Object)

@@ -40,7 +40,13 @@ import org.statefulj.persistence.mongo.model.StateDocument;
 
 import com.mongodb.DBObject;
 
-public class MongoPersister<T> extends AbstractPersister<T> implements Persister<T>, BeanDefinitionRegistryPostProcessor, ApplicationListener<ApplicationEvent>, ApplicationContextAware {
+public class MongoPersister<T> 
+			extends AbstractPersister<T> 
+			implements 
+				Persister<T>, 
+				BeanDefinitionRegistryPostProcessor, 
+				ApplicationListener<ApplicationEvent>, 
+				ApplicationContextAware {
 	
 	public static final String COLLECTION = "managedState";
 	
@@ -228,22 +234,36 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 	}
 
 	@SuppressWarnings("unchecked")
-	public void onAfterSave(Object obj, DBObject dbo) {
-		if (obj.getClass().equals(getClazz())) {
+	/***
+	 * Cascade the Save to the StateDocument
+	 * 
+	 * @param obj
+	 * @param dbo
+	 */
+	public void onAfterSave(Object stateful, DBObject dbo) {
+		
+		// Is the Class being saved the managed class?
+		//
+		if (stateful.getClass().equals(getClazz())) {
 			try {
 				boolean updateStateful = false;
-				StateDocumentImpl stateDoc = this.getStateDocument((T)obj);
+				StateDocumentImpl stateDoc = this.getStateDocument((T)stateful);
+				
+				// If the StatefulDocument doesn't have an associated StateDocument, then 
+				// we need to create a new StateDocument - save the StateDocument and save the
+				// Stateful Document again so that they both valid DBRef objects
+				//
 				if (stateDoc == null) {
-					stateDoc = createStateDocument((T)obj);
+					stateDoc = createStateDocument((T)stateful);
 					stateDoc.setUpdated(Calendar.getInstance().getTime());
 					updateStateful = true;
 				}
 				if (!stateDoc.isPersisted()) {
-					stateDoc.setOwner(obj);
+					stateDoc.setOwner(stateful);
 					this.mongoTemplate.save(stateDoc);
 					stateDoc.setPersisted(true);
 					if (updateStateful) {
-						this.mongoTemplate.save(obj);
+						this.mongoTemplate.save(stateful);
 					}
 				}
 			} catch (IllegalArgumentException e) {
@@ -255,6 +275,17 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		}
 	}
 	
+	@Override
+	/***
+	 * After Spring has completed initializing all Beans, fetch the MongoTemplate.  Doing it 
+	 * earlier than this callback can lead to errors due to premature initialization
+	 */
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (ContextRefreshedEvent.class.isAssignableFrom(event.getClass())) {
+			this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
+		}
+	}
+
 	@Override
 	protected boolean validStateField(Field stateField) {
 		return stateField.getType().equals(StateDocument.class);
@@ -336,10 +367,4 @@ public class MongoPersister<T> extends AbstractPersister<T> implements Persister
 		throw new StaleStateException(err);
 	}
 
-	@Override
-	public void onApplicationEvent(ApplicationEvent event) {
-		if (ContextRefreshedEvent.class.isAssignableFrom(event.getClass())) {
-			this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
-		}
-	}
 }
