@@ -14,12 +14,17 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+	<dependencyManagement>
+		<dependencies>
 
-	<dependencies>
-	</dependencies>
+			<dependency>
+				<groupId>org.statefulj.framework</groupId>
+				<artifactId>statefulj-framework-core</artifactId>
+				<version>${statefulj.version}</version>
+			</dependency>
+	
+		</dependencies>
+	</dependencyManagement>
 	<modules>
         <module>statefulj-framework-persistence-jpa</module>
 		<module>statefulj-framework-persistence-mongo</module>
