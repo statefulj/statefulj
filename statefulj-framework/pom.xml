@@ -17,11 +17,18 @@
 	<description>StatefulJ application framework.  Provides automatic binding of event endpoints with Stateful Controllers</description>
 
 	<properties>
+		<servlet.version>2.5</servlet.version>
 		<spring.version>4.0.6.RELEASE</spring.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>servlet-api</artifactId>
+				<version>${servlet.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>org.statefulj</groupId>
 				<artifactId>statefulj-common</artifactId>
