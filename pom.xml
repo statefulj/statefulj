@@ -4,19 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.statefulj</groupId>
 	<artifactId>statefulj</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.3</version>
 	<packaging>pom</packaging>
-	<modules>
-		<module>statefulj-fsm</module>
-		<module>statefulj-common</module>
-		<module>statefulj-persistence</module>
-		<module>statefulj-framework</module>
-	</modules>
 
 	<name>statefulj</name>
 
 	<properties>
-		<statefulj.version>0.0.1-SNAPSHOT</statefulj.version>
+		<statefulj.version>${version}</statefulj.version>
 		<apache.commons.version>3.3.2</apache.commons.version>
 		<junit.version>4.11</junit.version>
 		<slf4j.version>1.7.7</slf4j.version>
@@ -62,6 +56,14 @@
 
 		</dependencies>
 	</dependencyManagement>
+
+	<modules>
+		<module>statefulj-fsm</module>
+		<module>statefulj-common</module>
+		<module>statefulj-persistence</module>
+		<module>statefulj-framework</module>
+	</modules>
+
 	<build>
 		<plugins>
 			<plugin>

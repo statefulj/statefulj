@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.statefulj</groupId>
 		<artifactId>statefulj</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.3</version>
 	</parent>
 
 	<name>statefulj-framework</name>
@@ -63,17 +63,6 @@
 		</dependencies>
 	</dependencyManagement>
 
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.17</version>
-				<configuration>
-					<reuseForks>false</reuseForks>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 	<modules>
 		<module>statefulj-framework-core</module>
 		<module>statefulj-framework-binders</module>

@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>org.statefulj.framework</groupId>
 		<artifactId>statefulj-framework</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.3</version>
 	</parent>
 
 	<artifactId>statefulj-framework-demo</artifactId>
@@ -107,17 +107,17 @@
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-persistence-jpa</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${statefulj.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-binders-springmvc</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${statefulj.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-binders-camel</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${statefulj.version}</version>
 		</dependency>
 
 		<!-- jstl for jsp page -->
@@ -145,7 +145,6 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>${org.slf4j-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -156,7 +155,6 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.0.13</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.activemq</groupId>

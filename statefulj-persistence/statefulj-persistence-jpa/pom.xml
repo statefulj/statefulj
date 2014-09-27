@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.statefulj.persistence</groupId>
 		<artifactId>statefulj-persistence</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.3</version>
 	</parent>
 
 	<artifactId>statefulj-persistence-jpa</artifactId>
