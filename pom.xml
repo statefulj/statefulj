@@ -10,7 +10,7 @@
 	<name>statefulj</name>
 
 	<properties>
-		<statefulj.version>${version}</statefulj.version>
+		<statefulj.version>${project.version}</statefulj.version>
 		<apache.commons.version>3.3.2</apache.commons.version>
 		<junit.version>4.11</junit.version>
 		<slf4j.version>1.7.7</slf4j.version>
