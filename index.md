@@ -19,36 +19,13 @@ Handling concurrency and reliably updating Application state becomes a major cha
 
 StatefulJ provides the following "packages":
 
-* **StatefulJ Core:** A dependency free, Finite State Machine implementation with support for non-determinstic Transitions.
-* **StatefulJ Persistence:** A set of persistence support (JPA and Mongo) which works with the Core library to persist your Stateful objects.
-* **StatefulJ Framework:** A framework built off StatefulJ Core, StatefulJ Persistence and Spring Data to easily integrate State Machines into your Application.
+* **StatefulJ FSM:** A dependency free, Finite State Machine implementation with support for non-determinstic Transitions.
+* **StatefulJ Persistence:** A set of persistence support (JPA and Mongo) which works with the FSM library to persist your Stateful objects.
+* **StatefulJ Framework:** A framework built off StatefulJ FSM, StatefulJ Persistence and Spring Data to easily integrate State Machines into your Application.
 
-## Options
+## How do I get started?
 
-Hyde includes some customizable options, typically applied via classes on the `<body>` element.
+If you just want the Core FSM, then follow these instructions
 
+If you want to use the framework, then go here
 
-### Sidebar menu
-
-Create a list of nav links in the sidebar by assigning each Jekyll page the correct layout in the page's [front-matter](http://jekyllrb.com/docs/frontmatter/).
-
-
-**Mark Otto**
-- <https://github.com/mdo>
-- <https://twitter.com/mdo>
-
-```html
-<body class="theme-base-08">
-  ...
-</body>
-```
-
-```java
-public class Foo {
-	
-	public void Bar() {
-		String foo = "bar";
-	}
-	
-}
-```
