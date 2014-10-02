@@ -310,4 +310,22 @@ public class FSMTest {
 		fsm.onEvent(stateful, eventA);
 	}
 	
+	@Test
+	public void testStateFieldName() {
+		Foo2 stateful = new Foo2();
+		
+		StateImpl<Foo2> stateA = new StateImpl<Foo2>("stateA");
+		StateImpl<Foo2> stateB = new StateImpl<Foo2>("stateA");
+		
+		List<State<Foo2>> states = new LinkedList<State<Foo2>>();
+		states.add(stateA);
+		states.add(stateB);
+		
+		MemoryPersisterImpl<Foo2> persister = new MemoryPersisterImpl<Foo2>(stateful, states, stateA, "state");
+
+		persister.setCurrent(stateful, stateB);
+		
+		assertEquals(stateB, persister.getCurrent(stateful));
+	}
+	
 }

@@ -37,6 +37,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	
 	private ConcurrentMap<String, State<T>> states = new ConcurrentHashMap<String, State<T>>();
 	private State<T> start;
+	private String stateFieldName;
 
 	public MemoryPersisterImpl(List<State<T>> states, State<T> start) {
 		this.start = start;
@@ -45,11 +46,45 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		}
 	}
 	
+	public MemoryPersisterImpl(List<State<T>> states, State<T> start, String stateFieldName) {
+		this(states, start);
+		this.stateFieldName = stateFieldName;
+	}
+	
 	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> start) {
 		this(states, start);
 		this.setCurrent(stateful, start);
 	}
 	
+	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> start, String stateFieldName) {
+		this(states, start, stateFieldName);
+		this.setCurrent(stateful, start);
+	}
+	
+	public ConcurrentMap<String, State<T>> getStates() {
+		return states;
+	}
+
+	public void setStates(ConcurrentMap<String, State<T>> states) {
+		this.states = states;
+	}
+
+	public State<T> getStart() {
+		return start;
+	}
+
+	public void setStart(State<T> start) {
+		this.start = start;
+	}
+
+	public String getStateFieldName() {
+		return stateFieldName;
+	}
+
+	public void setStateFieldName(String stateFieldName) {
+		this.stateFieldName = stateFieldName;
+	}
+
 	public State<T> getCurrent(T stateful) {
 		try {
 			String key = (String)getStateField(stateful).get(stateful);
@@ -88,8 +123,23 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	}
 
 	private Field getStateField(T stateful) {
-		Field field = ReflectionUtils.getFirstAnnotatedField(stateful.getClass(), org.statefulj.persistence.annotations.State.class);
-		field.setAccessible(true);
+		Field field = null;
+		
+		if (this.stateFieldName != null && !this.stateFieldName.equals("")) {
+			try {
+				field = stateful.getClass().getDeclaredField(stateFieldName);
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+
+		if (field == null) {
+			field = ReflectionUtils.getFirstAnnotatedField(stateful.getClass(), org.statefulj.persistence.annotations.State.class);
+		}
+		
+		if (field != null) {
+			field.setAccessible(true);
+		}
 		return field;
 	}
 }
