@@ -41,7 +41,7 @@ public class FSM<T> extends org.statefulj.fsm.FSM<T> {
 		// just execute the Action
 		//
 		if (((TransitionImpl<T>)transition).isAny()) {
-			StateActionPair<T> pair = transition.getStateActionPair();
+			StateActionPair<T> pair = transition.getStateActionPair(stateful);
 			executeAction(
 					pair.getAction(), 
 					stateful, 

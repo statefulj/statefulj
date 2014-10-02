@@ -44,7 +44,7 @@ public class DeterministicTransitionImpl<T> implements Transition<T> {
 		stateActionPair = new StateActionPairImpl<T>(to, null);
 	}
 
-	public StateActionPair<T> getStateActionPair() {
+	public StateActionPair<T> getStateActionPair(T stateful) {
 		return stateActionPair;
 	}
 

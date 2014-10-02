@@ -154,7 +154,7 @@ public class FSM<T> {
 	}
 	
 	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> transition, Object... args) throws RetryException {
-		StateActionPair<T> pair = transition.getStateActionPair();
+		StateActionPair<T> pair = transition.getStateActionPair(stateful);
 		setCurrent(stateful, current, pair.getState());
 		executeAction(
 				pair.getAction(), 

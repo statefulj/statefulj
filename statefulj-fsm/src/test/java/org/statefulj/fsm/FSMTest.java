@@ -124,7 +124,7 @@ public class FSMTest {
 		//
 		stateA.addTransition(eventA, new Transition<Object>() {
 			
-			public StateActionPair<Object> getStateActionPair() {
+			public StateActionPair<Object> getStateActionPair(Object stateful) {
 				State<Object> next = null;
 				if (eventCnt.intValue() < 2) {
 					next = stateA;
