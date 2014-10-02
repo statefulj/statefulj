@@ -20,7 +20,7 @@ package org.statefulj.persistence.jpa.model;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 
-import org.statefulj.persistence.common.annotations.State;
+import org.statefulj.persistence.annotations.State;
 
 /**
  * A convenience class for a Stateful Entity.  This Class ensures read-only behavior for the State

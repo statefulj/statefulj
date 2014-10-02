@@ -19,6 +19,9 @@ package org.statefulj.fsm;
 
 import static org.junit.Assert.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Test;
 import org.statefulj.fsm.FSM;
@@ -42,14 +45,14 @@ public class FSMTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSimpleFSM() throws TooBusyException, RetryException {
-		// Stateful Object
+		// Stateful Foo
 		//
-		final Object stateful = new Object();
+		final Foo stateful = new Foo();
 		
 		// Set up the Actions as Mock so we can inspect them
 		//
-		Action<Object> actionA = mock(Action.class);
-		Action<Object> actionB = mock(Action.class);
+		Action<Foo> actionA = mock(Action.class);
+		Action<Foo> actionB = mock(Action.class);
 		
 		// Events
 		//
@@ -58,9 +61,9 @@ public class FSMTest {
 		
 		// States
 		//
-		StateImpl<Object> stateA = new StateImpl<Object>("stateA");
-		StateImpl<Object> stateB = new StateImpl<Object>("stateB");
-		StateImpl<Object> stateC = new StateImpl<Object>("stateC", true); // End State
+		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
+		StateImpl<Foo> stateB = new StateImpl<Foo>("stateB");
+		StateImpl<Foo> stateC = new StateImpl<Foo>("stateC", true); // End State
 		
 		// Transitions
 		//
@@ -69,14 +72,19 @@ public class FSMTest {
 
 		// FSM
 		//
-		MemoryPersisterImpl<Object> persister = new MemoryPersisterImpl<Object>(stateful, stateA);
-		FSM<Object> fsm = new FSM<Object>("SimpleFSM", persister);
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		states.add(stateB);
+		states.add(stateC);
+		
+		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		FSM<Foo> fsm = new FSM<Foo>("SimpleFSM", persister);
 
 		// Verify that on eventA, we transition to StateB and verify
 		// that we call actionA with the correct arg
 		//
-		Object arg = new Object();
-		State<Object> current = fsm.onEvent(stateful, eventA, arg);
+		Foo arg = new Foo();
+		State<Foo> current = fsm.onEvent(stateful, eventA, arg);
 		assertEquals(stateB, current);
 		assertFalse(current.isEndState());
 		verify(actionA).execute(stateful, eventA, arg);
@@ -105,9 +113,10 @@ public class FSMTest {
 	
 	@Test
 	public void testNonDeterminsticTransition() throws TooBusyException {
-		// Statefull Object
+		
+		// Statefull Foo
 		//
-		final Object stateful = new Object();
+		final Foo stateful = new Foo();
 
 		final MutableInt eventCnt = new MutableInt(0);
 		
@@ -117,33 +126,37 @@ public class FSMTest {
 		
 		// States
 		//
-		final StateImpl<Object> stateA = new StateImpl<Object>("stateA");
-		final StateImpl<Object> stateB = new StateImpl<Object>("stateB", true);
+		final StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
+		final StateImpl<Foo> stateB = new StateImpl<Foo>("stateB", true);
 		
-		// Transitions
+		// Non-Deterministic Transition
 		//
-		stateA.addTransition(eventA, new Transition<Object>() {
+		stateA.addTransition(eventA, new Transition<Foo>() {
 			
-			public StateActionPair<Object> getStateActionPair(Object stateful) {
-				State<Object> next = null;
+			public StateActionPair<Foo> getStateActionPair(Foo stateful) {
+				State<Foo> next = null;
 				if (eventCnt.intValue() < 2) {
 					next = stateA;
 				} else {
 					next = stateB;
 				}
 				eventCnt.add(1);
-				return new StateActionPairImpl<Object>(next, null);
+				return new StateActionPairImpl<Foo>(next, null);
 			}
 		});
 		
 		// FSM
 		//
-		MemoryPersisterImpl<Object> persister = new MemoryPersisterImpl<Object>(stateful, stateA);
-		final FSM<Object> fsm = new FSM<Object>("NDFSM", persister);
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		states.add(stateB);
+		
+		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		final FSM<Foo> fsm = new FSM<Foo>("NDFSM", persister);
 
 		// Verify that the first two eventA returns stateA
 		//
-		State<Object> current = fsm.onEvent(stateful, eventA);
+		State<Foo> current = fsm.onEvent(stateful, eventA);
 		assertEquals(stateA, current);
 
 		current = fsm.onEvent(stateful, eventA);
@@ -158,28 +171,24 @@ public class FSMTest {
 	
 	@Test
 	public void testConcurrency() throws TooBusyException, InterruptedException, RetryException {
-		// Stateful Object
+		// Stateful Foo
 		//
-		final Object stateful = new Object();
+		final Foo stateful = new Foo();
 		
-		// FSM
-		//
-		MemoryPersisterImpl<Object> persister = new MemoryPersisterImpl<Object>();
-		final FSM<Object> fsm = new FSM<Object>("ConcurrentFSM", persister);
-
 		// Events
 		//
 		final String eventA = "eventA";
 		final String eventB = "eventB";
 		
-		WaitAndRetryActionImpl<Object> wra = new WaitAndRetryActionImpl<Object>(100); // wait stateful00 ms and retry
+		final FSM<Foo> fsm = new FSM<Foo>("ConcurrentFSM");
+		WaitAndRetryActionImpl<Foo> wra = new WaitAndRetryActionImpl<Foo>(100); // wait 100 ms and retry
 		
 		// This action will wait for 300ms then invoke the fsm with eventA.
 		// This should transition the FSM back to stateA
 		//
-		Action<Object> waitAction = new Action<Object>() {
+		Action<Foo> waitAction = new Action<Foo>() {
 			
-			public void execute(Object obj, String event, Object... args) throws RetryException {
+			public void execute(Foo stateful, String event, Object... args) throws RetryException {
 				try {
 					Thread.sleep(250);
 					fsm.onEvent(stateful, eventA, args);
@@ -194,31 +203,39 @@ public class FSMTest {
 		
 		// Add Spies
 		//
-		WaitAndRetryActionImpl<Object> wraSpy = spy(wra);
-		Action<Object> waitActionSpy = spy(waitAction);
+		WaitAndRetryActionImpl<Foo> wraSpy = spy(wra);
+		Action<Foo> waitActionSpy = spy(waitAction);
 		
 		// States
 		//
-		StateImpl<Object> stateA = new StateImpl<Object>("stateA");
-		StateImpl<Object> statePending = new StateImpl<Object>("stateEnd");
-		StateImpl<Object> stateEnd = new StateImpl<Object>("stateEnd");
+		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
+		StateImpl<Foo> statePending = new StateImpl<Foo>("statePending");
+		StateImpl<Foo> stateEnd = new StateImpl<Foo>("stateEnd");
 		
 		// Transitions
 		//
-		stateA.addTransition(eventA, new DeterministicTransitionImpl<Object>(statePending, waitActionSpy));
-		stateA.addTransition(eventB, new DeterministicTransitionImpl<Object>(stateEnd));
+		stateA.addTransition(eventA, statePending, waitActionSpy);
+		stateA.addTransition(eventB, new DeterministicTransitionImpl<Foo>(stateEnd));
 		
-		statePending.addTransition(eventA, new DeterministicTransitionImpl<Object>(stateA));
-		statePending.addTransition(eventB, new DeterministicTransitionImpl<Object>(statePending, wraSpy));
+		statePending.addTransition(eventA, new DeterministicTransitionImpl<Foo>(stateA));
+		statePending.addTransition(eventB, statePending, wraSpy);
 		
-		// Set start to stateA
+		// Create the Persister
 		//
-		persister.setCurrent(stateful, stateA);
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		states.add(statePending);
+		states.add(stateEnd);
 		
+		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(states, stateA);
+
+		// Set the Persister
+		//
+		fsm.setPersister(persister);
 		
 		// Kick off a thread that will invoke the fsm with eventA
 		//
-		final Object args = null;
+		final Foo args = null;
 		new Thread(new Runnable() {
 			
 			public void run() {
@@ -236,7 +253,7 @@ public class FSMTest {
 		
 		// Fire off eventB
 		//
-		State<Object> current = fsm.onEvent(stateful, eventB, args);
+		State<Foo> current = fsm.onEvent(stateful, eventB, args);
 
 		// Verify that we are at the end state
 		//
@@ -254,9 +271,10 @@ public class FSMTest {
 	
 	@Test(expected=TooBusyException.class)
 	public void testTooBusy() throws TooBusyException {
-		// Stateful Object
+
+		// Stateful Foo
 		//
-		final Object stateful = new Object();
+		final Foo stateful = new Foo();
 
 		// Events
 		//
@@ -264,30 +282,33 @@ public class FSMTest {
 
 		// Actions
 		//
-		Action<Object> throwAction = new Action<Object>() {
+		Action<Foo> throwAction = new Action<Foo>() {
 			
-			public void execute(Object obj, String event, Object... args) throws RetryException {
+			public void execute(Foo stateful, String event, Object... args) throws RetryException {
 				throw new RetryException();
 			}
 		};
 		
 		// States
 		//
-		State<Object> stateA = new StateImpl<Object>("stateA");
+		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
 		
 		// Transitions
 		//
-		stateA.addTransition(eventA, new DeterministicTransitionImpl<Object>(stateA, throwAction));
+		stateA.addTransition(eventA, stateA, throwAction);
 
 		// FSM
 		//
-		MemoryPersisterImpl<Object> persister = new MemoryPersisterImpl<Object>(stateful, stateA);
-		final FSM<Object> fsm = new FSM<Object>("TooBusy", persister);
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		
+		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
 		fsm.setRetries(1);
 
 		// Boom
 		//
 		fsm.onEvent(stateful, eventA);
 	}
-
+	
 }

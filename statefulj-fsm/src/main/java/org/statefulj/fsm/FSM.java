@@ -37,9 +37,17 @@ public class FSM<T> {
 
 	static final int DEFAULT_RETRIES = 20;
 
-	private int retries;
+	private int retries = DEFAULT_RETRIES;
 	private Persister<T> persister;
 	private String name = "FSM";
+	
+	/**
+	 * 
+	 * @param name
+	 */
+	public FSM(String name) {
+		this.name = name;
+	}
 	
 	/**
 	 * 
@@ -47,7 +55,6 @@ public class FSM<T> {
 	 */
 	public FSM(Persister<T> persister) {
 		this.persister = persister;
-		this.retries = DEFAULT_RETRIES;
 	}
 	
 	/**
@@ -57,7 +64,6 @@ public class FSM<T> {
 	public FSM(String name, Persister<T> persister) {
 		this.name = name;
 		this.persister = persister;
-		this.retries = DEFAULT_RETRIES;
 	}
 	
 	/**

@@ -17,7 +17,7 @@
  */
 package org.statefulj.persistence.common;
 
-import org.statefulj.persistence.common.annotations.State;
+import org.statefulj.persistence.annotations.State;
 
 public class MockEntity {
 	

@@ -17,8 +17,12 @@
  */
 package org.statefulj.persistence.memory;
 
-import java.util.HashMap;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
@@ -31,23 +35,41 @@ import org.statefulj.fsm.model.State;
  */
 public class MemoryPersisterImpl<T> implements Persister<T> {
 	
-	private HashMap<T, State<T>> states = new HashMap<T, State<T>>();
+	private ConcurrentMap<String, State<T>> states = new ConcurrentHashMap<String, State<T>>();
+	private State<T> start;
 
-	public MemoryPersisterImpl() {
+	public MemoryPersisterImpl(List<State<T>> states, State<T> start) {
+		this.start = start;
+		for(State<T> state : states) {
+			this.states.put(state.getName(), state);
+		}
 	}
 	
-	public MemoryPersisterImpl(T obj, State<T> start) {
-		this.setCurrent(obj, start);
+	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> start) {
+		this(states, start);
+		this.setCurrent(stateful, start);
 	}
 	
-	public State<T> getCurrent(T obj) {
-		return states.get(obj);
+	public State<T> getCurrent(T stateful) {
+		try {
+			String key = (String)getStateField(stateful).get(stateful);
+			State<T> state = (key != null) ? states.get(key) : null;
+			return (state != null) ? state : this.start;
+		} catch(Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
-	public synchronized void setCurrent(T obj, State<T> current) {
-		this.states.put(obj, current);
+	public void setCurrent(T stateful, State<T> current) {
+		synchronized(stateful) {
+			try {
+				getStateField(stateful).set(stateful, current.getName());
+			} catch(Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
-
+	
 	/*
 	 * Serialize all update of state.  Ensure that the current state is the same State that 
 	 * was evaluated. If not, throw an exception
@@ -55,12 +77,19 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	 * (non-Javadoc)
 	 * @see org.fsm.Persister#setCurrent(org.fsm.model.State, org.fsm.model.State)
 	 */
-	public synchronized void setCurrent(T obj, State<T> current, State<T> next) throws StaleStateException {
-		if (this.getCurrent(obj).equals(current)) {
-			this.setCurrent(obj, next);
-		} else {
-			throw new StaleStateException();
+	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
+		synchronized(stateful) {
+			if (this.getCurrent(stateful).equals(current)) {
+				this.setCurrent(stateful, next);
+			} else {
+				throw new StaleStateException();
+			}
 		}
 	}
 
+	private Field getStateField(T stateful) {
+		Field field = ReflectionUtils.getFirstAnnotatedField(stateful.getClass(), org.statefulj.persistence.annotations.State.class);
+		field.setAccessible(true);
+		return field;
+	}
 }
