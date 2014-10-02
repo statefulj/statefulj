@@ -3,11 +3,11 @@ layout: page
 title: StatefulJ FSM
 ---
 
-The *StatefulJ FSM* library is a dependency free, Finite State Machine implementation with support for *Non-Determinstic Transitions*.
+The *StatefulJ FSM* is a lightweight *Finite State Machine* with support for *Deterministic and Non-Determinstic Transitions*.  Stateful FSM is self-contained with minimal dependencies (just SLF4J for a logging facade).
 
 ## Installation
 
-Include the FSM jar into your Maven build:
+Include the StatefulJ FSM jar into your Maven build:
 
 ```xml
 <dependency>
@@ -21,7 +21,9 @@ Or if you are feeling adventurous, you can [download and build the latest from s
 
 ## Coding
 
-With StatefulJ, you will define a Finite State Machine for each State Model.  A State Model is associated with a give Class which is referred to as the Stateful Entity.  So Within your code, you will need to:
+To use StatefulJ FSM, you build *State Models*.  A State Model is a set of *States* and *Transitions* which is associated with a Class.  This Class is referred to as the *Stateful Entity*.  
+
+To create a State Model, you will need to:
 
 * [Define your *Stateful Entity*](#define-your-stateful-entity)
 * [Define your *Events*](#define-your-events)
@@ -66,7 +68,7 @@ StateImpl<Foo> stateC = new StateImpl<Foo>("stateC", true); // End State
 
 A *Transition* is a reaction to an *Event* directed at a *Stateful Entity*.  The *Transition* can involve a possible change in *State* and a possible *Action*.  
 
-Transitions are referred as being either *Deterministic* or *Non-Deterministic*.  A Deterministic Transition means that for a given State and Event, there is only a single Transition. A Non-Deterministic Transition means that for a given State and Event there is more than one Transition.  In StatefulJ
+Transitions are referred as being either *Deterministic* or *Non-Deterministic*.  A Deterministic Transition means that for a given State and Event, there is only a single Transition. A Non-Deterministic Transition means that for a given State and Event there is more than one Transition.
 
 #### Deterministic Transitions
 
