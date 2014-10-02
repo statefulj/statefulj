@@ -125,6 +125,8 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	private Field getStateField(T stateful) {
 		Field field = null;
 		
+		// If a state field name was provided, retrieve by name
+		//
 		if (this.stateFieldName != null && !this.stateFieldName.equals("")) {
 			try {
 				field = stateful.getClass().getDeclaredField(stateFieldName);
@@ -132,14 +134,20 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 				// ignore
 			}
 		}
-
-		if (field == null) {
+		
+		// Else, fetch the field by Annotation
+		//
+		else {
 			field = ReflectionUtils.getFirstAnnotatedField(stateful.getClass(), org.statefulj.persistence.annotations.State.class);
 		}
 		
-		if (field != null) {
-			field.setAccessible(true);
+		if (field == null) {
+			throw new RuntimeException("Unable to locate a State field for stateful: " + stateful);
 		}
+		
+		// Ensure that we can access the field
+		//
+		field.setAccessible(true);
 		return field;
 	}
 }
