@@ -24,7 +24,6 @@
 
     <bean id="jpaPersister" class="org.statefulj.persistence.jpa.JPAPerister">
     	<constructor-arg name="clazz" value="org.statefulj.persistence.jpa.Order"/>
-    	<constructor-arg name="stateFieldName" value=""/>
     	<constructor-arg name="start" ref="stateA"/>
     	<constructor-arg name="states">
 		    <util:list>

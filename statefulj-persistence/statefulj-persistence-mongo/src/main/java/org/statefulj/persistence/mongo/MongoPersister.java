@@ -147,6 +147,14 @@ public class MongoPersister<T>
 	
 	public MongoPersister(
 			List<State<T>> states, 
+			State<T> start, 
+			Class<T> clazz, 
+			String repoId) {
+		this(states, null, start,clazz, repoId);
+	}
+
+	public MongoPersister(
+			List<State<T>> states, 
 			String stateFieldName, 
 			State<T> start, 
 			Class<T> clazz, 
