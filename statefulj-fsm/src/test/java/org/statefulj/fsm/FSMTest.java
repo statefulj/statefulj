@@ -64,8 +64,8 @@ public class FSMTest {
 		
 		// Transitions
 		//
-		stateA.addTransition(eventA, new DeterministicTransitionImpl<Object>(stateB, actionA));
-		stateB.addTransition(eventB, new DeterministicTransitionImpl<Object>(stateC, actionB));
+		stateA.addTransition(eventA, stateB, actionA);
+		stateB.addTransition(eventB, stateC, actionB);
 
 		// FSM
 		//

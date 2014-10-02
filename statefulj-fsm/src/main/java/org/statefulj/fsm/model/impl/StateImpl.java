@@ -20,6 +20,7 @@ package org.statefulj.fsm.model.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.statefulj.fsm.model.Action;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.Transition;
 
@@ -75,6 +76,10 @@ public class StateImpl<T> implements State<T> {
 		this.isEndState = isEndState;
 	}
 
+	public void addTransition(String event, State<T> next, Action<T> action) {
+		this.transitions.put(event, new DeterministicTransitionImpl<T>(next, action));
+	}
+	
 	public void addTransition(String event, Transition<T> transition) {
 		this.transitions.put(event, transition);
 	}
