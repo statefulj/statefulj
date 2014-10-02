@@ -33,7 +33,7 @@ To create a State Model, you will need to:
 * [Define your *Persister*](#define-your-persister)
 * [Construct the *FSM*](#construct-the-fsm)
 
-### Define your Stateful Entity
+### <a name="define-your-stateful-entity"></a> Define your Stateful Entity
 
 A *Stateful Entity* is a class that contains a *State* field which is managed by *StatefulJ FSM*.  The type of the State Field is dependent on the *Persister* being used. The State field is defined by a *@State* annotation.
 
@@ -72,7 +72,7 @@ public class Foo {
 Foo foo = new Foo();
 ```
 
-### Define your Events
+### <a name="define-your-events"></a> Define your Events
 
 *Events* in StatefulJ are Strings.
 
@@ -83,7 +83,7 @@ String eventA = "Event A";
 String eventB = "Event B";
 ```
 
-### Define your States
+### <a name="define-your-states"></a> Define your States
 
 A State defines the state value for an Entity and holds the mapping of all Transitions for that State.
 
@@ -95,7 +95,7 @@ StateImpl<Foo> stateB = new StateImpl<Foo>("State B");
 StateImpl<Foo> stateC = new StateImpl<Foo>("State C", true); // End State
 ```
 		
-### Define your Actions
+### <a name="define-your-actions"></a> Define your Actions
 
 An *Action* is a *Command* object.
 
@@ -126,7 +126,7 @@ Action<Foo> actionA = new HelloAction("World");
 Action<Foo> actionB = new HelloAction("Folks");
 ```
 
-### Define your Transitions
+### <a name="define-your-transitions"></a> Define your Transitions
 
 A *Transition* is a reaction to an *Event* directed at a *Stateful Entity*.  The *Transition* can involve a possible change in *State* and a possible *Action*.  
 
@@ -177,39 +177,26 @@ stateB.addTransition(eventA, new Transition<Foo>() {
 });
 ```
 
-```
-		// FSM
-		//
-		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, stateA);
-		FSM<Foo> fsm = new FSM<Foo>("Foo FSM", persister);
+## <a name="define-your-persister"></a>Define your Persister
 
-		// Verify that on eventA, we transition to StateB and verify
-		// that we call actionA with the correct arg
-		//
-		Object arg = new Object();
-		State<Foo> current = fsm.onEvent(stateful, eventA, arg);
-		assertEquals(stateB, current);
-		assertFalse(current.isEndState());
-		verify(actionA).execute(stateful, eventA, arg);
-		verify(actionB, never()).execute(stateful, eventA, arg);
-		
-		reset(actionA);
-		
-		// Verify that on eventA from StateB, that nothing happened
-		//
-		current = fsm.onEvent(stateful, eventA, arg);
-		assertEquals(stateB, current);
-		assertFalse(current.isEndState());
-		verify(actionA, never()).execute(stateful, eventA, arg);
-		verify(actionB, never()).execute(stateful, eventA, arg);
-		
-		// Verify that on eventB from StateB, we transition to stateC - the endState, and
-		// call actionB with the correct args
-		//
-		current = fsm.onEvent(stateful, eventB, arg);
-		assertEquals(stateC, current);
-		assertTrue(current.isEndState());
-		verify(actionA, never()).execute(stateful, eventB, arg);
-		verify(actionB).execute(stateful, eventB, arg);
-		
+A *Persister* is a Class Responsible for persisting the State value for a Stateful Entity.  A Persister implements the 
+Persister interface and *must* ensure that updates are atomic, isolated and thread-safe.  The *Stateful FSM* library comes with an
+in-memory Persister which maintains the State only on the in-memory *Stateful Entity*.  If you need to persist to a database, you will
+need to use one of the Database Persisters or integrate the *StatefulJ Framework*.
+
+```java
+// In-Memory Persister
+//
+List<State<Foo>> states = new LinkedList<State<Foo>>();
+states.add(stateA);
+states.add(stateB);
+states.add(stateC);
+
+MemoryPersisterImpl<Foo> persister = 
+					new MemoryPersisterImpl<Foo>(
+											states,   // Set of States 
+											stateA);  // Start State
 ```
+
+## <a name="construct-the-fsm"></a>Construct the FSM
+
