@@ -6,14 +6,17 @@ weight: 0
 
 ## What is StatefulJ?
 
-[StatefulJ](http://www.statefulj.org) is an open source Java based Finite State Machine along with a Spring based integrated framework.
+[StatefulJ](http://www.statefulj.org) is an open source Java based Finite State Machine(FSM) along with a Spring based integrated framework.
 
+## What is a Finite State Machine?
 
-## Why should I use StatefulJ in my Application?
+I won't go into detail here as there is [a lot already written about them](http://en.wikipedia.org/wiki/Finite-state_machine).  But the important thing is that an FSM allows you to *model all your Domain events and State transitions into a coherent and testable package* instead of writing a scattershot of boolean flags and if-then statements. 
+
+## Why should I use StatefulJ?
 
 Modern day applications have to manage and orchestrate requests and events from many sources: REST and SOAP APIs, message queueing systems, internal events, page requests, etc...
 
-Handling concurrency and reliably updating Application state becomes a major challenge without the proper framework.  StatefulJ integrates State Machines into your Application providing you the ability to easily define and manage your state models.
+Handling concurrency and reliably updating Application state becomes a major challenge without the proper framework.  *StatefulJ* integrates State Machines into your Application providing you the ability to easily define and manage your state models.
 
 ## What does StatefulJ provide?
 
