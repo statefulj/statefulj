@@ -76,6 +76,10 @@ public class StateImpl<T> implements State<T> {
 		this.isEndState = isEndState;
 	}
 
+	public void addTransition(String event, State<T> next) {
+		this.transitions.put(event, new DeterministicTransitionImpl<T>(next, null));
+	}
+	
 	public void addTransition(String event, State<T> next, Action<T> action) {
 		this.transitions.put(event, new DeterministicTransitionImpl<T>(next, action));
 	}

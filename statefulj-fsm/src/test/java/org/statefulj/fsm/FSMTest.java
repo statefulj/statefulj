@@ -31,7 +31,6 @@ import org.statefulj.fsm.model.Action;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.StateActionPair;
 import org.statefulj.fsm.model.Transition;
-import org.statefulj.fsm.model.impl.DeterministicTransitionImpl;
 import org.statefulj.fsm.model.impl.StateActionPairImpl;
 import org.statefulj.fsm.model.impl.StateImpl;
 import org.statefulj.fsm.model.impl.WaitAndRetryActionImpl;
@@ -45,7 +44,7 @@ public class FSMTest {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSimpleFSM() throws TooBusyException, RetryException {
-		// Stateful Foo
+		// Stateful
 		//
 		final Foo stateful = new Foo();
 		
@@ -114,7 +113,7 @@ public class FSMTest {
 	@Test
 	public void testNonDeterminsticTransition() throws TooBusyException {
 		
-		// Statefull Foo
+		// Stateful
 		//
 		final Foo stateful = new Foo();
 
@@ -171,7 +170,7 @@ public class FSMTest {
 	
 	@Test
 	public void testConcurrency() throws TooBusyException, InterruptedException, RetryException {
-		// Stateful Foo
+		// Stateful
 		//
 		final Foo stateful = new Foo();
 		
@@ -183,7 +182,7 @@ public class FSMTest {
 		final FSM<Foo> fsm = new FSM<Foo>("ConcurrentFSM");
 		WaitAndRetryActionImpl<Foo> wra = new WaitAndRetryActionImpl<Foo>(100); // wait 100 ms and retry
 		
-		// This action will wait for 300ms then invoke the fsm with eventA.
+		// This action will wait for 250ms then invoke the fsm with eventA.
 		// This should transition the FSM back to stateA
 		//
 		Action<Foo> waitAction = new Action<Foo>() {
@@ -215,9 +214,9 @@ public class FSMTest {
 		// Transitions
 		//
 		stateA.addTransition(eventA, statePending, waitActionSpy);
-		stateA.addTransition(eventB, new DeterministicTransitionImpl<Foo>(stateEnd));
+		stateA.addTransition(eventB, stateEnd);
 		
-		statePending.addTransition(eventA, new DeterministicTransitionImpl<Foo>(stateA));
+		statePending.addTransition(eventA, stateA);
 		statePending.addTransition(eventB, statePending, wraSpy);
 		
 		// Create the Persister
@@ -272,7 +271,7 @@ public class FSMTest {
 	@Test(expected=TooBusyException.class)
 	public void testTooBusy() throws TooBusyException {
 
-		// Stateful Foo
+		// Stateful
 		//
 		final Foo stateful = new Foo();
 

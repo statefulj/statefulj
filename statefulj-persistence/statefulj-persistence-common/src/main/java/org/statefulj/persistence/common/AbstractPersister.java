@@ -122,7 +122,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	protected abstract Field findIdField(Class<?> clazz); 
 
 	protected Field findStateField(String stateFieldName, Class<?> clazz) {
-		Field stateField = null;;
+		Field stateField = null;
 		if (StringUtils.isEmpty(stateFieldName)) {
 			stateField = ReflectionUtils.getFirstAnnotatedField(clazz, org.statefulj.persistence.annotations.State.class);
 		} else {
