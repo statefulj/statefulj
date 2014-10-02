@@ -9,7 +9,7 @@ relative_permalinks: true
 # Setup
 title:            StatefulJ
 tagline:          ''
-description:      'Making State Machines your friend'
+description:      'State Machines made easy'
 url:              http://hyde.getpoole.com 
 baseurl:          /
 

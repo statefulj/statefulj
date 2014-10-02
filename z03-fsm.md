@@ -7,7 +7,7 @@ The *StatefulJ FSM* is a lightweight *Finite State Machine* with support for *De
 
 ## Installation
 
-Include the StatefulJ FSM jar into your Maven build:
+Install StatefulJ FSM from Maven Central into your app by adding the following to your pom.xml:
 
 ```xml
 <dependency>
@@ -30,45 +30,112 @@ To create a State Model, you will need to:
 * [Define your *States*](#define-your-states)
 * [Define your *Actions*](#define-your-actions)
 * [Define your *Transitions*](#define-your-transitions)
+* [Define your *Persister*](#define-your-persister)
 * [Construct the *FSM*](#construct-the-fsm)
 
 ### Define your Stateful Entity
 
+A *Stateful Entity* is a class that contains a *State* field which is managed by *StatefulJ FSM*.  The type of the State Field is dependent on the *Persister* being used. The State field is defined by a *@State* annotation.
 
 ```java
+
 // Stateful Entity
+//
+public class Foo {
+
+	@State
+	String state;   // Memory Persister requires a String
+	
+	boolean bar;
+	
+	public String getState() {
+		return state;
+	}
+	
+	// Note: there is no setter for the state field 
+	//       as the value is set by StatefulJ
+	
+	public void setBar(boolean bar) {
+		this.bar = bar;
+	}
+	
+	public boolean isBar() {
+		return bar;
+	}
+	
+}
+```
+
+```java
+// Instantiate the Stateful Entity
 //
 Foo foo = new Foo();
 ```
 
 ### Define your Events
 
-*Events* in StatefulJ are simple Strings.  Example:
+*Events* in StatefulJ are Strings.
 
 ```java
 // Events
 //
-String eventA = "eventA";
-String eventB = "eventB";
+String eventA = "Event A";
+String eventB = "Event B";
 ```
 
 ### Define your States
 
-A State defines the state value for an Entity, as well as, hold the mapping of all Transitions for a State.
+A State defines the state value for an Entity and holds the mapping of all Transitions for that State.
 
 ```java		
 // States
 //
-StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
-StateImpl<Foo> stateB = new StateImpl<Foo>("stateB");
-StateImpl<Foo> stateC = new StateImpl<Foo>("stateC", true); // End State
+StateImpl<Foo> stateA = new StateImpl<Foo>("State A");
+StateImpl<Foo> stateB = new StateImpl<Foo>("State B");
+StateImpl<Foo> stateC = new StateImpl<Foo>("State C", true); // End State
 ```
 		
+### Define your Actions
+
+An *Action* is a *Command* object.
+
+```java
+// Hello <what> Action
+//
+public class HelloAction<T> implements Action<T> {
+
+	String what;
+	
+	public HelloAction(String what) {
+		this.what = what;
+	}
+
+	public void execute(T stateful, 
+	                    String event, 
+	                    Object ... args) throws RetryException {
+		System.out.println("Hello " + what);
+	}	
+}
+```		
+
+```java
+
+// Actions
+//
+Action<Foo> actionA = new HelloAction("World");
+Action<Foo> actionB = new HelloAction("Folks");
+```
+
 ### Define your Transitions
 
 A *Transition* is a reaction to an *Event* directed at a *Stateful Entity*.  The *Transition* can involve a possible change in *State* and a possible *Action*.  
 
-Transitions are referred as being either *Deterministic* or *Non-Deterministic*.  A Deterministic Transition means that for a given State and Event, there is only a single Transition. A Non-Deterministic Transition means that for a given State and Event there is more than one Transition.
+Transitions are referred as being either *Deterministic* or *Non-Deterministic*:
+
+* A Deterministic Transition means that for a given State and Event, there is only a single Transition. 
+* A Non-Deterministic Transition means that for a given State and Event there is more than one Transition.
+
+Transitions are added to a State and are mapped by an Event.
 
 #### Deterministic Transitions
 
@@ -89,11 +156,11 @@ stateB.addTransition(eventB, stateC, actionB);
 ```java
 /* Non-Deterministic Transitions */
 
-//                   +--> stateB/NOOP
-//  stateA(eventA) --|
+//                   +--> stateB/NOOP  -- loop back on itself
+//  stateB(eventA) --|
 //                   +--> stateC/NOOP
 //
-stateA.addTransition(eventA, new Transition<Foo>() {
+stateB.addTransition(eventA, new Transition<Foo>() {
 	
 	public StateActionPair<Foo> getStateActionPair(Foo stateful) {
 		State<Foo> next = null;
@@ -114,7 +181,7 @@ stateA.addTransition(eventA, new Transition<Foo>() {
 		// FSM
 		//
 		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, stateA);
-		FSM<Foo> fsm = new FSM<Foo>("SimpleFSM", persister);
+		FSM<Foo> fsm = new FSM<Foo>("Foo FSM", persister);
 
 		// Verify that on eventA, we transition to StateB and verify
 		// that we call actionA with the correct arg
