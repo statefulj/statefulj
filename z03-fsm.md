@@ -23,12 +23,12 @@ Or if you are feeling adventurous, you can [download and build the latest from s
 
 With StatefulJ, you will define a Finite State Machine for each State Model.  A State Model is associated with a give Class which is referred to as the Stateful Entity.  So Within your code, you will need to:
 
-* Define your *Stateful Entity*
-* Define your *Events*
-* Define your *States*
-* Define your *Actions*
-* Define your *Transitions*
-* Construct the *FSM*
+* [Define your *Stateful Entity*](#define-your-stateful-entity)
+* [Define your *Events*](#define-your-events)
+* [Define your *States*](#define-your-states)
+* [Define your *Actions*](#define-your-actions)
+* [Define your *Transitions*](#define-your-transitions)
+* [Construct the *FSM*](#construct-the-fsm)
 
 ### Define your Stateful Entity
 
@@ -66,31 +66,59 @@ StateImpl<Foo> stateC = new StateImpl<Foo>("stateC", true); // End State
 
 A *Transition* is a reaction to an *Event* directed at a *Stateful Entity*.  The *Transition* can involve a possible change in *State* and a possible *Action*.  
 
-Transitions are referred as being either *Determinstic* or *Non-Deterministic*.  A Deterministic Transition means that for a given State and Event, there is only a single Transition. A Non-Deterministic Transition means that for a given State and Event there is more than one Transition.  In StatefulJ
+Transitions are referred as being either *Deterministic* or *Non-Deterministic*.  A Deterministic Transition means that for a given State and Event, there is only a single Transition. A Non-Deterministic Transition means that for a given State and Event there is more than one Transition.  In StatefulJ
+
+#### Deterministic Transitions
 
 ```java
-// Deterministic Transitions
+/* Deterministic Transitions */
+
+// stateA(eventA) -> stateB/actionA
 //
-stateA.addTransition(
-	eventA, 
-	new DeterministicTransitionImpl<Object>(stateB, actionA));
+stateA.addTransition(eventA, stateB, actionA); 
 	
-stateB.addTransition(
-	eventB, 
-	new DeterministicTransitionImpl<Object>(stateC, actionB));
+// stateB(eventB) -> stateC/actionB
+//
+stateB.addTransition(eventB, stateC, actionB);
+```
+
+#### Non-Deterministic Transitions
+
+```java
+/* Non-Deterministic Transitions */
+
+//                   +--> stateB/NOOP
+//  stateA(eventA) --|
+//                   +--> stateC/NOOP
+//
+stateA.addTransition(eventA, new Transition<Foo>() {
+	
+	public StateActionPair<Foo> getStateActionPair(Foo stateful) {
+		State<Foo> next = null;
+		if (stateful.isBar()) {
+			next = stateB;
+		} else {
+			next = stateC;
+		}
+		
+		// Move to the next state without taking any action
+		//
+		return new StateActionPairImpl<Foo>(next, null);
+	}
+});
 ```
 
 ```
 		// FSM
 		//
-		MemoryPersisterImpl<Object> persister = new MemoryPersisterImpl<Object>(stateful, stateA);
-		FSM<Object> fsm = new FSM<Object>("SimpleFSM", persister);
+		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, stateA);
+		FSM<Foo> fsm = new FSM<Foo>("SimpleFSM", persister);
 
 		// Verify that on eventA, we transition to StateB and verify
 		// that we call actionA with the correct arg
 		//
 		Object arg = new Object();
-		State<Object> current = fsm.onEvent(stateful, eventA, arg);
+		State<Foo> current = fsm.onEvent(stateful, eventA, arg);
 		assertEquals(stateB, current);
 		assertFalse(current.isEndState());
 		verify(actionA).execute(stateful, eventA, arg);

@@ -32,6 +32,10 @@ html {
 	font-family: "PT Sans", Helvetica, Arial, sans-serif;
 }
 
+h1, h2, h3, h4 {
+	font-family: "Helvetica Neue", serif;
+}
+
 @media ( min-width : 48em) {
 	html {
 		font-size: 16px;
@@ -77,7 +81,6 @@ html {
 .sidebar-about h1 {
 	color: #fff;
 	margin-top: 0;
-	/*  font-family: "Abril Fatface", serif; */
 	font-size: 3.25rem;
 }
 
