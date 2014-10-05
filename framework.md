@@ -93,58 +93,116 @@ To integrate the *StatefulJ Framework*, you define your *State Model*.  To creat
 
 A *Stateful Entity* is a Class that is persisted, managed by Spring Data and contains a *State* field.  The State Field defines the current State of the Entity and is managed by *StatefulJ Framework*.  The state field is annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) annotation.  For your convenience, you can inherit from either the [*StatefulEntity* Class (JPA)](/public/javadoc/org/statefulj/persistence/jpa/model/StatefulEntity.html) or [*StatefulDocument* Class (Mongo)](/public/javadoc/org/statefulj/persistence/mongo/model/StatefulDocument.html).  This will automatically define a state field annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) Annotation.
 
+#### Stateful Entity (JPA)
+
 ```java
 
 // Stateful Entity
 //
-public class Foo {
+@Entity
+public class Foo extends StatefulEntity {
+	
+	@Id
+	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+	Long id;	
 
-	@State
-	String state;   // Memory Persister requires a String
-	
-	boolean bar;
-	
-	public String getState() {
-		return state;
+	public Long getId() {
+		return id;
 	}
 	
-	// Note: there is no setter for the state field 
-	//       as the value is set by StatefulJ
-	
-	public void setBar(boolean bar) {
-		this.bar = bar;
+	public void setId(Long id) {
+		this.id = id;
 	}
 	
-	public boolean isBar() {
-		return bar;
-	}
-	
-}
+}	
 ```
 
-### <a name="define-your-events"></a> Define your Events
-
-*Events* in StatefulJ are Strings.
+#### Stateful Document (Mongo)
 
 ```java
-// Events
+
+// Stateful Document
 //
-String eventA = "Event A";
-String eventB = "Event B";
+@Document
+public class Foo extends StatefulDocument {
+	
+	@Id
+	String id;	
+
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+}	
 ```
+
+**Note:** StatefulJ Framework determines the type of Persister to use for an Entity by the Entity's association with a SpringData Repository.  As such, you will need to define a Repository like so:
+
+```java
+public interface FooRepository extends JpaRepository<Foo, Long> {
+	
+}
+``` 
+
+```java
+public interface FooRepository extends MongoRepository<Foo, String> {
+	
+}
+``` 
 
 ### <a name="define-your-states"></a> Define your States
 
-A State defines the state value for an Entity and holds the mapping of all Transitions for that State.
+A *State* defines the state value for an Entity and is of type *String*.  It is recommended that you define your States as public static constants within your Stateful Entity Class.
 
-```java		
-// States
+```java
+
+// Stateful Entity
 //
-StateImpl<Foo> stateA = new StateImpl<Foo>("State A");
-StateImpl<Foo> stateB = new StateImpl<Foo>("State B");
-StateImpl<Foo> stateC = new StateImpl<Foo>("State C", true); // End State
+@Entity
+public class Foo extends StatefulEntity {
+	
+	// States
+	//
+	public static final String NON_EXISTENT = "Non Existent";
+	public static final String STATE_A = "State A";
+	public static final String STATE_B = "State B";
+	public static final String STATE_C = "State C";
+
+	@Id
+	@GeneratedValue(strategy=GenerationType.SEQUENCE)
+	Long id;	
+
+	public Long getId() {
+		return id;
+	}
+	
+	public void setId(Long id) {
+		this.id = id;
+	}
+	
+}	
 ```
 		
+### <a name="define-your-controller"></a> Define your Stateful Controller
+
+*Stateful Controller* is the Class that defines the *State Model*.  It is defined by annotating the 
+Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/framework/core/annotations/StatefulController.html).  The @StatefulContoller defines the *Stateful Entity* the Controller is managing.
+
+```java
+@StatefulController(
+	clazz=Foo.class,
+	startState=NON_EXISTENT
+)
+public class FooController {
+}
+```
+
+The @StatefulController *must* define the Stateful Entity Class and the [*Start State*](http://en.wikipedia.org/wiki/Finite-state_machine#Start_state) for the Stateful Entity.
+
 ### <a name="define-your-actions"></a> Define your Actions
 
 An *Action* is a *Command* object.
