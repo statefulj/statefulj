@@ -1,6 +1,6 @@
 ---
 layout: page 
-title: StatefulJ FSM Test
+title: StatefulJ FSM
 ---
 
 The *StatefulJ FSM* is a lightweight *Finite State Machine* with support for *Deterministic and Non-Determinstic Transitions*.  Stateful FSM is self-contained with minimal dependencies (just SLF4J for a logging facade).
