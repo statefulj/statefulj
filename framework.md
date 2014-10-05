@@ -9,36 +9,89 @@ infrastructure, bind with with *Endpoint Providers* and manage all State Persist
 
 ## Installation
 
-Install StatefulJ FSM from Maven Central into your app by adding the following to your pom.xml:
+Installing *StatefulJ Framework* is dependent on the technologies within your stack.  The StatefulJ Frameworks is comprised of *Binders* and *Persisters*.  
+
+Binders "bind" *Endpoint Providers* to the StatefulJ Framework.  StatefulJ supports the following Endpoint Providers:
+
+* SpringMVC
+* Camel
+* Jersey
+
+Persisters interacts within the underlying databases.  StatefulJ supports the following Persisters:
+
+* JPA (SQL)
+* MongoDB
+
+So, depending on your stack, you will need to include the following dependencies into your Maven project:
+
+### Binders
+
+#### SpringMVC
 
 ```xml
 <dependency>
-	<groupId>org.statefulj</groupId>
-	<artifactId>statefulj-fsm</artifactId>
+	<groupId>org.statefulj.framework</groupId>
+	<artifactId>statefulj-framework-binders-springmvc</artifactId>
 	<version>{{ site.version }}</version>
 </dependency>
 ```
 
-Or if you are feeling adventurous, you can [download and build the latest from source](https://github.com/statefulj/statefulj). 
+#### Camel
+
+```xml
+<dependency>
+	<groupId>org.statefulj.framework</groupId>
+	<artifactId>statefulj-framework-binders-camel</artifactId>
+	<version>{{ site.version }}</version>
+</dependency>
+```
+
+#### Jersey
+
+```xml
+<dependency>
+	<groupId>org.statefulj.framework</groupId>
+	<artifactId>statefulj-framework-binders-jersey</artifactId>
+	<version>{{ site.version }}</version>
+</dependency>
+```
+
+### Persisters
+
+#### JPA
+
+```xml
+<dependency>
+	<groupId>org.statefulj.framework</groupId>
+	<artifactId>statefulj-framework-persistence-jpa</artifactId>
+	<version>{{ site.version }}</version>
+</dependency>
+```
+
+#### Mongo
+
+```xml
+<dependency>
+	<groupId>org.statefulj.framework</groupId>
+	<artifactId>statefulj-framework-persistence-mongo</artifactId>
+	<version>{{ site.version }}</version>
+</dependency>
+```
 
 ## Coding
 
-To use StatefulJ FSM, you build *State Models*.  A State Model is a set of *States* and *Transitions* which is associated with a Class.  This Class is referred to as the *Stateful Entity*.  
-
-To create a State Model, you will need to:
+To integrate the *StatefulJ Framework*, you define your *State Model*.  To create a State Model, you will need to:
 
 * [Define your *Stateful Entity*](#define-your-stateful-entity)
-* [Define your *Events*](#define-your-events)
 * [Define your *States*](#define-your-states)
-* [Define your *Actions*](#define-your-actions)
+* [Define your *StateController*] (#define-your-controller)
+* [Define your *Events*](#define-your-events)
 * [Define your *Transitions*](#define-your-transitions)
-* [Define your *Persister*](#define-your-persister)
-* [Construct the *FSM*](#construct-the-fsm)
-* [Using the *FSM*](#using-the-fsm)
+* [Define your *Actions*](#define-your-actions)
 
 ### <a name="define-your-stateful-entity"></a> Define your Stateful Entity
 
-A *Stateful Entity* is a class that contains a *State* field which is managed by *StatefulJ FSM*.  The type of the State Field is dependent on the *Persister* being used. The State field is defined by a *@State* annotation.
+A *Stateful Entity* is a Class that is persisted, managed by Spring Data and contains a *State* field.  The State Field defines the current State of the Entity and is managed by *StatefulJ Framework*.  The state field is annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) annotation.  For your convenience, you can inherit from either the [*StatefulEntity* Class (JPA)](/public/javadoc/org/statefulj/persistence/jpa/model/StatefulEntity.html) or [*StatefulDocument* Class (Mongo)](/public/javadoc/org/statefulj/persistence/mongo/model/StatefulDocument.html).  This will automatically define a state field annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) Annotation.
 
 ```java
 
