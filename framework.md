@@ -7,7 +7,7 @@ The *StatefulJ Framework* leverages *StatefulJ FSM*, *StatefulJ Persister* and S
 StatefulJ into your Application.  Using Annotations to define your State Model, StatefulJ will auto generate the FSM 
 infrastructure, bind with with *Endpoint Providers* and manage all State Persistence.
 
-## Installation
+## <a href="#installation"></a> Installation
 
 Installing *StatefulJ Framework* is dependent on the technologies within your stack.  The StatefulJ Frameworks is comprised of *Binders* and *Persisters*.  
 
@@ -220,7 +220,7 @@ An *Event* is simply a String that directs the *StatefulJ Framework* how to bind
 |---		|-----------------------------------------------------------------------|---	      	|
 | <none> | &lt;event&gt;	| Identifies an event that isn't bound to an Endpoint.  It is invoked directly from a StatefulFSM reference 
 | SpringMVC | springmvc:&lt;get&verbar;post&verbar;patch&verbar;put&gt;:&lt;uri&gt;	| SpringMVC events require an *http verb* and a *uri*.  If the verb isn't specfied, it will default to a GET.  The uri must include an identifier for the Entity denoted by {id}, eg. springmvc:post:/foo/{id}/eventA|
-| Camel     | camel:&lt;route&gt; 												    | Camel events map to a route.  Since routes are typically not resource oriented.  You will have to annotate a field in the Message with an [@Id](http://docs.spring.io/spring-data/commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html) annotation indicating the ID of the Entity | 
+| Camel     | camel:&lt;route&gt; 												    | Camel events map to a route.  Since routes are typically not resource oriented, you will have to annotate a field in the *Message* with an [@Id](http://docs.spring.io/spring-data/commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html) annotation indicating the ID of the Entity | 
 
 ```java
 @StatefulController(
@@ -249,9 +249,9 @@ In the *Stateful Framework*, a Transition is a method in the *Stateful Controlle
 
 | Field	    |Value 				         	| Description                                                |
 |---		|-------------------         	| -------------                                                                                        |
-| from      | &lt;state&gt; or &ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
+| from      | &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
-| to		| &lt;state&gt; or &ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
+| to		| &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
 
 When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  The first two parameters are always:
 
@@ -294,7 +294,7 @@ public class FooController {
 
 ### <a name="inject-stateful-fsm"></a> Inject the StatefulFSM
 
-It's important never to invoke a *Stateful Controller* directly, instead inject a StatefulController and call the **onEvent** method.  
+It's important never to invoke a *Stateful Controller* directly, instead inject a *StatefulFSM* and call the **onEvent** method.  
 
 | Field	   	| Description		|
 |----		|----				|

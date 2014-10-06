@@ -23,6 +23,20 @@
       <a class="sidebar-nav-item{% if page.url == '/' %} active{% endif %}" href="/">Introduction</a>
 	  <a class="sidebar-nav-item{% if page.url == '/fsm/' %} active{% endif %}" href="/fsm/">StatefulJ FSM</a>
 	  <a class="sidebar-nav-item{% if page.url == '/framework/' %} active{% endif %}" href="/framework/">StatefulJ Framework</a>
+	  {% if page.url == '/framework/' %}
+	  <nav class="subnav">
+	  	<ul>
+		 	<li><a href="/framework#installation">Installation</a></li>
+		 	<li><a href="/framework#define-your-stateful-entity">Define your Stateful Entity</a></li>
+			<li><a href="/framework#define-your-states">Define your States</a></li>
+			<li><a href="/framework#define-your-controller">Define your StateController</a></li>
+			<li><a href="/framework#define-your-events">Define your Events</a></li>
+			<li><a href="/framework#define-your-transitions">Define your Transitions</a></li>
+			<li><a href="/framework#inject-stateful-fsm">Inject the StatefulFSM</a></li>
+	  	</ul>
+  	  </nav>
+	  {% endif %}
+	  
 	  <a class="sidebar-nav-item" target="_blank" href="/public/javadoc/">Javadoc</a>
 
       <!--a class="sidebar-nav-item" href="{{ site.github.repo }}/archive/v{{ site.version }}.zip">Download</a>
