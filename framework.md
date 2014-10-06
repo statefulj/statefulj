@@ -189,7 +189,7 @@ public class Foo extends StatefulEntity {
 		
 ### <a name="define-your-controller"></a> Define your Stateful Controller
 
-*Stateful Controller* is the Class that defines the *State Model*.  It is defined by annotating the 
+*Stateful Controller* defines the set of *Transitions* for the *Stateful Entity*.  It is defined by annotating the 
 Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/framework/core/annotations/StatefulController.html).  The @StatefulContoller defines the *Stateful Entity* the Controller is managing.
 
 | field     	|   Type    | Description |
@@ -249,9 +249,9 @@ In the *Stateful Framework*, a Transition is a method in the *Stateful Controlle
 
 | Field	    |Value 				         	| Description                                                |
 |---		|-------------------         	| -------------                                                                                        |
-| from      | &lt;state&gt;&verbar;&ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
+| from      | &lt;state&gt; or &ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
-| to		| &lt;state&gt;&verbar;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
+| to		| &lt;state&gt; or &ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
 
 When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  The first two parameters are always:
 
