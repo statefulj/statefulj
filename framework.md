@@ -296,6 +296,10 @@ public class FooController {
 
 It's important never to invoke a *Stateful Controller* directly, instead inject a StatefulController and call the **onEvent** method.  
 
+| Field	   	| Description		|
+|----		|----				|
+| value		| The Id of the Stateful Controller.  If not specified, it will determine the FSM based off the Type |
+
 ```java
 
 @FSM
@@ -305,4 +309,3 @@ public void upgradeApproved(Foo foo) {
 	fsm.onEvent(foo, UPGRADE_APPROVED);
 }
 ```
-
