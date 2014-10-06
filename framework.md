@@ -192,7 +192,7 @@ public class Foo extends StatefulEntity {
 *Stateful Controller* is the Class that defines the *State Model*.  It is defined by annotating the 
 Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/framework/core/annotations/StatefulController.html).  The @StatefulContoller defines the *Stateful Entity* the Controller is managing.
 
-| field     	|   Type    | Details |
+| field     	|   Type    | Description |
 |-----      	|-----    	|----     |
 | clazz			| Required 	| The Entity class managed by the StatefulController |
 | startState	| Required	|  The Starting State value.  If there is a transition from this State, the framework will pass in a new instance of the Managed Entity.  It is the responsibility of the StatefulController to persist the new instance. |
@@ -216,7 +216,7 @@ public class FooController {
 
 An *Event* is simply a String that directs the *StatefulJ Framework* how to bind an *Endpoint* to the Framework.  The format of the Event is &lt;binder&gt;:&lt;event&gt;
 
-| Binder	|Format 																| Explanation 	|
+| Binder	|Format 																| Description 	|
 |---		|-----------------------------------------------------------------------|---	      	|
 | <none> | &lt;event&gt;	| Identifies an event that isn't bound to an Endpoint.  It is invoked directly from a StatefulFSM reference 
 | SpringMVC | springmvc:&lt;get&verbar;post&verbar;patch&verbar;put&gt;:&lt;uri&gt;	| SpringMVC events require an *http verb* and a *uri*.  If the verb isn't specfied, it will default to a GET.  The uri must include an identifier for the Entity denoted by {id}, eg. springmvc:post:/foo/{id}/eventA|
@@ -247,11 +247,11 @@ A *Transition* is a reaction to an *Event* directed at a *Stateful Entity*.  The
 
 In the *Stateful Framework*, a Transition is a method in the *Stateful Controller* annotated with the [@Transition](public/javadoc/org/statefulj/framework/core/annotations/Transition.html) annotation.  
 
-| Field	    |Value 				         	| Details                                                                                              | 
+| Field	    |Value 				         	| Description                                                |
 |---		|-------------------         	| -------------                                                                                        |
 | from      | &lt;state&gt;&verbar;&ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
-| to		| &lt;state&gt;;&verbar;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
+| to		| &lt;state&gt;&verbar;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
 
 When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  The first two parameters are always:
 
