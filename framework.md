@@ -251,7 +251,7 @@ In the *Stateful Framework*, a Transition is a method in the *Stateful Controlle
 |---		|-------------------         	| -------------                                                                                        |
 | from      | &lt;state&gt;&verbar;&ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
-| to		| &lt;state&gt;					| The "to" State. If left blank or the state is "&ast;*, then there is no change from the current state |
+| to		| &lt;state&gt;;&verbar;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
 
 When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  The first two parameters are always:
 
@@ -294,14 +294,14 @@ public class FooController {
 
 ### <a name="inject-stateful-fsm"></a> Inject the StatefulFSM
 
-It's important never to invoke a *Stateful Controller" directly, instead inject a StatefulController and call the **onEvent** method.  
+It's important never to invoke a *Stateful Controller* directly, instead inject a StatefulController and call the **onEvent** method.  
 
 ```java
 
 @FSM
 StatefulFSM<Foo> fsm;
 
-public void upgradApproved(Foo foo) {
+public void upgradeApproved(Foo foo) {
 	fsm.onEvent(foo, UPGRADE_APPROVED);
 }
 ```
