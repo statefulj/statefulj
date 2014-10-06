@@ -87,7 +87,7 @@ To integrate the *StatefulJ Framework*, you define your *State Model*.  To creat
 * [Define your *StateController*] (#define-your-controller)
 * [Define your *Events*](#define-your-events)
 * [Define your *Transitions*](#define-your-transitions)
-* [Define your *Actions*](#define-your-actions)
+* [Inject the *StatefulFSM*](#inject-stateful-fsm)
 
 ### <a name="define-your-stateful-entity"></a> Define your Stateful Entity
 
@@ -168,9 +168,9 @@ public class Foo extends StatefulEntity {
 	// States
 	//
 	public static final String NON_EXISTENT = "Non Existent";
-	public static final String STATE_A = "State A";
-	public static final String STATE_B = "State B";
-	public static final String STATE_C = "State C";
+	public static final String ACTIVE = "Active";
+	public static final String UPGRADE_PENDING = "Upgrade Pending";
+	public static final String UPGRADED = "Upgraded";
 
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE)
@@ -192,6 +192,17 @@ public class Foo extends StatefulEntity {
 *Stateful Controller* is the Class that defines the *State Model*.  It is defined by annotating the 
 Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/framework/core/annotations/StatefulController.html).  The @StatefulContoller defines the *Stateful Entity* the Controller is managing.
 
+| field     	|   Type    | Details |
+|-----      	|-----    	|----     |
+| clazz			| Required 	| The Entity class managed by the StatefulController |
+| startState	| Required	|  The Starting State value.  If there is a transition from this State, the framework will pass in a new instance of the Managed Entity.  It is the responsibility of the StatefulController to persist the new instance. |
+| value     	| Optional	| The value may indicate a suggestion for a logical component name, to be turned into a Spring bean in case of an autodetected component. |
+| stateField	| Optional	| The name of the managed State field.  If blank, the Entity will be inspected for a field annotated with [State Annotation](/public/javadoc/org/statefulj/persistence/annotations/State.html) |
+| factoryId		| Optional	| The bean Id of the Factory for this Entity.  The Factory Class must implement the [Factory Interface](/public/javadoc/org/statefulj/framework/core/model/Factory.html).  If not specified, the *StatefulJ Framework* will use the default Factory Implementation. |
+| finderId 		| Optional	| The bean Id of the Finder for this Entity.  The Finder Class must implement the [Finder Interface](/public/javadoc/org/statefulj/framework/core/model/Finder.html).  If not specified, the *StatefulJ Framework* will use the default Finder Implementation. |
+| persisterId	| Optional	| The bean Id of the Persister for this Entity.  The Persister is responsible for updating the State field for the Stateful Entity.  The Persister implment ation implement the [Persister Interface](/public/javadoc/org/statefulj/fsm/Persister.html).  If not specified, the *StatefulJ Framework* will use the default Persister Implementation. |
+| noops			| Optional	| An array of NOOP Transitions.  These Transitions will update the State field but will not invoke any Actions |
+
 ```java
 @StatefulController(
 	clazz=Foo.class,
@@ -201,140 +212,97 @@ public class FooController {
 }
 ```
 
-The @StatefulController *must* define the Stateful Entity Class and the [*Start State*](http://en.wikipedia.org/wiki/Finite-state_machine#Start_state) for the Stateful Entity.
+### <a name="define-your-events"></a> Define your Events
 
-### <a name="define-your-actions"></a> Define your Actions
+An *Event* is simply a String that directs the *StatefulJ Framework* how to bind an *Endpoint* to the Framework.  The format of the Event is &lt;binder&gt;:&lt;event&gt;
 
-An *Action* is a *Command* object.
+| Binder	|Format 																| Explanation 	|
+|---		|-----------------------------------------------------------------------|---	      	|
+| <none> | &lt;event&gt;	| Identifies an event that isn't bound to an Endpoint.  It is invoked directly from a StatefulFSM reference 
+| SpringMVC | springmvc:&lt;get&verbar;post&verbar;patch&verbar;put&gt;:&lt;uri&gt;	| SpringMVC events require an *http verb* and a *uri*.  If the verb isn't specfied, it will default to a GET.  The uri must include an identifier for the Entity denoted by {id}, eg. springmvc:post:/foo/{id}/eventA|
+| Camel     | camel:&lt;route&gt; 												    | Camel events map to a route.  Since routes are typically not resource oriented.  You will have to annotate a field in the Message with an [@Id](http://docs.spring.io/spring-data/commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html) annotation indicating the ID of the Entity | 
 
 ```java
-// Hello <what> Action
-//
-public class HelloAction<T> implements Action<T> {
+@StatefulController(
+	clazz=Foo.class,
+	startState=NON_EXISTENT
+)
+public class FooController {
 
-	String what;
+	// Events
+	//
+	public static final String CREATE_FOO = "springmvc:post:/foo";
+	public static final String GET_FOO = "springmvc:get:/foo/{id}";
+	public static final String UPGRADE_REQUEST = 
+								"springmvc:post:/foo/{id}/upgrade";
+	public static final String UPGRADE_APPROVED = "upgrade.approved";
 	
-	public HelloAction(String what) {
-		this.what = what;
-	}
 
-	public void execute(T stateful, 
-	                    String event, 
-	                    Object ... args) throws RetryException {
-		System.out.println("Hello " + what);
-	}	
 }
-```		
-
-```java
-
-// Actions
-//
-Action<Foo> actionA = new HelloAction("World");
-Action<Foo> actionB = new HelloAction("Folks");
 ```
 
 ### <a name="define-your-transitions"></a> Define your Transitions
 
 A *Transition* is a reaction to an *Event* directed at a *Stateful Entity*.  The *Transition* can involve a possible change in *State* and a possible *Action*.  
 
-Transitions are referred as being either *Deterministic* or *Non-Deterministic*:
+In the *Stateful Framework*, a Transition is a method in the *Stateful Controller* annotated with the [@Transition](public/javadoc/org/statefulj/framework/core/annotations/Transition.html) annotation.  
 
-* A Deterministic Transition means that for a given State and Event, there is only a single Transition. 
-* A Non-Deterministic Transition means that for a given State and Event there is more than one Transition.
+| Field	    |Value 				         	| Details                                                                                              | 
+|---		|-------------------         	| -------------                                                                                        |
+| from      | &lt;state&gt;&verbar;&ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
+| event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
+| to		| &lt;state&gt;					| The "to" State. If left blank or the state is "&ast;*, then there is no change from the current state |
 
-Transitions are added to a State and are mapped by an Event.
+When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  The first two parameters are always:
 
-#### Deterministic Transitions
+1. Stateful Entity
+2. The Event
 
-```java
-/* Deterministic Transitions */
+When the Stateful Framework binds the Endpoint, it will read all the Annotations on the method and all the Parameters after the StatefulEntity and Event and propagate to the Endpoint.  So, can define your  Transition with the parameters and annotations would normally would for the Endpoint. 
 
-// stateA(eventA) -> stateB/actionA
-//
-stateA.addTransition(eventA, stateB, actionA); 
-	
-// stateB(eventB) -> stateC/actionB
-//
-stateB.addTransition(eventB, stateC, actionB);
-```
-
-#### Non-Deterministic Transitions
+**Note:** If your method returns a String, and that String is prefixed with **event:**, then the return value will be treated as Event and re-propagated.  
 
 ```java
-/* Non-Deterministic Transitions */
+@StatefulController(
+	clazz=Foo.class,
+	startState=NON_EXISTENT,
+	noops=({
+		@Transition(from=UPGRADE_PENDING, event=UPGRADE_APPROVED, to=UPGRADED)
+	})
+)
+public class FooController {
 
-//                   +--> stateB/NOOP  -- loop back on itself
-//  stateB(eventA) --|
-//                   +--> stateC/NOOP
-//
-stateB.addTransition(eventA, new Transition<Foo>() {
-	
-	public StateActionPair<Foo> getStateActionPair(Foo stateful) {
-		State<Foo> next = null;
-		if (stateful.isBar()) {
-			next = stateB;
-		} else {
-			next = stateC;
-		}
-		
-		// Move to the next state without taking any action
-		//
-		return new StateActionPairImpl<Foo>(next, null);
+	// Events
+	//
+	public static final String CREATE_FOO = "springmvc:post:/foo";
+	public static final String GET_FOO = "springmvc:get:/foo/{id}";
+	public static final String UPGRADE_REQUEST = 
+								"springmvc:post:/foo/{id}/upgrade";
+	public static final String UPGRADE_APPROVED = "upgrade.approved";
+
+	@Transitions({
+		@Transition(from=NON_EXISTENT, event=CREATE_FOO, to=ACTIVE),
+		@Transition(from=ACTIVE, event=UPGRADE_REQUEST, to=UPGRADE_PENDING),
+		@Transition(event=GET_FOO)
+	})
+	public String details(Foo foo, String event, Model model) {
+		model.addAttribute("foo", foo);
+		return "foo-details";
 	}
-});
+}
 ```
 
-### <a name="define-your-persister"></a>Define your Persister
+### <a name="inject-stateful-fsm"></a> Inject the StatefulFSM
 
-A *Persister* is a Class Responsible for persisting the State value for a Stateful Entity.  A Persister implements the 
-Persister interface and *must* ensure that updates are atomic, isolated and thread-safe.  The *Stateful FSM* library comes with an
-in-memory Persister which maintains the State only on the in-memory *Stateful Entity*.  If you need to persist to a database, you will
-need to use one of the Database Persisters or integrate the *StatefulJ Framework*.
+It's important never to invoke a *Stateful Controller" directly, instead inject a StatefulController and call the **onEvent** method.  
 
 ```java
-// In-Memory Persister
-//
-List<State<Foo>> states = new LinkedList<State<Foo>>();
-states.add(stateA);
-states.add(stateB);
-states.add(stateC);
 
-MemoryPersisterImpl<Foo> persister = 
-					new MemoryPersisterImpl<Foo>(
-											states,   // Set of States 
-											stateA);  // Start State
+@FSM
+StatefulFSM<Foo> fsm;
+
+public void upgradApproved(Foo foo) {
+	fsm.onEvent(foo, UPGRADE_APPROVED);
+}
 ```
 
-### <a name="construct-the-fsm"></a>Construct the FSM
-
-The final step is construct the *FSM*.
-
-```java
-// FSM
-//
-FSM<Foo> fsm = new FSM<Foo>("Foo FSM", persister);
-
-```
-### <a name="using-the-fsm"></a>Using the FSM
-
-Now that you have everything set up, you can drive your FSM by calling the *onEvent* method, passing in the *Stateful Entity* and the *Event*
-
-
-```java
-// Instantiate the Stateful Entity
-//
-Foo foo = new Foo();
-
-// Drive the FSM with a series of events: eventA, eventA, eventA
-//
-fsm.onEvent(foo, eventA);  // stateA(EventA) -> stateB/actionA
-
-foo.setBar(true);
-
-fsm.onEvent(foo, eventA);  // stateB(EventA) -> stateB/NOOP
-
-foo.setBar(false);
-
-fsm.onEvent(foo, eventA);  // stateB(EventA) -> stateC/NOOP
-```
