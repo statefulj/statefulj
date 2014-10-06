@@ -266,9 +266,9 @@ When the Stateful Framework binds the Endpoint, it will read all the Annotations
 @StatefulController(
 	clazz=Foo.class,
 	startState=NON_EXISTENT,
-	noops=({
+	noops={
 		@Transition(from=UPGRADE_PENDING, event=UPGRADE_APPROVED, to=UPGRADED)
-	})
+	}
 )
 public class FooController {
 
