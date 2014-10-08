@@ -148,7 +148,7 @@ public class StatefulControllerTest {
 		Persister<User> persister = (Persister<User>)this.appContext.getBean(refFactory.getPersisterId());
 		persister.setCurrent(user, persister.getCurrent(user), stateSix);
 		
-		assertEquals(UserController.SIX_STATE, user.getState());
+		assertEquals(stateSix, persister.getCurrent(user));
 
 		// Now kick off an event, it should block and then eventually throw a TooBusyException
 		//
