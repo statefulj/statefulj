@@ -40,7 +40,10 @@ import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
 import org.statefulj.framework.tests.model.User;
 import org.statefulj.framework.tests.utils.ReflectionUtils;
+import org.statefulj.fsm.Persister;
+import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.TooBusyException;
+import org.statefulj.fsm.model.State;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-StatefulControllerTests.xml"})
@@ -128,4 +131,29 @@ public class StatefulControllerTest {
 
 	}
 
+	@SuppressWarnings("unchecked")
+	@Test(expected=TooBusyException.class)
+	public void testBlockedState() throws TooBusyException, StaleStateException {
+		
+		assertNotNull(fsm);
+
+		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
+
+		// Create a User and force it to SIX_STATE
+		//
+		User user = new User();
+		user = userRepo.save(user);
+		
+		State<User> stateSix = (State<User>)this.appContext.getBean(refFactory.getStateId(UserController.SIX_STATE));
+		Persister<User> persister = (Persister<User>)this.appContext.getBean(refFactory.getPersisterId());
+		persister.setCurrent(user, persister.getCurrent(user), stateSix);
+		
+		assertEquals(UserController.SIX_STATE, user.getState());
+
+		// Now kick off an event, it should block and then eventually throw a TooBusyException
+		//
+		org.statefulj.framework.core.fsm.FSM<User> fsm = (org.statefulj.framework.core.fsm.FSM<User>)this.appContext.getBean(refFactory.getFSMId());
+		fsm.setRetries(1);
+		fsm.onEvent(user, "block.me");
+	}
 }

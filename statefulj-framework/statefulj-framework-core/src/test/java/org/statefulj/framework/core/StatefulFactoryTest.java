@@ -67,6 +67,12 @@ public class StatefulFactoryTest {
 		
 		assertEquals(MockProxy.class, proxyClass);
 		
+		// Verify that FIVE_STATE is blocking
+		//
+		BeanDefinition stateFive = registry.getBeanDefinition(refFactory.getStateId(UserController.FIVE_STATE));
+		
+		assertEquals(true, stateFive.getConstructorArgumentValues().getArgumentValue(2, Boolean.class).getValue());
+		
 	}
  
 }

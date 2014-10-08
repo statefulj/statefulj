@@ -36,6 +36,7 @@ public class FSM<T> {
 	Logger logger = LoggerFactory.getLogger(FSM.class);
 
 	static final int DEFAULT_RETRIES = 20;
+	static final int DEFAULT_BLOCKING_WAIT = 250;  // 250 ms
 
 	private int retries = DEFAULT_RETRIES;
 	private Persister<T> persister;
@@ -92,7 +93,13 @@ public class FSM<T> {
 		
 		while(attempts < this.retries) {
 			try {
-				State<T> current = persister.getCurrent(stateful);
+				State<T> current = getCurrentState(stateful);
+				
+				// If this is a Blocking State, wait and Retry
+				//
+				if (current.isBlocking()) {
+					throw new WaitAndRetryException(DEFAULT_BLOCKING_WAIT);
+				}
 				
 				// Fetch the transition for this event from the current state
 				//

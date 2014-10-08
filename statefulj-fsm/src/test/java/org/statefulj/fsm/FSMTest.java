@@ -310,6 +310,39 @@ public class FSMTest {
 		fsm.onEvent(stateful, eventA);
 	}
 	
+	@Test(expected=TooBusyException.class)
+	public void testBlocking() throws TooBusyException {
+
+		// Stateful
+		//
+		final Foo stateful = new Foo();
+
+		// Events
+		//
+		final String eventA = "eventA";
+
+		// States
+		//
+		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA", false, true);
+		
+		// Transitions
+		//
+		stateA.addTransition(eventA, stateA);
+
+		// FSM
+		//
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		
+		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
+		fsm.setRetries(1);
+
+		// Boom
+		//
+		fsm.onEvent(stateful, eventA);
+	}
+	
 	@Test
 	public void testStateFieldName() {
 		Foo2 stateful = new Foo2();

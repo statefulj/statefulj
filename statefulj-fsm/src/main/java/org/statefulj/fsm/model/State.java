@@ -26,5 +26,7 @@ public interface State<T> {
 	void addTransition(String event, Transition<T> transition);
 	
 	boolean isEndState();
+	
+	boolean isBlocking();
 
 }

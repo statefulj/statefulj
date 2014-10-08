@@ -107,6 +107,7 @@ public class JavassistUtils {
 				AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 
 				// If it's a Transition skip
+				// TODO : Make this a parameterized set of Filters instead of hardcoding
 				//
 				Annotation clone = null;
 				if (anno instanceof Transitions || anno instanceof Transition) {

@@ -29,6 +29,7 @@ public class StateImpl<T> implements State<T> {
 	private String name;
 	private Map<String, Transition<T>> transitions = new HashMap<String, Transition<T>>();
 	boolean isEndState = false;
+	boolean isBlocking = false;
 	
 	public StateImpl() {
 	}
@@ -38,14 +39,23 @@ public class StateImpl<T> implements State<T> {
 	}
 
 	public StateImpl(String name, boolean isEndState) {
-		this.name = name;
+		this(name);
 		this.isEndState = isEndState;
 	}
 
+	public StateImpl(String name, boolean isEndState, boolean isBlocking) {
+		this(name, isEndState);
+		this.isBlocking = isBlocking;
+	}
+
 	public StateImpl(String name, Map<String, Transition<T>> transitions, boolean isEndState) {
-		this.name = name;
-		this.isEndState = isEndState;
+		this(name, isEndState);
 		this.transitions = transitions;
+	}
+
+	public StateImpl(String name, Map<String, Transition<T>> transitions, boolean isEndState, boolean isBlocking) {
+		this(name, transitions, isEndState);
+		this.isBlocking = isBlocking;
 	}
 
 	public String getName() {
@@ -90,5 +100,14 @@ public class StateImpl<T> implements State<T> {
 	
 	public void removeTransition(String event) {
 		this.transitions.remove(event);
+	}
+
+	public void setBlocking(boolean isBlocking) {
+		this.isBlocking = isBlocking;
+	}
+
+	@Override
+	public boolean isBlocking() {
+		return this.isBlocking;
 	}
 }

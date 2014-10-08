@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,6 +61,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
+import org.springframework.util.CollectionUtils;
 import org.statefulj.framework.core.actions.MethodInvocationAction;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
@@ -301,6 +304,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		Map<Transition, Method> transitionMapping = new HashMap<Transition, Method>();
 		Map<Transition, Method> anyMapping = new HashMap<Transition, Method>();
 		Set<String> states = new HashSet<String>();
+		Set<String> blockingStates = new HashSet<String>();
 
 		// Map the Events and Transitions for the Controller
 		//
@@ -309,7 +313,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				providersMappings, 
 				transitionMapping, 
 				anyMapping, 
-				states);
+				states,
+				blockingStates);
 		
 		// Iterate thru the providers - building and registering each Binder
 		//
@@ -338,7 +343,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			String stateId = registerState(
 					referenceFactory,
 					statefulControllerClass, 
-					state, 
+					state,
+					blockingStates.contains(state),
 					reg);
 			stateBeans.add(new RuntimeBeanReference(stateId));
 		}
@@ -523,7 +529,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Map<String, Map<String, Method>> providerMappings,
 			Map<Transition, Method> transitionMapping,
 			Map<Transition, Method> anyMapping,
-			Set<String> states) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+			Set<String> states,
+			Set<String> blockingStates) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
 		logger.debug("mapEventsTransitionsAndStates : Mapping events and transitions for {}", statefulControllerClass);
 		
@@ -533,6 +540,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		//
 		states.add(ctrlAnnotation.startState());
 		
+		// Add the list of BlockingStates
+		//
+		blockingStates.addAll(Arrays.asList(ctrlAnnotation.blockingStates()));
+
 		// Map the NOOP Transitions
 		//
 		for (Transition transition : ctrlAnnotation.noops()) {
@@ -628,13 +639,21 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			ReferenceFactory referenceFactory,
 			Class<?> statefulControllerClass, 
 			String state, 
+			boolean isBlocking,
 			BeanDefinitionRegistry reg) {
+
 		String stateId = referenceFactory.getStateId(state);
 		BeanDefinition stateBean = BeanDefinitionBuilder
 				.genericBeanDefinition(StateImpl.class)
 				.getBeanDefinition();
-		stateBean.getPropertyValues().add("name", state);
+		
+		ConstructorArgumentValues args = stateBean.getConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, state);
+		args.addIndexedArgumentValue(1, false);
+		args.addIndexedArgumentValue(2, isBlocking);
+		
 		reg.registerBeanDefinition(stateId, stateBean);
+		
 		return stateId;
 	}
 	

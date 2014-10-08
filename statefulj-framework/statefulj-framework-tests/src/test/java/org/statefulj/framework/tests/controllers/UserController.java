@@ -20,7 +20,6 @@ package org.statefulj.framework.tests.controllers;
 import javax.annotation.Resource;
 
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.ModelAndView;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.tests.dao.UserRepository;
@@ -29,6 +28,7 @@ import org.statefulj.framework.tests.model.User;
 @StatefulController(
 	clazz=User.class, 
 	startState=UserController.ONE_STATE,
+	blockingStates={UserController.SIX_STATE},
 	noops={
 		@Transition(event="springmvc:/{id}/four", to=UserController.FOUR_STATE),
 		@Transition(event="five", to=UserController.FIVE_STATE),

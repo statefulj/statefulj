@@ -82,6 +82,14 @@ public @interface StatefulController {
 	String factoryId() default "";
 	String finderId() default "";
 	String persisterId() default "";
+	
+	/**
+	 * Defines the set of "Blocking" States.  A Blocking State is a State that "block" an event
+	 * from being handled until the FSM transitions out of the Blocking State
+	 * 
+	 * @return
+	 */
+	String[] blockingStates() default {};
 
 	/**
 	 * A set of NOOP transitions

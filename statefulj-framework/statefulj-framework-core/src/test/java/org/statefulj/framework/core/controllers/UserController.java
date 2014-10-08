@@ -26,6 +26,7 @@ import org.statefulj.framework.core.model.User;
 @StatefulController(
 	clazz=User.class, 
 	startState=UserController.ONE_STATE,
+	blockingStates={UserController.FIVE_STATE},
 	noops={
 		@Transition(event="mock:four", to=UserController.FOUR_STATE),
 		@Transition(event="five", to=UserController.FIVE_STATE)
