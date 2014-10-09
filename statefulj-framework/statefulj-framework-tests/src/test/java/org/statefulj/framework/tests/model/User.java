@@ -30,6 +30,16 @@ import org.statefulj.persistence.jpa.model.StatefulEntity;
 @Table(name="users")
 public class User extends StatefulEntity {
 	
+	// States
+	//
+	public static final String ONE_STATE = "one";
+	public static final String TWO_STATE = "two";
+	public static final String THREE_STATE = "three";
+	public static final String FOUR_STATE = "four";
+	public static final String FIVE_STATE = "five";
+	public static final String SIX_STATE = "six";
+	public static final String SEVEN_STATE = "seven";
+	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE)
 	Long id;

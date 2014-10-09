@@ -95,12 +95,6 @@ public class FSM<T> {
 			try {
 				State<T> current = getCurrentState(stateful);
 				
-				// If this is a Blocking State, wait and Retry
-				//
-				if (current.isBlocking()) {
-					throw new WaitAndRetryException(DEFAULT_BLOCKING_WAIT);
-				}
-				
 				// Fetch the transition for this event from the current state
 				//
 				Transition<T> transition = current.getTransition(event);
@@ -108,7 +102,7 @@ public class FSM<T> {
 				// Is there one?
 				//
 				if (transition != null) {
-					current = transition(stateful,current, event, transition, args);
+					current = transition(stateful, current, event, transition, args);
 				} else {
 					logger.debug("{}({})::{}({})->{}(noop)", 
 							this.name, 
@@ -116,6 +110,15 @@ public class FSM<T> {
 							current.getName(), 
 							event,
 							current.getName());
+					
+					// If blocking, force a transition to the current state as
+					// it's possible that another thread has moved out of the blocking state.
+					// Either way, we'll retry this event
+					//
+					if (current.isBlocking()) {
+						setCurrent(stateful, current, current);
+						throw new WaitAndRetryException(DEFAULT_BLOCKING_WAIT);
+					}
 				}
 				return current;
 			} catch(RetryException re) {

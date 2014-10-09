@@ -29,14 +29,17 @@ import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.statefulj.framework.core.annotations.FSM;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
-import org.statefulj.framework.tests.controllers.UserController;
 import org.statefulj.framework.tests.dao.UserRepository;
 import org.statefulj.framework.tests.model.User;
 import org.statefulj.framework.tests.utils.ReflectionUtils;
@@ -54,6 +57,9 @@ public class StatefulControllerTest {
 	
 	@Resource
 	UserRepository userRepo;
+	
+	@Resource
+	JpaTransactionManager transactionManager;
 	
 	@Resource(name="userController.fsmHarness")
 	FSMHarness fsmHarness;
@@ -84,7 +90,7 @@ public class StatefulControllerTest {
 
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
-		assertEquals(UserController.TWO_STATE, user.getState());
+		assertEquals(User.TWO_STATE, user.getState());
 		
 		// Verify "any" scenario
 		//
@@ -92,14 +98,14 @@ public class StatefulControllerTest {
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
-		assertEquals(UserController.TWO_STATE, user.getState());
+		assertEquals(User.TWO_STATE, user.getState());
 		
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
 		user = ReflectionUtils.invoke(mvcBinder, "$_post_id_second", User.class, user.getId(), context);
 
 		assertTrue(user.getId() > 0);
-		assertEquals(UserController.THREE_STATE, user.getState());
+		assertEquals(User.THREE_STATE, user.getState());
 
 		// Verify "any" scenario
 		//
@@ -107,7 +113,7 @@ public class StatefulControllerTest {
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
-		assertEquals(UserController.THREE_STATE, user.getState());
+		assertEquals(User.THREE_STATE, user.getState());
 		
 		// Verify "any" scenario
 		//
@@ -115,11 +121,11 @@ public class StatefulControllerTest {
 		
 		assertNull(nulObj);
 		user = userRepo.findOne(user.getId());
-		assertEquals(UserController.FOUR_STATE, user.getState());
+		assertEquals(User.FOUR_STATE, user.getState());
 
 		fsmHarness.onEvent("five", user.getId(), new Object[]{context});
 		user = userRepo.findOne(user.getId());
-		assertEquals(UserController.FIVE_STATE, user.getState());
+		assertEquals(User.FIVE_STATE, user.getState());
 
 		String retVal = ReflectionUtils.invoke(mvcBinder, "$_handleError", String.class, new Exception());
 		assertEquals("called", retVal);
@@ -127,7 +133,7 @@ public class StatefulControllerTest {
 		ReflectionUtils.invoke(camelBinder, "$_camelone", user.getId());
 		ReflectionUtils.invoke(camelBinder, "$_six", user.getId());
 		user = userRepo.findOne(user.getId());
-		assertEquals(UserController.SIX_STATE, user.getState());
+		assertEquals(User.SIX_STATE, user.getState());
 
 	}
 
@@ -144,7 +150,7 @@ public class StatefulControllerTest {
 		User user = new User();
 		user = userRepo.save(user);
 		
-		State<User> stateSix = (State<User>)this.appContext.getBean(refFactory.getStateId(UserController.SIX_STATE));
+		State<User> stateSix = (State<User>)this.appContext.getBean(refFactory.getStateId(User.SIX_STATE));
 		Persister<User> persister = (Persister<User>)this.appContext.getBean(refFactory.getPersisterId());
 		persister.setCurrent(user, persister.getCurrent(user), stateSix);
 		
@@ -155,5 +161,73 @@ public class StatefulControllerTest {
 		org.statefulj.framework.core.fsm.FSM<User> fsm = (org.statefulj.framework.core.fsm.FSM<User>)this.appContext.getBean(refFactory.getFSMId());
 		fsm.setRetries(1);
 		fsm.onEvent(user, "block.me");
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testTransitionOutOfBlocking() throws TooBusyException, StaleStateException {
+
+		assertNotNull(fsm);
+
+
+		// Create a User and force it to SIX_STATE
+		//
+		final User user = userRepo.save(new User());
+		
+		TransactionTemplate tt = new TransactionTemplate(transactionManager);
+		tt.execute(new TransactionCallback<Object>() {
+
+			@Override
+			public Object doInTransaction(TransactionStatus status) {
+				try {
+					ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
+					User dbUser = userRepo.findOne(user.getId());
+					State<User> stateSix = (State<User>)appContext.getBean(refFactory.getStateId(User.SIX_STATE));
+					Persister<User> persister = (Persister<User>)appContext.getBean(refFactory.getPersisterId());
+					persister.setCurrent(dbUser, persister.getCurrent(user), stateSix);
+
+					// Spawn another Thread
+					//
+					new Thread(new Runnable() {
+						
+						@Override
+						public void run() {
+							try {
+								Thread.sleep(1500);
+								TransactionTemplate tt = new TransactionTemplate(transactionManager);
+								tt.execute(new TransactionCallback<Object>() {
+
+									@Override
+									public Object doInTransaction(TransactionStatus status) {
+										try {
+											User dbUser = userRepo.findOne(user.getId());
+											fsm.onEvent(dbUser, "unblock");
+											return null;
+										} catch (TooBusyException e) {
+											throw new RuntimeException(e);
+										}
+									}
+									
+								});
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					}).start();
+
+					fsm.onEvent(dbUser, "this-should-block");
+					return null;
+				} catch (TooBusyException e) {
+					throw new RuntimeException(e);
+				} catch (StaleStateException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			
+		});
+		
+		User dbUser = userRepo.findOne(user.getId());
+		
+		assertEquals(User.SEVEN_STATE, dbUser.getState());
 	}
 }

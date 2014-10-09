@@ -325,10 +325,6 @@ public class FSMTest {
 		//
 		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA", false, true);
 		
-		// Transitions
-		//
-		stateA.addTransition(eventA, stateA);
-
 		// FSM
 		//
 		List<State<Foo>> states = new LinkedList<State<Foo>>();
@@ -359,6 +355,59 @@ public class FSMTest {
 		persister.setCurrent(stateful, stateB);
 		
 		assertEquals(stateB, persister.getCurrent(stateful));
+	}
+	
+	@Test
+	public void testTransitionOutOfBlocking() throws TooBusyException {
+
+		// Stateful
+		//
+		final Foo stateful = new Foo();
+
+		// Events
+		//
+		final String eventA = "eventA";
+		final String eventB = "eventB";
+
+		// States
+		//
+		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA", false, true);
+		StateImpl<Foo> stateB = new StateImpl<Foo>("stateB");
+
+		// Transitions
+		//
+		stateA.addTransition(eventB, stateB);
+
+		// FSM
+		//
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		states.add(stateB);
+		
+		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
+		fsm.setRetries(1000);
+
+		// Spawn another Thread
+		//
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(500);
+					fsm.onEvent(stateful, eventB);
+				} catch (InterruptedException | TooBusyException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+		
+		// Boom
+		//
+		State<Foo> state = fsm.onEvent(stateful, eventA);
+		
+		assertEquals(stateB, state);
 	}
 	
 }

@@ -110,4 +110,8 @@ public class StateImpl<T> implements State<T> {
 	public boolean isBlocking() {
 		return this.isBlocking;
 	}
+	
+	public String toString() {
+		return "State[name=" + this.name + ", isEndState=" + this.isEndState + ", isBlocking=" + this.isBlocking +"]";
+	}
 }

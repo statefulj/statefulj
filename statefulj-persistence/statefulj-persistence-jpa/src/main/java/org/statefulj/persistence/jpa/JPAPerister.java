@@ -26,6 +26,8 @@ import javax.persistence.Id;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.fsm.Persister;
@@ -37,6 +39,8 @@ import org.statefulj.persistence.common.AbstractPersister;
 //
 @Transactional
 public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T> {
+
+	Logger logger = LoggerFactory.getLogger(JPAPerister.class);
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -92,6 +96,9 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 						// This is the first time setting the state, ignore
 						//
 					}
+					
+					logger.warn("Stale State, expected={}, actual={}", current.getName(), state);
+					
 					setState(stateful, state);
 					throwStaleState(current, next);
 				}

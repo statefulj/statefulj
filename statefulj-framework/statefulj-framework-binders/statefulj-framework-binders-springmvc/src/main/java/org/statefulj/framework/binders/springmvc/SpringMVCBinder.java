@@ -99,7 +99,7 @@ public class SpringMVCBinder implements EndpointBinder {
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
-		logger.debug("bindEndpoints : Building proxy for {}", clazz);
+		logger.debug("Building proxy for {}", clazz);
 		
 		// Set up the ClassPool
 		//
@@ -257,7 +257,7 @@ public class SpringMVCBinder implements EndpointBinder {
 		String methodName = ("$_" + requestMethod + requestEvent.replace("/", "_").replace("{", "").replace("}", "")).toLowerCase();
 
 		logger.debug(
-				"createMethod : Create method {} for {}", 
+				"Create method {} for {}", 
 				methodName,
 				mvcProxyClass.getSimpleName());
 

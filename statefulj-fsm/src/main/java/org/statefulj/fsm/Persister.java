@@ -29,7 +29,8 @@ import org.statefulj.fsm.model.State;
 public interface Persister<T> {
 	
 	/**
-	 * Returns the currently Persisted state
+	 * Returns the current state.  This will not call into the 
+	 * underlying database
 	 * 
 	 * @param id of the Object
 	 * @return current State

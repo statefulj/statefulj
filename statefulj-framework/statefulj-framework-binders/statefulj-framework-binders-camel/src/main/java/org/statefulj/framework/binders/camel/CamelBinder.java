@@ -106,7 +106,7 @@ public class CamelBinder implements EndpointBinder {
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
-		logger.debug("bindEndpoints : Building Consumer for {}", controllerClass);
+		logger.debug("Building Consumer for {}", controllerClass);
 		
 		// Set up the ClassPool
 		//
@@ -185,7 +185,7 @@ public class CamelBinder implements EndpointBinder {
 		String methodName = ("$_" + event.replaceAll("[/:\\.]", "_").replace("{", "").replace("}", "")).toLowerCase();
 
 		logger.debug(
-				"createMethod : Create method {} for {}", 
+				"Create method {} for {}", 
 				methodName,
 				camelProxyClass.getSimpleName());
 

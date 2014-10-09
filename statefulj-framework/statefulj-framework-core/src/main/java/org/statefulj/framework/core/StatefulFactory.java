@@ -237,7 +237,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			//
 			if (clazz.isAnnotationPresent(StatefulController.class)) {
 				
-				logger.debug("mapControllerAndEntityClasses : found StatefulController, class = \"{}\"", clazz.getName());
+				logger.debug("Found StatefulController, class = \"{}\"", clazz.getName());
 
 				// Ctrl -> Entity
 				//
@@ -281,7 +281,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				
 				// Map Entity to the RepositoryFactoryBeanSupport bean
 				//
-				logger.debug("mapControllerAndEntityClasses : mapped \"{}\" to repo \"{}\", beanId=\"{}\"", entityType.getName(), value, bfName);
+				logger.debug("Mapped \"{}\" to repo \"{}\", beanId=\"{}\"", entityType.getName(), value, bfName);
 				entityMapping.put(entityType, bfName);
 			}
 		}
@@ -339,7 +339,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		//
 		List<RuntimeBeanReference> stateBeans = new ManagedList<RuntimeBeanReference>();
 		for(String state : states) {
-			logger.debug("wireFSM : Registering state \"{}\"", state);
+			logger.debug("Registering state \"{}\"", state);
 			String stateId = registerState(
 					referenceFactory,
 					statefulControllerClass, 
@@ -476,7 +476,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		to = (Transition.ANY_STATE.equals(to)) ? from : to;
 		
 		logger.debug(
-				"registerActionAndTransition : {}({})->{}({})",
+				"Registered: {}({})->{}({})",
 				from,
 				transition.event(),
 				to,
@@ -532,7 +532,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Set<String> states,
 			Set<String> blockingStates) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
-		logger.debug("mapEventsTransitionsAndStates : Mapping events and transitions for {}", statefulControllerClass);
+		logger.debug("Mapping events and transitions for {}", statefulControllerClass);
 		
 		StatefulController ctrlAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
 
@@ -600,7 +600,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Set<String> states) {
 		
 		logger.debug(
-				"mapTransition : mapping {}:{}->{}",
+				"Mapping {}:{}->{}",
 				transition.from(),
 				transition.event(),
 				transition.to());
