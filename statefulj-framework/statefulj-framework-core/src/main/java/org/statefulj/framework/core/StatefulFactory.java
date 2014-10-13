@@ -324,6 +324,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			//
 			EndpointBinder binder = this.binders.get(entry.getKey());
 
+			// Check if we found the binder
+			//
+			if (binder == null) {
+				logger.error("Unable to locate binder: {}", entry.getKey());
+				throw new RuntimeException("Unable to locate binder: " + entry.getKey());
+			}
+			
 			// Build out the Binder Class
 			//
 			Class<?> binderClass = binder.bindEndpoints(controllerBeanId, statefulControllerClass, entry.getValue(), referenceFactory);
