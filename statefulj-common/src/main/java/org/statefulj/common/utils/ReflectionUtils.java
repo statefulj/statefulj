@@ -29,15 +29,14 @@ public class ReflectionUtils {
 			Class<? extends Annotation> annotationClass) { 
 		Field match = null;
 		if (clazz != null) {
-			match = getFirstAnnotatedField(clazz.getSuperclass(), annotationClass);
-			if (match == null) {
-				for(Field field : clazz.getDeclaredFields()) {
-					if (field.isAnnotationPresent(annotationClass)) {
-						match = field;
-						break;
-					}
+			for(Field field : clazz.getDeclaredFields()) {
+				if (field.isAnnotationPresent(annotationClass)) {
+					match = field;
+					break;
 				}
-				
+			}
+			if (match == null) {
+				match = getFirstAnnotatedField(clazz.getSuperclass(), annotationClass);
 			}
 		}
 		
