@@ -3,5 +3,6 @@
 .classpath
 .project
 .settings
+*.externalToolBuilders
 *.versionsBackup
 target/
