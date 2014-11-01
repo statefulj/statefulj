@@ -70,6 +70,7 @@ import org.statefulj.framework.core.fsm.FSM;
 import org.statefulj.framework.core.fsm.TransitionImpl;
 import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.ReferenceFactory;
+import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
 import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
@@ -103,12 +104,12 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		@Override
 		public Object getSuggestedValue(DependencyDescriptor descriptor) {
 			Object suggested = null;
+			Field field = descriptor.getField();
 			
-			if (contains(descriptor.getAnnotations(), org.statefulj.framework.core.annotations.FSM.class)) {
+			if (field != null && field.getType().isAssignableFrom(StatefulFSM.class)) {
 				
-				Field field = descriptor.getField();
 				org.statefulj.framework.core.annotations.FSM fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
-				String controllerId = fsmAnnotation.value();
+				String controllerId = (fsmAnnotation != null ) ? fsmAnnotation.value() : null;
 				
 				if (StringUtils.isEmpty(controllerId)) {
 	
