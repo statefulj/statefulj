@@ -16,7 +16,7 @@
 	<url>http://www.statefulj.org</url>
 	
 	<properties>
-		<jdk.version>1.6</jdk.version>
+		<jdk.version>1.7</jdk.version>
 		<spring.version>4.0.3.RELEASE</spring.version>
 		<spring.security.version>3.2.4.RELEASE</spring.security.version>
 		<jstl.version>1.2</jstl.version>

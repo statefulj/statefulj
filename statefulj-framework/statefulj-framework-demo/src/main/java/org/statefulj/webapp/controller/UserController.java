@@ -121,7 +121,7 @@ public class UserController {
 				if (e.getCause() instanceof ConstraintViolationException) {
 					throw new DuplicateUserException();
 				} else {
-					throw e;
+					throw new RuntimeException(e);
 				}
 			}
 			

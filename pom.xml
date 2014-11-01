@@ -49,6 +49,7 @@
 		<slf4j.version>1.7.7</slf4j.version>
 		<mockito.version>1.9.5</mockito.version>
 		<logback.version>1.0.13</logback.version>
+		<jdk.version>1.6</jdk.version>
 	</properties>
 
 	<dependencyManagement>
@@ -104,8 +105,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>${jdk.version}</source>
+					<target>${jdk.version}</target>
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>

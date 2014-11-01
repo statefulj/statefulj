@@ -397,7 +397,7 @@ public class FSMTest {
 				try {
 					Thread.sleep(500);
 					fsm.onEvent(stateful, eventB);
-				} catch (InterruptedException | TooBusyException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
