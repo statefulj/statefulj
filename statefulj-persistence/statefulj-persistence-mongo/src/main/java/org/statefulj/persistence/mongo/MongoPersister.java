@@ -95,6 +95,8 @@ public class MongoPersister<T>
 		
 		Date updated;
 		
+		String field;
+		
 		public String getId() {
 			return id;
 		}
@@ -120,6 +122,7 @@ public class MongoPersister<T>
 			return state;
 		}
 
+		@Override
 		public String getPrevState() {
 			return prevState;
 		}
@@ -128,6 +131,7 @@ public class MongoPersister<T>
 			this.prevState = prevState;
 		}
 
+		@Override
 		public Object getOwner() {
 			return owner;
 		}
@@ -136,12 +140,22 @@ public class MongoPersister<T>
 			this.owner = owner;
 		}
 
+		@Override
 		public Date getUpdated() {
 			return updated;
 		}
 
 		public void setUpdated(Date updated) {
 			this.updated = updated;
+		}
+
+		@Override
+		public String getField() {
+			return field;
+		}
+		
+		public void setField(String field) {
+			this.field = field;
 		}
 	}
 	
@@ -363,6 +377,7 @@ public class MongoPersister<T>
 		stateDoc.setPersisted(false);
 		stateDoc.setId(new ObjectId().toHexString());
 		stateDoc.setState(getStart().getName());
+		stateDoc.setField(this.getStateField().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
 	}

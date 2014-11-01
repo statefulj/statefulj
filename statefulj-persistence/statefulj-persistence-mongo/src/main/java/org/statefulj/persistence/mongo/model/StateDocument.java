@@ -32,4 +32,6 @@ public interface StateDocument {
 	
 	Object getOwner();
 
+	String getField();
+
 }
