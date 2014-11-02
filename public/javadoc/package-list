@@ -21,13 +21,3 @@ org.statefulj.persistence.jpa.model
 org.statefulj.persistence.memory
 org.statefulj.persistence.mongo
 org.statefulj.persistence.mongo.model
-org.statefulj.webapp.config
-org.statefulj.webapp.controller
-org.statefulj.webapp.controller.exceptions
-org.statefulj.webapp.form
-org.statefulj.webapp.messaging
-org.statefulj.webapp.model
-org.statefulj.webapp.repo
-org.statefulj.webapp.rules
-org.statefulj.webapp.services
-org.statefulj.webapp.services.impl
