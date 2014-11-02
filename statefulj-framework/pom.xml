@@ -68,6 +68,5 @@
 		<module>statefulj-framework-binders</module>
 		<module>statefulj-framework-persistence</module>
 		<module>statefulj-framework-tests</module>
-		<module>statefulj-framework-demo</module>
 	</modules>
 </project>
