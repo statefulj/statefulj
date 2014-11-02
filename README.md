@@ -11,4 +11,4 @@ Features
 
 Demos
 =====
-* The Framework includes a banking application demonstrating how you can build an entire application using StatefulJ.
+* The Framework includes a [banking application](https://github.com/statefulj/statefulj-framework-demo) demonstrating how you can build an entire application using StatefulJ
