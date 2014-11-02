@@ -19,10 +19,15 @@ package org.statefulj.common.utils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ReflectionUtils {
+	
+	private static Pattern fieldNamePattern = Pattern.compile("[g|s]et(.)(.*)");
 	
 	public static Field getFirstAnnotatedField(
 			Class<?> clazz,
@@ -57,5 +62,59 @@ public class ReflectionUtils {
 		}
 		
 		return fields;
+	}
+	
+	public static Method getFirstAnnotatedMethod(
+			Class<?> clazz,
+			Class<? extends Annotation> annotationClass) {
+		Method match = null;
+		if (clazz != null) {
+			for(Method method : clazz.getDeclaredMethods()) {
+				if (method.isAnnotationPresent(annotationClass)) {
+					match = method;
+					break;
+				}
+			}
+			if (match == null) {
+				match = getFirstAnnotatedMethod(clazz.getSuperclass(), annotationClass);
+			}
+		}
+		
+		return match;
+	}
+	public static boolean isGetter(Method method){
+		  if(!method.getName().startsWith("get"))      return false;
+		  if(method.getParameterTypes().length != 0)   return false;  
+		  if(void.class.equals(method.getReturnType())) return false;
+		  return true;
+	}
+	
+	public static boolean isSetter(Method method){
+	  if(!method.getName().startsWith("set")) return false;
+	  if(method.getParameterTypes().length != 1) return false;
+	  return true;
+	}
+	
+	public static String toFieldName(Method getterOrSetter) {
+		Matcher matcher = fieldNamePattern.matcher(getterOrSetter.getName());
+		return (matcher.matches()) ? matcher.group(1).toLowerCase() + matcher.group(2) : null;
+	}
+		
+	public static Field getReferencedField(
+			Class<?> clazz,
+			Class<? extends Annotation> annotationClass) {
+		Field field = getFirstAnnotatedField(clazz, annotationClass);
+		if (field == null) {
+			Method method = getFirstAnnotatedMethod(clazz, annotationClass);
+			if (method != null && (isGetter(method) || isSetter(method))) {
+				String fieldName = toFieldName(method);
+				try {
+					field = (fieldName != null) ? clazz.getDeclaredField(fieldName) : null;
+				} catch (Exception e) {
+					// Ignore
+				}
+			}
+		}
+		return field;
 	}
 }

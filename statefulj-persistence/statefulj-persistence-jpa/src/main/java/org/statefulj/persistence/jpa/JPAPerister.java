@@ -29,11 +29,12 @@ import javax.persistence.PersistenceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
-import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 import org.statefulj.persistence.common.AbstractPersister;
+
+import static org.statefulj.common.utils.ReflectionUtils.*;
 
 // TODO : Rewrite this to use "safe" query building instead of string construction
 //
@@ -172,7 +173,7 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		return ReflectionUtils.getFirstAnnotatedField(clazz, Id.class);
+		return getReferencedField(clazz, Id.class);
 	}
 
 	@Override

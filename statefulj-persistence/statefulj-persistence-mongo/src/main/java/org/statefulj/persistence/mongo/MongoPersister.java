@@ -332,7 +332,7 @@ public class MongoPersister<T>
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		return getFirstAnnotatedField(this.getClazz(), Id.class);
+		return getReferencedField(this.getClazz(), Id.class);
 	}
 
 	@Override
