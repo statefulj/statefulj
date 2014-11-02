@@ -113,6 +113,13 @@ public class ReflectionUtils {
 				} catch (Exception e) {
 					// Ignore
 				}
+				if (field == null) {
+					try {
+						field = (fieldName != null) ? clazz.getField(fieldName) : null;
+					} catch (Exception e) {
+						// Ignore
+					}
+				}
 			}
 		}
 		return field;
