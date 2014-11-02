@@ -15,13 +15,27 @@
           {{ site.title }}
         </a>
       </h1>
-      <p class="lead">{{ site.description }}</p>
     </div>
  
     <nav class="sidebar-nav">
       <!-- a class="sidebar-nav-item{% if page.url == site.baseurl %} active{% endif %}" href="{{ site.baseurl }}">Home</a-->
       <a class="sidebar-nav-item{% if page.url == '/' %} active{% endif %}" href="/">Introduction</a>
 	  <a class="sidebar-nav-item{% if page.url == '/fsm/' %} active{% endif %}" href="/fsm/">StatefulJ FSM</a>
+	  {% if page.url == '/fsm/' %}
+	  <nav class="subnav">
+	  	<ul>
+		 	<li><a href="/fsm#installation">Installation</a></li>
+		 	<li><a href="/fsm#define-your-stateful-entity">Define your Stateful Entity</a></li>
+			<li><a href="/fsm#define-your-events">Define your Events</a></li>
+			<li><a href="/fsm#define-your-states">Define your States</a></li>
+			<li><a href="/fsm#define-your-actions">Define your Actions</a></li>
+			<li><a href="/fsm#define-your-transitions">Define your Transitions</a></li>
+			<li><a href="/fsm#define-your-persister">Define your Persister</a></li>
+			<li><a href="/fsm#construct-the-fsm">Construct the FSM</a></li>
+			<li><a href="/fsm#using-the-fsm">Using the FSM</a></li>
+	  	</ul>
+  	  </nav>
+	  {% endif %}
 	  <a class="sidebar-nav-item{% if page.url == '/framework/' %} active{% endif %}" href="/framework/">StatefulJ Framework</a>
 	  {% if page.url == '/framework/' %}
 	  <nav class="subnav">

@@ -5,4 +5,5 @@
 .settings
 *.versionsBackup
 target/
+.metadata/
 _site
