@@ -64,7 +64,7 @@ public class MethodInvocationAction implements Action<Object> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	protected void invoke(Object entity, String event, Object... parms) {
+	protected void invoke(Object entity, String event, Object... parms) throws RetryException  {
 		try {
 			// Remove the first Object in the parm list - it's our Return Value
 			//
@@ -114,6 +114,9 @@ public class MethodInvocationAction implements Action<Object> {
 		} catch (InvocationTargetException e) {
 			if (e.getCause() instanceof RuntimeException) {
 				throw (RuntimeException)e.getCause();
+			}
+			if (e.getCause() instanceof RetryException) {
+				throw (RetryException)e.getCause();
 			}
 		} catch (TooBusyException e) {
 			throw new RuntimeException(e);

@@ -6,3 +6,5 @@
 *.externalToolBuilders
 *.versionsBackup
 target/
+.metadata/
+Servers/
