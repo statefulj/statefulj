@@ -313,6 +313,7 @@ public class MongoPersister<T>
 					updateStateful = true;
 				}
 				if (!stateDoc.isPersisted()) {
+					stateDoc.setManagedId(this.getId((T)stateful));
 					this.mongoTemplate.save(stateDoc);
 					stateDoc.setPersisted(true);
 					if (updateStateful) {
@@ -396,7 +397,6 @@ public class MongoPersister<T>
 		stateDoc.setId(new ObjectId().toHexString());
 		stateDoc.setState(getStart().getName());
 		stateDoc.setManagedCollection(this.mongoTemplate.getCollectionName(stateful.getClass()));
-		stateDoc.setManagedId(this.getId(stateful));
 		stateDoc.setManagedField(this.getStateField().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
