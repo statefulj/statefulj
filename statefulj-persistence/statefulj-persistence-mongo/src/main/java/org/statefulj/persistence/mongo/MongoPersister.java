@@ -41,7 +41,6 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -90,12 +89,13 @@ public class MongoPersister<T>
 		
 		String prevState;
 		
-		@DBRef(lazy=true)
-		Object owner;
-		
 		Date updated;
 		
-		String field;
+		String managedCollection;
+		
+		Object managedId;
+		
+		String managedField;
 		
 		public String getId() {
 			return id;
@@ -113,13 +113,13 @@ public class MongoPersister<T>
 			this.persisted = persisted;
 		}
 
-		public void setState(String state) {
-			this.state = state;
-		}
-
 		@Override
 		public String getState() {
 			return state;
+		}
+
+		public void setState(String state) {
+			this.state = state;
 		}
 
 		@Override
@@ -132,15 +132,6 @@ public class MongoPersister<T>
 		}
 
 		@Override
-		public Object getOwner() {
-			return owner;
-		}
-
-		public void setOwner(Object owner) {
-			this.owner = owner;
-		}
-
-		@Override
 		public Date getUpdated() {
 			return updated;
 		}
@@ -150,12 +141,30 @@ public class MongoPersister<T>
 		}
 
 		@Override
-		public String getField() {
-			return field;
+		public String getManagedCollection() {
+			return managedCollection;
 		}
-		
-		public void setField(String field) {
-			this.field = field;
+
+		public void setManagedCollection(String managedCollection) {
+			this.managedCollection = managedCollection;
+		}
+
+		@Override
+		public Object getManagedId() {
+			return managedId;
+		}
+
+		public void setManagedId(Object managedId) {
+			this.managedId = managedId;
+		}
+
+		@Override
+		public String getManagedField() {
+			return managedField;
+		}
+
+		public void setManagedField(String managedField) {
+			this.managedField = managedField;
 		}
 	}
 	
@@ -194,6 +203,12 @@ public class MongoPersister<T>
 	 */
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
+			
+			// Ensure mongoTemplate has been initialized
+			//
+			if (this.mongoTemplate == null) {
+				initMongoTemplate();
+			}
 			
 			// Has this Entity been persisted to Mongo? 
 			//
@@ -298,7 +313,6 @@ public class MongoPersister<T>
 					updateStateful = true;
 				}
 				if (!stateDoc.isPersisted()) {
-					stateDoc.setOwner(stateful);
 					this.mongoTemplate.save(stateDoc);
 					stateDoc.setPersisted(true);
 					if (updateStateful) {
@@ -308,6 +322,10 @@ public class MongoPersister<T>
 			} catch (IllegalArgumentException e) {
 				throw new RuntimeException(e);
 			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			} catch (SecurityException e) {
+				throw new RuntimeException(e);
+			} catch (NoSuchFieldException e) {
 				throw new RuntimeException(e);
 			}
 			
@@ -321,7 +339,7 @@ public class MongoPersister<T>
 	 */
 	public void onApplicationEvent(ApplicationEvent event) {
 		if (ContextRefreshedEvent.class.isAssignableFrom(event.getClass())) {
-			this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
+			initMongoTemplate();
 		}
 	}
 
@@ -372,12 +390,14 @@ public class MongoPersister<T>
 		return (StateDocumentImpl)getStateField().get(stateful);
 	}
 	
-	protected StateDocumentImpl createStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException {
+	protected StateDocumentImpl createStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException, SecurityException, NoSuchFieldException {
 		StateDocumentImpl stateDoc = new StateDocumentImpl();
 		stateDoc.setPersisted(false);
 		stateDoc.setId(new ObjectId().toHexString());
 		stateDoc.setState(getStart().getName());
-		stateDoc.setField(this.getStateField().getName());
+		stateDoc.setManagedCollection(this.mongoTemplate.getCollectionName(stateful.getClass()));
+		stateDoc.setManagedId(this.getId(stateful));
+		stateDoc.setManagedField(this.getStateField().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
 	}
@@ -407,4 +427,9 @@ public class MongoPersister<T>
 		throw new StaleStateException(err);
 	}
 
+	private void initMongoTemplate() {
+		this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
+	}
+	
 }
+

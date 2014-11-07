@@ -30,8 +30,10 @@ public interface StateDocument {
 	
 	Date getUpdated();
 	
-	Object getOwner();
+	String getManagedCollection();
 
-	String getField();
+	Object getManagedId();
+
+	String getManagedField();
 
 }
