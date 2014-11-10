@@ -56,7 +56,7 @@ h1, h2, h3, h4 {
  */
 .sidebar {
 	text-align: center;
-	padding: 2rem 1rem;
+	padding: 2rem 1rem 0rem 1rem;
 	color: rgba(255, 255, 255, .5);
 	background-color: #202020;
 }
@@ -64,6 +64,7 @@ h1, h2, h3, h4 {
 @media ( min-width : 48em) {
 	.sidebar {
 		position: fixed;
+		padding: 2rem 1rem ;
 		top: 0;
 		left: 0;
 		bottom: 0;
@@ -102,6 +103,15 @@ a.sidebar-nav-item:hover,a.sidebar-nav-item:focus {
 	font-weight: bold;
 }
 
+.subnav {
+	display : none;
+}
+
+@media ( min-width : 48em) {
+	.subnav {
+		display : block;
+	}
+}
 /* Sticky sidebar
  *
  * Add the `sidebar-sticky` class to the sidebar's container to affix it the
@@ -128,7 +138,6 @@ a.sidebar-nav-item:hover,a.sidebar-nav-item:focus {
 
 @media ( min-width : 48em) {
 	.content {
-		max-width: 40rem;
 		margin-left: 19rem;
 		margin-right: 2rem;
 	}
@@ -270,26 +279,32 @@ a.sidebar-nav-item:hover,a.sidebar-nav-item:focus {
 }
 */
 .fork-me {
-	position: absolute;
-	top: 100%;
-	left: 50%;
-	height: 90px;
-	width: 90px;
-	margin-left: -45px;
-	margin-top: -90px;
+	display:none;
 }
-
-.fork-me div {
-	position: relative;
-	text-align: center;
-	top: -33px;
-	display: block;
-}
-
-.fork-me div i {
-	font-size: 2.8rem;
-}
-
-.fork-me div p {
-	font-size: .9rem;
+@media ( min-width : 48em) {
+	.fork-me {
+		display : block;
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		height: 90px;
+		width: 90px;
+		margin-left: -45px;
+		margin-top: -90px;
+	}
+	
+	.fork-me div {
+		position: relative;
+		text-align: center;
+		top: -33px;
+		display: block;
+	}
+	
+	.fork-me div i {
+		font-size: 2.8rem;
+	}
+	
+	.fork-me div p {
+		font-size: .9rem;
+	}
 }
