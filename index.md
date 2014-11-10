@@ -6,7 +6,7 @@ weight: 0
 
 ## What is StatefulJ?
 
-[StatefulJ](http://www.statefulj.org) is a lightweight, open source Java [*Event Driven Finite State Machine(FSM)*](http://en.wikipedia.org/wiki/Finite-state_machine) and a complete [*Spring Data*](http://projects.spring.io/spring-data/) based framework which lets you easily define and integrate State Machines into your Applications.
+[StatefulJ](http://www.statefulj.org) is a lightweight, open source Java [*Event Driven Finite State Machine(FSM)*](http://en.wikipedia.org/wiki/Event-driven_finite-state_machine) and a complete [*Spring Data*](http://projects.spring.io/spring-data/) based framework which lets you easily define and integrate State Machines into your Applications.
 
 ## What is a Finite State Machine?
 

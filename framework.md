@@ -3,7 +3,7 @@ layout: page
 title: StatefulJ Framework
 ---
 
-The *StatefulJ Framework* leverages *StatefulJ FSM*, *StatefulJ Persister* and Spring Data to seamlessly integrate
+The *StatefulJ Framework* leverages [*StatefulJ FSM*](/fsm), [*StatefulJ Persister*](/fsm#define-your-persister) and [Spring Data](http://projects.spring.io/spring-data/) to seamlessly integrate
 StatefulJ into your Application.  Using Annotations to define your State Model, StatefulJ will auto generate the FSM 
 infrastructure, bind with with *Endpoint Providers* and manage all State Persistence.
 
@@ -15,7 +15,6 @@ Binders "bind" *Endpoint Providers* to the StatefulJ Framework.  The Binders are
 
 * SpringMVC
 * Camel
-<!-- * Jersey -->
 
 Persisters interacts within the underlying databases.  StatefulJ supports the following Persisters:
 
@@ -316,7 +315,7 @@ public class FooController {
 
 ### <a name="inject-stateful-fsm"></a> Inject the StatefulFSM
 
-It's important never to invoke a *Stateful Controller* directly, instead inject a *StatefulFSM* and call the **onEvent** method.  
+The *StatefulJ Framework* provides the ability to route *Events* directly to the *FSM*.  This is done by invoking the **onEvent** method of the associated *StatefulFSM* class.  To obtain a reference to the StatefulFSM, you annotate a reference with the [@FSM](/public/javadoc/org/statefulj/framework/core/annotations/FSM.html) annotation.  The StatefulJ Framewok will automatically inject the StatefulFSM based off the declared Generic Type.  If there is more than one [StatefulController](#define-your-controller) that qualifies, then you can provide the bean Id of the specific StatefulContoller.
 
 | Field	   	| Description		|
 |----		|----				|
