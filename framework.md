@@ -82,12 +82,32 @@ So, depending on your stack, you will need to include the following dependencies
 
 To integrate the *StatefulJ Framework*, you define your *State Model*.  To create a State Model, you will need to:
 
+* [Instantiate the *Stateful Factory*](#instantiate-stateful-factory)
 * [Define your *Stateful Entity*](#define-your-stateful-entity)
 * [Define your *States*](#define-your-states)
 * [Define your *StateController*] (#define-your-controller)
 * [Define your *Events*](#define-your-events)
 * [Define your *Transitions*](#define-your-transitions)
 * [Inject the *StatefulFSM*](#inject-stateful-fsm)
+
+### <a name="instantiate-stateful-factory"></a> Instantiate the Stateful Factory
+
+The *Stateful Factory* will inspect the [StateControllers](#define-your-controller) and construct the associated StatefulJ Framework.  In order for the Stateful Factory to discover the StateControllers, you must ensure that you have correctly defined your [Spring Component Scans](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-scanning-autodetection) to include the StateController's package.
+
+#### XML Configuration
+
+```xml
+ 	<bean id="statefulJFactory" class="org.statefulj.framework.core.StatefulFactory" />
+```
+
+#### Java Configuration
+
+```java
+	@Bean
+	public StatefulFactory statefulJFactory() {
+		return new StatefulFactory();
+	}
+```
 
 ### <a name="define-your-stateful-entity"></a> Define your Stateful Entity
 
