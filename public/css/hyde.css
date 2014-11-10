@@ -146,7 +146,7 @@ a.sidebar-nav-item:hover,a.sidebar-nav-item:focus {
 @media ( min-width : 64em) {
 	.content {
 		margin-left: 18rem;
-		margin-right: 4rem;
+		margin-right: 2rem;
 	}
 }
 
