@@ -81,7 +81,7 @@ h1, h2, h3, h4 {
 .sidebar-about h1 {
 	color: #fff;
 	margin-top: 0;
-	font-size: 3.25rem;
+	font-size: 2.8rem;
 }
 
 /* Sidebar nav */
@@ -270,9 +270,12 @@ a.sidebar-nav-item:hover,a.sidebar-nav-item:focus {
 }
 */
 .fork-me {
-	position: relative;
+	position: absolute;
 	top: 100%;
+	left: 50%
 	height: 90px;
+	width: 90px;
+	margin-left: -45px;
 	margin-top: -90px;
 }
 
@@ -284,9 +287,9 @@ a.sidebar-nav-item:hover,a.sidebar-nav-item:focus {
 }
 
 .fork-me div i {
-	font-size: 3rem;
+	font-size: 2.8rem;
 }
 
 .fork-me div p {
-	font-size: 1rem;
+	font-size: .9rem;
 }
