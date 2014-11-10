@@ -272,7 +272,7 @@ a.sidebar-nav-item:hover,a.sidebar-nav-item:focus {
 .fork-me {
 	position: absolute;
 	top: 100%;
-	left: 50%
+	left: 50%;
 	height: 90px;
 	width: 90px;
 	margin-left: -45px;
