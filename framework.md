@@ -92,7 +92,7 @@ To integrate the *StatefulJ Framework*, you define your *State Model*.  To creat
 
 ### <a name="instantiate-stateful-factory"></a> Instantiate the Stateful Factory
 
-The *Stateful Factory* will inspect the [StateControllers](#define-your-controller) and construct the associated StatefulJ Framework.  In order for the Stateful Factory to discover the StateControllers, you must ensure that you have correctly defined your [Spring Component Scans](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-scanning-autodetection) to include the StateController's package.
+The *Stateful Factory* will inspect the [StateControllers](#define-your-controller), bind with with *Endpoint Providers* and construct the *State Model*.  In order for the Stateful Factory to discover the [StateControllers](#define-your-controller), you must ensure that you have correctly defined your [Spring Component Scans](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-scanning-autodetection) to include the StateController's package.
 
 #### XML Configuration
 
@@ -238,7 +238,7 @@ An *Event* is simply a String that directs the *StatefulJ Framework* how to bind
 
 | Binder	|Format 																| Description 	|
 |---		|-----------------------------------------------------------------------|---	      	|
-| <none> | &lt;event&gt;	| Identifies an event that isn't bound to an Endpoint.  It is invoked directly from a StatefulFSM reference 
+| <none> | &lt;event&gt;	| Identifies an event that isn't bound to an Endpoint.  It is invoked directly from a [StatefulFSM](#inject-stateful-fsm) reference 
 | SpringMVC | springmvc:&lt;get&verbar;post&verbar;patch&verbar;put&gt;:&lt;uri&gt;	| SpringMVC events require an *http verb* and a *uri*.  If the verb isn't specfied, it will default to a GET.  The uri must include an identifier for the Entity denoted by {id}, eg. springmvc:post:/foo/{id}/eventA|
 | Camel     | camel:&lt;route&gt; 												    | Camel events map to a route.  Since routes are typically not resource oriented, you will have to annotate a field in the *Message* with an [@Id](http://docs.spring.io/spring-data/commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html) annotation indicating the ID of the Entity | 
 
