@@ -31,6 +31,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Autowired
 public @interface FSM {
 	
+	/**
+	 * The Id of the Stateful Controller. If not specified, it will determine the FSM based off the Generic Type
+	 * 
+	 * @return
+	 */
 	public String value() default "";
 	
 }
