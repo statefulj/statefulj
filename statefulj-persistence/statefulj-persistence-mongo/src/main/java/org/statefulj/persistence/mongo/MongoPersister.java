@@ -226,7 +226,7 @@ public class MongoPersister<T>
 
 				// Update state in DB
 				//
-				StateDocument updatedDoc = updateStateDoc(query, update); 
+				StateDocumentImpl updatedDoc = updateStateDoc(query, update); 
 				if (updatedDoc != null) {
 					
 					// Success, update in memory
@@ -240,6 +240,7 @@ public class MongoPersister<T>
 					// This will cause the event to be reprocessed by the FSM
 					//
 					updatedDoc = findStateDoc(stateDoc.getId());
+					
 					if (updatedDoc != null) {
 						String currentState = stateDoc.getState();
 						setStateDocument(stateful, updatedDoc);
