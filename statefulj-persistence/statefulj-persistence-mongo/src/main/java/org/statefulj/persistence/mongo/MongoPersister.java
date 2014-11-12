@@ -40,6 +40,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -66,13 +67,15 @@ public class MongoPersister<T>
 	
 	public static final String COLLECTION = "managedState";
 	
-	MongoTemplate mongoTemplate;
+	final static FindAndModifyOptions RETURN_NEW = FindAndModifyOptions.options().returnNew(true);
 	
-	ApplicationContext appContext; 
+	private MongoTemplate mongoTemplate;
 	
-	String repoId;
+	private ApplicationContext appContext; 
 	
-	String templateId;
+	private String repoId;
+	
+	private String templateId;
 
 	// Private class
 	//
@@ -223,12 +226,12 @@ public class MongoPersister<T>
 
 				// Update state in DB
 				//
-				StateDocument updatedDoc = mongoTemplate.findAndModify(query, update,  StateDocumentImpl.class);
+				StateDocument updatedDoc = mongoTemplate.findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
 				if (updatedDoc != null) {
 					
 					// Success update in memory
 					//
-					stateDoc.setState(next.getName());
+					setStateDocument(stateful, updatedDoc);
 					
 				} else {
 					
@@ -239,7 +242,7 @@ public class MongoPersister<T>
 					updatedDoc = (StateDocument)mongoTemplate.findById(stateDoc.getId(), StateDocumentImpl.class);
 					if (updatedDoc != null) {
 						String currentState = stateDoc.getState();
-						stateDoc.setState(updatedDoc.getState());
+						setStateDocument(stateful, updatedDoc);
 						throwStaleState(currentState, updatedDoc.getState());
 					} else {
 						throw new RuntimeException("Unable to find StateDocument with id=" + stateDoc.getId());
