@@ -431,17 +431,17 @@ public class MongoPersister<T>
 		throw new StaleStateException(err);
 	}
 
-	private void initMongoTemplate() {
+	protected void initMongoTemplate() {
 		this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
 	}
 
 	@SuppressWarnings("unchecked")
-	private StateDocumentImpl updateStateDoc(Query query, Update update) {
+	protected StateDocumentImpl updateStateDoc(Query query, Update update) {
 		return (StateDocumentImpl)mongoTemplate.findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
 	}
 
 	@SuppressWarnings("unchecked")
-	private StateDocumentImpl findStateDoc(String id) {
+	protected StateDocumentImpl findStateDoc(String id) {
 		return (StateDocumentImpl)mongoTemplate.findById(id, StateDocumentImpl.class);
 	}
 }
