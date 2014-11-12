@@ -226,10 +226,10 @@ public class MongoPersister<T>
 
 				// Update state in DB
 				//
-				StateDocument updatedDoc = mongoTemplate.findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
+				StateDocument updatedDoc = updateStateDoc(query, update); 
 				if (updatedDoc != null) {
 					
-					// Success update in memory
+					// Success, update in memory
 					//
 					setStateDocument(stateful, updatedDoc);
 					
@@ -239,7 +239,7 @@ public class MongoPersister<T>
 					// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
 					// This will cause the event to be reprocessed by the FSM
 					//
-					updatedDoc = (StateDocument)mongoTemplate.findById(stateDoc.getId(), StateDocumentImpl.class);
+					updatedDoc = findStateDoc(stateDoc.getId());
 					if (updatedDoc != null) {
 						String currentState = stateDoc.getState();
 						setStateDocument(stateful, updatedDoc);
@@ -433,6 +433,15 @@ public class MongoPersister<T>
 	private void initMongoTemplate() {
 		this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
 	}
-	
+
+	@SuppressWarnings("unchecked")
+	private StateDocumentImpl updateStateDoc(Query query, Update update) {
+		return (StateDocumentImpl)mongoTemplate.findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	private StateDocumentImpl findStateDoc(String id) {
+		return (StateDocumentImpl)mongoTemplate.findById(id, StateDocumentImpl.class);
+	}
 }
 
