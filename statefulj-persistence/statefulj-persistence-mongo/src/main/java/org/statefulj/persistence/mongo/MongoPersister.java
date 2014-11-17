@@ -62,14 +62,11 @@ public class MongoPersister<T>
 			implements 
 				Persister<T>, 
 				BeanDefinitionRegistryPostProcessor, 
-				ApplicationListener<ApplicationEvent>, 
 				ApplicationContextAware {
 	
 	public static final String COLLECTION = "managedState";
 	
 	final static FindAndModifyOptions RETURN_NEW = FindAndModifyOptions.options().returnNew(true);
-	
-	private MongoTemplate mongoTemplate;
 	
 	private ApplicationContext appContext; 
 	
@@ -207,12 +204,6 @@ public class MongoPersister<T>
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
 			
-			// Ensure mongoTemplate has been initialized
-			//
-			if (this.mongoTemplate == null) {
-				initMongoTemplate();
-			}
-			
 			// Has this Entity been persisted to Mongo? 
 			//
 			StateDocumentImpl stateDoc = this.getStateDocument(stateful);
@@ -318,10 +309,10 @@ public class MongoPersister<T>
 				}
 				if (!stateDoc.isPersisted()) {
 					stateDoc.setManagedId(this.getId((T)stateful));
-					this.mongoTemplate.save(stateDoc);
+					this.getMongoTemplate().save(stateDoc);
 					stateDoc.setPersisted(true);
 					if (updateStateful) {
-						this.mongoTemplate.save(stateful);
+						this.getMongoTemplate().save(stateful);
 					}
 				}
 			} catch (IllegalArgumentException e) {
@@ -337,17 +328,6 @@ public class MongoPersister<T>
 		}
 	}
 	
-	@Override
-	/***
-	 * After Spring has completed initializing all Beans, fetch the MongoTemplate.  Doing it 
-	 * earlier than this callback can lead to errors due to premature initialization
-	 */
-	public void onApplicationEvent(ApplicationEvent event) {
-		if (ContextRefreshedEvent.class.isAssignableFrom(event.getClass())) {
-			initMongoTemplate();
-		}
-	}
-
 	@Override
 	protected boolean validStateField(Field stateField) {
 		return stateField.getType().equals(StateDocument.class);
@@ -400,7 +380,7 @@ public class MongoPersister<T>
 		stateDoc.setPersisted(false);
 		stateDoc.setId(new ObjectId().toHexString());
 		stateDoc.setState(getStart().getName());
-		stateDoc.setManagedCollection(this.mongoTemplate.getCollectionName(stateful.getClass()));
+		stateDoc.setManagedCollection(getMongoTemplate().getCollectionName(stateful.getClass()));
 		stateDoc.setManagedField(this.getStateField().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
@@ -431,18 +411,18 @@ public class MongoPersister<T>
 		throw new StaleStateException(err);
 	}
 
-	protected void initMongoTemplate() {
-		this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
+	protected MongoTemplate getMongoTemplate() {
+		return (MongoTemplate)appContext.getBean(this.templateId);
 	}
-
+  	
 	@SuppressWarnings("unchecked")
 	protected StateDocumentImpl updateStateDoc(Query query, Update update) {
-		return (StateDocumentImpl)mongoTemplate.findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
+		return (StateDocumentImpl)getMongoTemplate().findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
 	}
 
 	@SuppressWarnings("unchecked")
 	protected StateDocumentImpl findStateDoc(String id) {
-		return (StateDocumentImpl)mongoTemplate.findById(id, StateDocumentImpl.class);
+		return (StateDocumentImpl)getMongoTemplate().findById(id, StateDocumentImpl.class);
 	}
 }
 
