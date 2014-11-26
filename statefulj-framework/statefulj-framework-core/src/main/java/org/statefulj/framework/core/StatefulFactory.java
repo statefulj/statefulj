@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -361,10 +362,12 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		//
 		RuntimeBeanReference controllerRef = new RuntimeBeanReference(controllerBeanId);
 		int cnt = 1;
+		List<String> transitionIds = new LinkedList<String>();
 		for(Entry<Transition, Method> entry : anyMapping.entrySet()) {
 			for (String state : states) {
 				String from = state;
 				String to = (entry.getKey().to().equals(Transition.ANY_STATE)) ? state : entry.getKey().to();
+				String transitionId = referenceFactory.getTransitionId(cnt++);
 				registerActionAndTransition(
 						referenceFactory,
 						statefulControllerClass, 
@@ -373,12 +376,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 						entry.getKey(), 
 						entry.getValue(), 
 						controllerRef, 
-						cnt, 
+						transitionId, 
 						reg);
-				cnt++;
+				transitionIds.add(transitionId);
 			}
 		}
 		for(Entry<Transition, Method> entry : transitionMapping.entrySet()) {
+			String transitionId = referenceFactory.getTransitionId(cnt++);
 			registerActionAndTransition(
 					referenceFactory,
 					statefulControllerClass, 
@@ -387,9 +391,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					entry.getKey(), 
 					entry.getValue(), 
 					controllerRef, 
-					cnt, 
+					transitionId, 
 					reg);
-			cnt++;
+			transitionIds.add(transitionId);
 		}
 		
 		// Fetch Repo info
@@ -453,6 +457,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				statefulClass, 
 				fsmBeanId, 
 				factoryId, 
+				transitionIds,
 				reg);
 
 		// Build out the FSMHarness Bean
@@ -476,7 +481,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Transition transition, 
 			Method method, 
 			RuntimeBeanReference controllerRef, 
-			int cnt, 
+			String transitionId, 
 			BeanDefinitionRegistry reg) {
 		
 		// Remap to="Any" to to=from
@@ -511,7 +516,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		// Build the Transition Bean
 		//
-		String transitionId = referenceFactory.getTransitionId(cnt);
 		BeanDefinition transitionBean = BeanDefinitionBuilder
 				.genericBeanDefinition(TransitionImpl.class)
 				.getBeanDefinition();
@@ -686,6 +690,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Class<?> statefulClass, 
 			String fsmBeanId, 
 			String factoryId,
+			List<String> transitionIds,
 			BeanDefinitionRegistry reg) {
 		String statefulFSMBeanId = referenceFactory.getStatefulFSMId();
 		BeanDefinition statefulFSMBean = BeanDefinitionBuilder
@@ -696,6 +701,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		reg.registerBeanDefinition(statefulFSMBeanId, statefulFSMBean);
+		statefulFSMBean.setDependsOn(transitionIds.toArray(new String[]{}));
 		return statefulFSMBeanId;
 	}
 
