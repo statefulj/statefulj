@@ -2,10 +2,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>statefulj-framework-binders-common</artifactId>
+	<artifactId>statefulj-framework-binders-jersey</artifactId>
 	<packaging>jar</packaging>
 
-	<name>statefulj-framework-binders-common</name>
+	<name>statefulj-framework-binders-jersey</name>
 	<url>http://statefulj.org</url>
 
 	<parent>
@@ -13,9 +13,6 @@
 		<artifactId>statefulj-framework-binders</artifactId>
 		<version>0.8-SNAPSHOT</version>
 	</parent>
-
-	<properties>
-	</properties>
 
 	<dependencies>
 
@@ -27,10 +24,18 @@
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
-			<artifactId>statefulj-framework-core</artifactId>
+			<artifactId>statefulj-framework-binders-common</artifactId>
 			<version>${statefulj.version}</version>
 		</dependency>
-		
+
+<dependency>
+    <groupId>org.glassfish.jersey.containers</groupId>
+    <!-- if your container implements Servlet API older than 3.0, use "jersey-container-servlet-core"  -->
+    <artifactId>jersey-container-servlet</artifactId>
+    <version>2.13</version>
+</dependency>
+
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
