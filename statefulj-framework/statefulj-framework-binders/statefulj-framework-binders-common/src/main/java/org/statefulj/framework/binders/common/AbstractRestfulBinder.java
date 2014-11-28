@@ -8,6 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -182,7 +183,11 @@ public abstract class AbstractRestfulBinder {
 		//
 		ctMethod.addParameter(ctParm);
 		
-		return new Annotation[]{};
+		return new Annotation[] {
+				new Annotation(
+					ctMethod.getMethodInfo().getConstPool(), 
+					cp.getCtClass(Context.class.getName())
+				) };
 		
 	}
 	
