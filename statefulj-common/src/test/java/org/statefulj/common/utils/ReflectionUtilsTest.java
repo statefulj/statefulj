@@ -17,7 +17,6 @@
  */
 package org.statefulj.common.utils;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -25,6 +24,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 
 public class ReflectionUtilsTest {
@@ -49,6 +49,7 @@ public class ReflectionUtilsTest {
 				return foo;
 			}
 
+			@SuppressWarnings("unused")
 			public void setFoo(String foo) {
 				this.foo = foo;
 			}

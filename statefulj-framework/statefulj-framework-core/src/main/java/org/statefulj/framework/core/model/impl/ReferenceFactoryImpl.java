@@ -19,7 +19,6 @@ package org.statefulj.framework.core.model.impl;
 
 import static java.beans.Introspector.decapitalize;
 
-import java.beans.Introspector;
 import java.lang.reflect.Method;
 
 import org.apache.commons.lang3.StringUtils;

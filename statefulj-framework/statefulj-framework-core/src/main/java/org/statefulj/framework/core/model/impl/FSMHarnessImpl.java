@@ -20,14 +20,12 @@ package org.statefulj.framework.core.model.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.framework.core.model.StatefulFSM;
-import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.TooBusyException;
 
 public class FSMHarnessImpl<T, CT> implements FSMHarness {

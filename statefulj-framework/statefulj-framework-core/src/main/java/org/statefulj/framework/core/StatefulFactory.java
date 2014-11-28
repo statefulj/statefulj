@@ -17,14 +17,12 @@
  */
 package org.statefulj.framework.core;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,7 +60,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
-import org.springframework.util.CollectionUtils;
 import org.statefulj.framework.core.actions.MethodInvocationAction;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
@@ -856,16 +853,4 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			throws BeansException {
 		this.appContext = applicationContext;
 	}
-
-	private boolean contains(Annotation[] annotations, Class<? extends Annotation> clazz) {
-		boolean contains = false;
-		for(Annotation annotation : annotations) {
-			if (clazz.isAssignableFrom(annotation.getClass())) {
-				contains = true;
-				break;
-			}
-		}
-		return contains;
-	}
-
 }
