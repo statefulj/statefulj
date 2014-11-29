@@ -31,6 +31,8 @@ public interface PersistenceSupportBeanFactory {
 	 */
 	Class<?> getKey(); 
 	
+	Class<?> getIdType(); 
+
 	BeanDefinition buildFactoryBean(Class<?> statefulClass);
 	
 	BeanDefinition buildFinderBean(String repoBeanId);

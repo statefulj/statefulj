@@ -22,7 +22,6 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javassist.CannotCompileException;
 import javassist.ClassPool;
@@ -52,17 +51,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.*;
 
 import org.statefulj.framework.binders.common.AbstractRestfulBinder;
-import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.ReferenceFactory;
 
 // TODO : Handle when an action doesn't have either the User or Event parameter
-public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBinder {
+public class SpringMVCBinder extends AbstractRestfulBinder {
 	
 	public final static String KEY = "springmvc";
 
 	private Logger logger = LoggerFactory.getLogger(SpringMVCBinder.class);
-	
-	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
 	
 	private final String MVC_SUFFIX = "MVCBinder";
 	
@@ -81,26 +77,28 @@ public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBi
 			ClassPool cp,
 			String beanName, 
 			String proxyClassName,
-			Class<?> clazz,
+			Class<?> statefulControllerClass,
+			Class<?> idType,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory) 
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
 		
-		logger.debug("Building proxy for {}", clazz);
+		logger.debug("Building proxy for {}", statefulControllerClass);
 		
 		CtClass proxyClass = super.buildProxy(
 				cp,
 				beanName, 
 				proxyClassName, 
-				clazz, 
+				statefulControllerClass, 
+				idType,
 				eventMapping, 
 				refFactory);
 		
 		// Copy Proxy methods that bypass the FSM
 		//
-		addProxyMethods(proxyClass, clazz, cp);
+		addProxyMethods(proxyClass, statefulControllerClass, cp);
 		
 		return proxyClass;
 		
@@ -151,36 +149,7 @@ public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBi
 	}
 	
 	@Override
-	protected Annotation[] addIdParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, CannotCompileException {
-		// Clone the parameter Class
-		//
-		CtClass ctParm = cp.get(Long.class.getName());
-		
-		// Add the parameter to the method
-		//
-		ctMethod.addParameter(ctParm);
-		
-		// Add the Parameter Annotations to the Method
-		//
-		MethodInfo methodInfo = ctMethod.getMethodInfo();
-		ConstPool constPool = methodInfo.getConstPool();
-		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-		Annotation annot = new Annotation(PathVariable.class.getName(), constPool);
-		
-		StringMemberValue valueVal = new StringMemberValue("id", constPool); 
-		annot.addMemberValue("value", valueVal);
-		attr.addAnnotation(annot);
-		
-		return new Annotation[]{ annot };
-	}
-
-	@Override
-	protected Pattern getMethodPattern() {
-		return this.methodPattern;
-	}
-
-	@Override
-	protected void addRequestMapping(CtMethod ctMethod, String method, String request) {
+	protected void addEndpointMapping(CtMethod ctMethod, String method, String request) {
 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ConstPool constPool = methodInfo.getConstPool();
 
@@ -210,6 +179,11 @@ public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBi
 		return MVC_SUFFIX;
 	}
 	
+	@Override
+	protected Class<?> getPathAnnotationClass() {
+		return PathVariable.class;
+	}
+
 	@SuppressWarnings("unchecked")
 	private void addProxyMethods(CtClass mvcProxyClass, Class<?> ctrlClass, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
@@ -244,4 +218,20 @@ public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBi
 		//
 		mvcProxyClass.addMethod(ctMethod);
 	}
+
+	private void addProxyMethodBody(CtMethod ctMethod, Method method) throws CannotCompileException, NotFoundException {
+		String returnType = ctMethod.getReturnType().getName();
+		
+		String returnStmt = 
+				(returnType.equals("void")) 
+				? ""
+				: "return (" + returnType + ")";
+		
+		String methodBody = "{ " 
+				+ returnStmt
+				+ "$proceed($$); }";
+
+		ctMethod.setBody(methodBody, "this." + getControllerVar(), method.getName());
+	}
+	
 }

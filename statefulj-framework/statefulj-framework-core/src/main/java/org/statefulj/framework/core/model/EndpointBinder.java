@@ -30,7 +30,8 @@ public interface EndpointBinder {
 
 	Class<?> bindEndpoints(
 			String beanName, 
-			Class<?> clazz, 
+			Class<?> stateControllerClass,
+			Class<?> idType,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory) throws CannotCompileException, NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException;
 }

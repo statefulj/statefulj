@@ -37,6 +37,11 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	}
 
 	@Override
+	public Class<?> getIdType() {
+		return Long.class;
+	}
+
+	@Override
 	public BeanDefinition buildFactoryBean(Class<?> statefulClass) {
 		BeanDefinition factoryBean = BeanDefinitionBuilder
 				.genericBeanDefinition(FactoryImpl.class)
@@ -90,5 +95,4 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
 		return fsmHarness;
 	}
-
 }

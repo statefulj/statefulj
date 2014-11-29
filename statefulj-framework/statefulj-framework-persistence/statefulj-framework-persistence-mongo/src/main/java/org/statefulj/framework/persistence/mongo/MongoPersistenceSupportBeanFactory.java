@@ -38,6 +38,11 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 	}
 
 	@Override
+	public Class<?> getIdType() {
+		return String.class;
+	}
+
+	@Override
 	public BeanDefinition buildFactoryBean(Class<?> statefulClass) {
 		BeanDefinition factoryBean = BeanDefinitionBuilder
 				.genericBeanDefinition(FactoryImpl.class)
@@ -92,5 +97,4 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
 		return fsmHarness;
 	}
-
 }

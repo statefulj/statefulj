@@ -294,7 +294,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		// Determine the managed class
 		// 
-		Class<?> statefulClass = statefulControllerClass.getAnnotation(StatefulController.class).clazz();
+		StatefulController scAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
+		Class<?> statefulClass = scAnnotation.clazz();
 		ReferenceFactory referenceFactory = new ReferenceFactoryImpl(controllerBeanId);
 		
 		// Gather all the events from across all the methods
@@ -305,6 +306,20 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		Set<String> states = new HashSet<String>();
 		Set<String> blockingStates = new HashSet<String>();
 
+		// Fetch Repo info
+		//
+		String repoBeanId = getRepoId(entityMappings, statefulClass);
+		
+		if (repoBeanId == null) {
+			throw new RuntimeException("Unable to determine Repository for class " + statefulClass.getName());
+		}
+		
+		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
+		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
+
+		// Fetch the PersistenceFactory
+		PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoBeanClass);
+		
 		// Map the Events and Transitions for the Controller
 		//
 		mapEventsTransitionsAndStates(
@@ -332,7 +347,12 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			
 			// Build out the Binder Class
 			//
-			Class<?> binderClass = binder.bindEndpoints(controllerBeanId, statefulControllerClass, entry.getValue(), referenceFactory);
+			Class<?> binderClass = binder.bindEndpoints(
+					controllerBeanId, 
+					statefulControllerClass, 
+					factory.getIdType(),
+					entry.getValue(), 
+					referenceFactory);
 
 			// Add the new Binder Class to the Bean Registry
 			//
@@ -392,20 +412,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					reg);
 			transitionIds.add(transitionId);
 		}
-		
-		// Fetch Repo info
-		//
-		String repoBeanId = getRepoId(entityMappings, statefulClass);
-		
-		if (repoBeanId == null) {
-			throw new RuntimeException("Unable to determine Repository for class " + statefulClass.getName());
-		}
-		
-		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
-		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
-
-		// Fetch the PersistenceFactory
-		PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoBeanClass);
 		
 		// Fetch the StatefulController Annotation
 		//

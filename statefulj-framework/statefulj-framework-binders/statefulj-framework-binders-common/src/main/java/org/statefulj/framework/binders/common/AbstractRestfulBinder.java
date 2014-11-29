@@ -2,9 +2,12 @@ package org.statefulj.framework.binders.common;
 
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.addMethodAnnotations;
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.addResourceAnnotation;
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.cloneAnnotation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,12 +28,14 @@ import javassist.bytecode.ConstPool;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.ParameterAnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
+import javassist.bytecode.annotation.StringMemberValue;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.stereotype.Component;
 import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.ReferenceFactory;
@@ -38,6 +43,8 @@ import org.statefulj.framework.core.model.ReferenceFactory;
 public abstract class AbstractRestfulBinder implements EndpointBinder {
 
 	private Logger logger = LoggerFactory.getLogger(AbstractRestfulBinder.class);
+	
+	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
 	
 	private final String HARNESS_VAR = "harness";
 	private final String CONTROLLER_VAR = "controller";
@@ -48,13 +55,14 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	@Override
 	public Class<?> bindEndpoints(
 			String beanName, 
-			Class<?> clazz,
+			Class<?> statefulControllerClass,
+			Class<?> idType,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory)
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
-		logger.debug("Building proxy for {}", clazz);
+		logger.debug("Building proxy for {}", statefulControllerClass);
 		
 		// Set up the ClassPool
 		//
@@ -63,15 +71,16 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 
 		// Create a new Proxy Class 
 		//
-		String proxyClassName = clazz.getName() + getSuffix();
+		String proxyClassName = statefulControllerClass.getName() + getSuffix();
 		
 		// Construct and return the Proxy Class
 		//
 		return buildProxy(
 				cp,
-				proxyClassName,
 				beanName, 
-				clazz,
+				proxyClassName,
+				statefulControllerClass,
+				idType,
 				eventMapping, 
 				refFactory).toClass();
 	}
@@ -80,7 +89,8 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			ClassPool cp,
 			String beanName, 
 			String proxyClassName,
-			Class<?> clazz,
+			Class<?> statefulControllerClass,
+			Class<?> idType,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory) 
 			throws CannotCompileException, NotFoundException,
@@ -95,7 +105,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		
 		// Add the member variable referencing the StatefulController
 		//
-		addControllerReference(proxyClass, clazz, beanName, cp);
+		addControllerReference(proxyClass, statefulControllerClass, beanName, cp);
 		
 		// Add the member variable referencing the FSMHarness
 		//
@@ -103,7 +113,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		
 		// Copy methods that have a Transition annotation from the StatefulController to the Binder
 		//
-		addRequestMethods(proxyClass, eventMapping, cp);
+		addRequestMethods(proxyClass, idType, eventMapping, cp);
 		
 		return proxyClass;
 	}
@@ -117,12 +127,21 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		ccFile.addAttribute(attr);
 	}
 	
-	protected void addRequestMethods(CtClass mvcProxyClass, Map<String,Method> eventMapping, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	protected void addRequestMethods(
+			CtClass mvcProxyClass, 
+			Class<?> idType,
+			Map<String,Method> eventMapping, 
+			ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
 		// Build a method for each Event
 		//
 		for(String event : eventMapping.keySet()) {
-			addRequestMethod(mvcProxyClass, event, eventMapping.get(event), cp);
+			addRequestMethod(
+					mvcProxyClass,
+					idType,
+					event, 
+					eventMapping.get(event), 
+					cp);
 		}
 	}
 	
@@ -146,6 +165,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	
 	protected void addRequestParameters(
 			boolean referencesId, 
+			Class<?> idType,
 			CtMethod ctMethod, 
 			Method method, 
 			ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
@@ -179,7 +199,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			// used by the Harness to fetch the object 
 			//
 			if (referencesId) {
-				paramArrays[parmIndex] = addIdParameter(ctMethod, cp);
+				paramArrays[parmIndex] = addIdParameter(ctMethod, idType, cp);
 				parmIndex++;
 			}
 			
@@ -221,7 +241,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			// NOOP transitions always a require an object Id
 			//
 			paramArrays = new Annotation[2][];
-			paramArrays[0] = addIdParameter(ctMethod, cp);
+			paramArrays[0] = addIdParameter(ctMethod, idType, cp);
 			paramArrays[1] = addHttpRequestParameter(ctMethod, cp);
 		}
 		paramAtrributeInfo.setAnnotations(paramArrays);
@@ -311,28 +331,13 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		ctMethod.setBody(methodBody, "this." + HARNESS_VAR, "onEvent");
 	}
 	
-	protected void addProxyMethodBody(CtMethod ctMethod, Method method) throws CannotCompileException, NotFoundException {
-		String returnType = ctMethod.getReturnType().getName();
-		
-		String returnStmt = 
-				(returnType.equals("void")) 
-				? ""
-				: "return (" + returnType + ")";
-		
-		String methodBody = "{ " 
-				+ returnStmt
-				+ "$proceed($$); }";
-
-		ctMethod.setBody(methodBody, "this." + CONTROLLER_VAR, method.getName());
-	}
-	
 	protected void addControllerReference(
 			CtClass mvcProxyClass,
 			Class<?> clazz,
 			String beanName, 
 			ClassPool cp) throws NotFoundException, CannotCompileException {
 		CtClass type = cp.get(clazz.getName());
-		CtField field = new CtField(type, CONTROLLER_VAR, mvcProxyClass);
+		CtField field = new CtField(type, getControllerVar(), mvcProxyClass);
 
 		addResourceAnnotation(field, beanName);
 		
@@ -348,7 +353,12 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		mvcProxyClass.addField(field);
 	}
 
-	protected void addRequestMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+	protected void addRequestMethod(
+			CtClass mvcProxyClass,
+			Class<?> idType,
+			String event, 
+			Method method, 
+			ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
 		Pair<String, String> methodEndpoint = this.parseMethod(event);
 		String requestMethod = methodEndpoint.getLeft();
@@ -368,13 +378,13 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		//
 		addMethodAnnotations(ctMethod, method);
 
-		// Add a RequestMapping annotation
+		// Add a Endpoint mapping
 		//
-		addRequestMapping(ctMethod, requestMethod, requestEvent);
+		addEndpointMapping(ctMethod, requestMethod, requestEvent);
 
 		// Clone the parameters, along with the Annotations
 		//
-		addRequestParameters(referencesId, ctMethod, method, cp);
+		addRequestParameters(referencesId, idType, ctMethod, method, cp);
 
 		// Add the Method Body
 		//
@@ -385,19 +395,64 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		mvcProxyClass.addMethod(ctMethod);
 	}
 
-	protected abstract void addRequestMapping(CtMethod ctMethod, String method, String request);
+	protected Annotation[] addIdParameter(
+			CtMethod ctMethod, 
+			Class<?> idType,
+			ClassPool cp) throws NotFoundException, CannotCompileException {
+		// Clone the parameter Class
+		//
+		CtClass ctParm = cp.get(idType.getName());
+		
+		// Add the parameter to the method
+		//
+		ctMethod.addParameter(ctParm);
+		
+		// Add the Parameter Annotations to the Method
+		//
+		MethodInfo methodInfo = ctMethod.getMethodInfo();
+		ConstPool constPool = methodInfo.getConstPool();
+		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+		Annotation annot = new Annotation(getPathAnnotationClass().getName(), constPool);
+		
+		StringMemberValue valueVal = new StringMemberValue("id", constPool); 
+		annot.addMemberValue("value", valueVal);
+		attr.addAnnotation(annot);
+		
+		return new Annotation[]{ annot };
+	}
 
-	protected abstract Annotation[] addIdParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, CannotCompileException;
+	protected Annotation[] createParameterAnnotations(String parmName,
+			MethodInfo methodInfo,
+			java.lang.annotation.Annotation[] annotations,
+			ConstPool parameterConstPool) throws IllegalArgumentException,
+			IllegalAccessException, InvocationTargetException {
+		List<Annotation> ctParmAnnotations = new LinkedList<Annotation>();
+
+		for(java.lang.annotation.Annotation annotation : annotations) {
+			Annotation clone = cloneAnnotation(parameterConstPool, annotation);
+			AnnotationsAttribute attr = new AnnotationsAttribute(parameterConstPool, AnnotationsAttribute.visibleTag);
+			attr.addAnnotation(clone);
+			ctParmAnnotations.add(clone);
+		}
+		return ctParmAnnotations.toArray(new Annotation[]{});
+	}
+
+	protected Pattern getMethodPattern() {
+		return methodPattern;
+	}
+
+	protected Class<?> getComponentClass() {
+		return Component.class;
+	}
 	
-	protected abstract Annotation[] createParameterAnnotations(
-			String parmName, 
-			MethodInfo methodInfo, 
-			java.lang.annotation.Annotation[] annotations, 
-			ConstPool parameterConstPool) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException;
-	
-	protected abstract Pattern getMethodPattern();
+	protected String getControllerVar() {
+		return CONTROLLER_VAR;
+	}
+
+	protected abstract void addEndpointMapping(CtMethod ctMethod, String method, String request);
+
+	protected abstract Class<?> getPathAnnotationClass();
 
 	protected abstract String getSuffix();
 	
-	protected abstract Class<?> getComponentClass();
 }

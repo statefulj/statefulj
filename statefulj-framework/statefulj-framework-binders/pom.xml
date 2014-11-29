@@ -26,6 +26,6 @@
 		<module>statefulj-framework-binders-common</module>
 		<module>statefulj-framework-binders-springmvc</module>
 		<module>statefulj-framework-binders-camel</module>
-		<!--module>statefulj-framework-binders-jersey</module-->
+		<module>statefulj-framework-binders-jersey</module>
 	</modules>
 </project>

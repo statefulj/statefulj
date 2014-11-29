@@ -101,6 +101,7 @@ public class CamelBinder implements EndpointBinder {
 	public Class<?> bindEndpoints(
 			String beanName, 
 			Class<?> controllerClass,
+			Class<?> idType,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory)
 			throws CannotCompileException, NotFoundException,

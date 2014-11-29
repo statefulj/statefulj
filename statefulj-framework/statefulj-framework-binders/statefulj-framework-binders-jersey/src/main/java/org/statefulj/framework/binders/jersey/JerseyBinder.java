@@ -17,47 +17,76 @@
  */
 package org.statefulj.framework.binders.jersey;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.regex.Pattern;
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.cloneAnnotation;
 
-import javassist.CannotCompileException;
-import javassist.ClassClassPath;
-import javassist.ClassPool;
-import javassist.CtClass;
+import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+
 import javassist.CtMethod;
-import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.stereotype.Component;
+import javassist.bytecode.annotation.StringMemberValue;
 
 import org.statefulj.framework.binders.common.AbstractRestfulBinder;
-import org.statefulj.framework.core.model.EndpointBinder;
-import org.statefulj.framework.core.model.ReferenceFactory;
 
 public class JerseyBinder extends AbstractRestfulBinder {
 	
 	public final static String KEY = "jersey";
-
-	private Logger logger = LoggerFactory.getLogger(JerseyBinder.class);
-	
-	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
-	
-	private LocalVariableTableParameterNameDiscoverer parmDiscover = new LocalVariableTableParameterNameDiscoverer();
 
 	private final String JERSEY_SUFFIX = "JerseyBinder";
 	
 	@Override
 	public String getKey() {
 		return KEY;
+	}
+
+	@Override
+	protected void addEndpointMapping(
+			CtMethod ctMethod, 
+			String method,
+			String request) {
+		
+		// Add Path Annotation
+		//
+		MethodInfo methodInfo = ctMethod.getMethodInfo();
+		ConstPool constPool = methodInfo.getConstPool();
+
+		AnnotationsAttribute pathAttr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+		Annotation pathMapping = new Annotation(Path.class.getName(), constPool);
+		
+		StringMemberValue valueVal = new StringMemberValue(constPool);
+		valueVal.setValue(request);
+		
+		pathMapping.addMemberValue("value", valueVal);
+		
+		pathAttr.addAnnotation(pathMapping);
+		methodInfo.addAttribute(pathAttr);
+
+		// Add Verb Annotation (GET|POST|PUT|DELETE)
+		//
+		String verbClassName = "javax.ws.rs." + method;
+		AnnotationsAttribute verbAttr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+		Annotation verb = new Annotation(verbClassName, constPool);
+
+		verbAttr.addAnnotation(verb);
+		methodInfo.addAttribute(verbAttr);
+
+	}
+
+	@Override
+	protected String getSuffix() {
+		return this.JERSEY_SUFFIX;
+	}
+
+	@Override
+	protected Class<?> getPathAnnotationClass() {
+		return PathParam.class;
 	}
 
 }

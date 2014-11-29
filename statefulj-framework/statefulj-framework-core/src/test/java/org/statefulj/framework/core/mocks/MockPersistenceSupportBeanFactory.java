@@ -33,6 +33,11 @@ public class MockPersistenceSupportBeanFactory implements
 	}
 
 	@Override
+	public Class<?> getIdType() {
+		return Object.class;
+	}
+
+	@Override
 	public BeanDefinition buildFactoryBean(Class<?> statefulClass) {
 		return mockDef();
 	}
@@ -63,5 +68,4 @@ public class MockPersistenceSupportBeanFactory implements
 				.genericBeanDefinition(Object.class)
 				.getBeanDefinition();
 	}
- 
 }
