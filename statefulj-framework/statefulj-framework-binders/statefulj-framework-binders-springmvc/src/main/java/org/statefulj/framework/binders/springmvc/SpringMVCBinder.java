@@ -25,13 +25,11 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import javassist.CannotCompileException;
-import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
@@ -41,7 +39,6 @@ import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -80,139 +77,38 @@ public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBi
 	}
 
 	@Override
-	public Class<?> bindEndpoints(
+	protected CtClass buildProxy(
+			ClassPool cp,
 			String beanName, 
+			String proxyClassName,
 			Class<?> clazz,
 			Map<String, Method> eventMapping, 
-			ReferenceFactory refFactory)
+			ReferenceFactory refFactory) 
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
+		
 		logger.debug("Building proxy for {}", clazz);
 		
-		// Set up the ClassPool
-		//
-		ClassPool cp = ClassPool.getDefault();
-		cp.appendClassPath(new ClassClassPath(getClass()));
-
-		// Create a new Proxy Class 
-		//
-		String mvcProxyClassName = clazz.getName() + MVC_SUFFIX;
-		CtClass mvcProxyClass = cp.makeClass(mvcProxyClassName);
-		
-		// Add the SpringMVC Controller annotation to the Proxy
-		//
-		addControllerAnnotation(mvcProxyClass);
-		
-		// Add the member variable referencing the StatefulController
-		//
-		addControllerReference(mvcProxyClass, clazz, beanName, cp);
-		
-		// Add the member variable referencing the FSMHarness
-		//
-		addFSMHarnessReference(mvcProxyClass, refFactory.getFSMHarnessId(), cp);
-		
-		// Copy methods that have a Transition annotation from the StatefulController to the Binder
-		//
-		addRequestMethods(mvcProxyClass, eventMapping, cp);
+		CtClass proxyClass = super.buildProxy(
+				cp,
+				beanName, 
+				proxyClassName, 
+				clazz, 
+				eventMapping, 
+				refFactory);
 		
 		// Copy Proxy methods that bypass the FSM
 		//
-		addProxyMethods(mvcProxyClass, clazz, cp);
+		addProxyMethods(proxyClass, clazz, cp);
 		
-		// Construct and return the Proxy Class
-		//
-		return mvcProxyClass.toClass();
+		return proxyClass;
+		
 	}
 	
-	private void addControllerAnnotation(CtClass mvcProxyClass) {
-		ClassFile ccFile = mvcProxyClass.getClassFile();
-		ConstPool constPool = ccFile.getConstPool();
-		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-		Annotation annot = new Annotation(Controller.class.getName(), constPool);
-		attr.addAnnotation(annot);
-		ccFile.addAttribute(attr);
-	}
-	
-	private void addRequestMethods(CtClass mvcProxyClass, Map<String,Method> eventMapping, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
-		
-		// Build a method for each Event
-		//
-		for(String event : eventMapping.keySet()) {
-			addRequestMethod(mvcProxyClass, event, eventMapping.get(event), cp);
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	private void addProxyMethods(CtClass mvcProxyClass, Class<?> ctrlClass, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
-		
-		for(Class<?> annotation : this.proxyable) {
-			List<Method> methods = getMethodsAnnotatedWith(ctrlClass, (Class<java.lang.annotation.Annotation>)annotation);
-			for(Method method : methods) {
-				addProxyMethod(mvcProxyClass, method, cp);
-			}
-		}
-	}
-	
-	private void addProxyMethod(CtClass mvcProxyClass, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
-		
-		// Create Method
-		//
-		CtClass returnClass = cp.get(method.getReturnType().getName());
-		CtMethod ctMethod = new CtMethod(returnClass, "$_" + method.getName(), null, mvcProxyClass);
-
-		// Clone method Annotations
-		//
-		addMethodAnnotations(ctMethod, method);
-		
-		// Copy parameters one-for-one
-		//
-		copyParameters(ctMethod, method, cp);
-
-		// Add the Method    
-		//
-		addProxyMethodBody(ctMethod, method);
-		
-		// Add the Method to the Proxy class
-		//
-		mvcProxyClass.addMethod(ctMethod);
-	}
-	
-	private void addRequestMethod(CtClass mvcProxyClass, String event, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
-
-		Pair<String, String> methodEndpoint = this.parseMethod(event);
-		String requestMethod = methodEndpoint.getLeft();
-		String requestEvent = methodEndpoint.getRight();
-		requestMethod = (requestMethod == null) ? RequestMethod.GET.toString() : requestMethod.toUpperCase();
-
-		
-		// References id?
-		//
-		boolean referencesId = (event.indexOf("{id}") > 0);
-
-		// Clone Method from the StatefulController
-		//
-		CtMethod ctMethod = createRequestMethod(mvcProxyClass, requestMethod, requestEvent, method, cp);
-
-		// Clone method Annotations
-		//
-		addMethodAnnotations(ctMethod, method);
-
-		// Add a RequestMapping annotation
-		//
-		addRequestMapping(ctMethod, requestMethod, requestEvent);
-
-		// Clone the parameters, along with the Annotations
-		//
-		addRequestParameters(referencesId, ctMethod, method, cp);
-
-		// Add the Method Body
-		//
-		addRequestMethodBody(referencesId, ctMethod, event);
-		
-		// Add the Method to the Proxy class
-		//
-		mvcProxyClass.addMethod(ctMethod);
+	@Override
+	protected Class<?> getComponentClass() {
+		return Controller.class;
 	}
 	
 	/**
@@ -283,7 +179,8 @@ public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBi
 		return this.methodPattern;
 	}
 
-	private void addRequestMapping(CtMethod ctMethod, String method, String request) {
+	@Override
+	protected void addRequestMapping(CtMethod ctMethod, String method, String request) {
 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ConstPool constPool = methodInfo.getConstPool();
 
@@ -306,5 +203,45 @@ public class SpringMVCBinder extends AbstractRestfulBinder implements EndpointBi
 		requestMapping.addMemberValue("method", methodVals);
 		attr.addAnnotation(requestMapping);
 		methodInfo.addAttribute(attr);
+	}
+
+	@Override
+	protected String getSuffix() {
+		return MVC_SUFFIX;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void addProxyMethods(CtClass mvcProxyClass, Class<?> ctrlClass, ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+		
+		for(Class<?> annotation : this.proxyable) {
+			List<Method> methods = getMethodsAnnotatedWith(ctrlClass, (Class<java.lang.annotation.Annotation>)annotation);
+			for(Method method : methods) {
+				addProxyMethod(mvcProxyClass, method, cp);
+			}
+		}
+	}
+	
+	private void addProxyMethod(CtClass mvcProxyClass, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
+		
+		// Create Method
+		//
+		CtClass returnClass = cp.get(method.getReturnType().getName());
+		CtMethod ctMethod = new CtMethod(returnClass, "$_" + method.getName(), null, mvcProxyClass);
+
+		// Clone method Annotations
+		//
+		addMethodAnnotations(ctMethod, method);
+		
+		// Copy parameters one-for-one
+		//
+		copyParameters(ctMethod, method, cp);
+
+		// Add the Method    
+		//
+		addProxyMethodBody(ctMethod, method);
+		
+		// Add the Method to the Proxy class
+		//
+		mvcProxyClass.addMethod(ctMethod);
 	}
 }
