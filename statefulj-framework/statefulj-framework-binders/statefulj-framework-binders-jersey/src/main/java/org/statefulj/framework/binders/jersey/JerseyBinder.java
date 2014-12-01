@@ -17,25 +17,36 @@
  */
 package org.statefulj.framework.binders.jersey;
 
-import static org.statefulj.framework.binders.common.utils.JavassistUtils.cloneAnnotation;
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.addClassAnnotation;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedList;
-import java.util.List;
+import java.lang.reflect.Method;
+import java.util.Map;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Context;
 
+import javassist.CannotCompileException;
+import javassist.ClassClassPath;
+import javassist.ClassPool;
+import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.StringMemberValue;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.statefulj.framework.binders.common.AbstractRestfulBinder;
+import org.statefulj.framework.core.model.ReferenceFactory;
 
 public class JerseyBinder extends AbstractRestfulBinder {
+	
+	private Logger logger = LoggerFactory.getLogger(JerseyBinder.class);
 	
 	public final static String KEY = "jersey";
 
@@ -47,6 +58,62 @@ public class JerseyBinder extends AbstractRestfulBinder {
 	}
 
 	@Override
+	public Class<?> bindEndpoints(
+			String beanName, 
+			Class<?> statefulControllerClass,
+			Class<?> idType,
+			Map<String, Method> eventMapping, 
+			ReferenceFactory refFactory)
+			throws CannotCompileException, NotFoundException,
+			IllegalArgumentException, IllegalAccessException,
+			InvocationTargetException {
+		
+		Class<?> binding = super.bindEndpoints(
+				beanName, 
+				statefulControllerClass, 
+				idType, 
+				eventMapping, 
+				refFactory);
+		
+		// Add to registry so that the class can be passed to the Jersey ResourceConfig
+		//
+		BindingsRegistry.addBinding(binding);
+		
+		return binding;
+	}
+
+	@Override
+	protected CtClass buildProxy(
+			ClassPool cp,
+			String beanName, 
+			String proxyClassName,
+			Class<?> statefulControllerClass,
+			Class<?> idType,
+			Map<String, Method> eventMapping, 
+			ReferenceFactory refFactory) 
+			throws CannotCompileException, NotFoundException,
+			IllegalArgumentException, IllegalAccessException,
+			InvocationTargetException {
+		
+		logger.debug("Building proxy for {}", statefulControllerClass);
+		
+		CtClass proxyClass = super.buildProxy(
+				cp,
+				beanName, 
+				proxyClassName, 
+				statefulControllerClass, 
+				idType,
+				eventMapping, 
+				refFactory);
+		
+		// Add Path Annotation
+		//
+		addClassAnnotation(proxyClass, Path.class, "value", "");
+		
+		return proxyClass;
+	}
+	
+	@Override
 	protected void addEndpointMapping(
 			CtMethod ctMethod, 
 			String method,
@@ -57,7 +124,7 @@ public class JerseyBinder extends AbstractRestfulBinder {
 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ConstPool constPool = methodInfo.getConstPool();
 
-		AnnotationsAttribute pathAttr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+		AnnotationsAttribute annoAttr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 		Annotation pathMapping = new Annotation(Path.class.getName(), constPool);
 		
 		StringMemberValue valueVal = new StringMemberValue(constPool);
@@ -65,18 +132,27 @@ public class JerseyBinder extends AbstractRestfulBinder {
 		
 		pathMapping.addMemberValue("value", valueVal);
 		
-		pathAttr.addAnnotation(pathMapping);
-		methodInfo.addAttribute(pathAttr);
+		annoAttr.addAnnotation(pathMapping);
 
 		// Add Verb Annotation (GET|POST|PUT|DELETE)
 		//
 		String verbClassName = "javax.ws.rs." + method;
-		AnnotationsAttribute verbAttr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 		Annotation verb = new Annotation(verbClassName, constPool);
+		annoAttr.addAnnotation(verb);
+		
+		methodInfo.addAttribute(annoAttr);
+	}
 
-		verbAttr.addAnnotation(verb);
-		methodInfo.addAttribute(verbAttr);
+	@Override
+	protected Annotation[] addHttpRequestParameter(CtMethod ctMethod, ClassPool cp) throws NotFoundException, CannotCompileException {
 
+		super.addHttpRequestParameter(ctMethod, cp);
+		
+		return new Annotation[] {
+				new Annotation(
+					ctMethod.getMethodInfo().getConstPool(), 
+					cp.getCtClass(Context.class.getName())
+				) };
 	}
 
 	@Override

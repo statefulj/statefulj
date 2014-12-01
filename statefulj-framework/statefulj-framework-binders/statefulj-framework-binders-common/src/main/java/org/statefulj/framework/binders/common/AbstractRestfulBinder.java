@@ -13,7 +13,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
 
 import javassist.CannotCompileException;
 import javassist.ClassClassPath;
@@ -22,8 +21,6 @@ import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
 import javassist.NotFoundException;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.ParameterAnnotationsAttribute;
@@ -39,6 +36,8 @@ import org.springframework.stereotype.Component;
 import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.ReferenceFactory;
+
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.*;
 
 public abstract class AbstractRestfulBinder implements EndpointBinder {
 
@@ -119,12 +118,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	}
 	
 	protected void addComponentAnnotation(CtClass mvcProxyClass) {
-		ClassFile ccFile = mvcProxyClass.getClassFile();
-		ConstPool constPool = ccFile.getConstPool();
-		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
-		Annotation annot = new Annotation(getComponentClass().getName(), constPool);
-		attr.addAnnotation(annot);
-		ccFile.addAttribute(attr);
+		addClassAnnotation(mvcProxyClass, getComponentClass());
 	}
 	
 	protected void addRequestMethods(
@@ -292,11 +286,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		//
 		ctMethod.addParameter(ctParm);
 		
-		return new Annotation[] {
-				new Annotation(
-					ctMethod.getMethodInfo().getConstPool(), 
-					cp.getCtClass(Context.class.getName())
-				) };
+		return new Annotation[] {};
 		
 	}
 	
@@ -411,12 +401,10 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		//
 		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ConstPool constPool = methodInfo.getConstPool();
-		AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 		Annotation annot = new Annotation(getPathAnnotationClass().getName(), constPool);
 		
 		StringMemberValue valueVal = new StringMemberValue("id", constPool); 
 		annot.addMemberValue("value", valueVal);
-		attr.addAnnotation(annot);
 		
 		return new Annotation[]{ annot };
 	}
@@ -430,8 +418,6 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 
 		for(java.lang.annotation.Annotation annotation : annotations) {
 			Annotation clone = cloneAnnotation(parameterConstPool, annotation);
-			AnnotationsAttribute attr = new AnnotationsAttribute(parameterConstPool, AnnotationsAttribute.visibleTag);
-			attr.addAnnotation(clone);
 			ctParmAnnotations.add(clone);
 		}
 		return ctParmAnnotations.toArray(new Annotation[]{});

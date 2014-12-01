@@ -29,9 +29,11 @@ import javax.annotation.Resource;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 
+import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
 import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.FieldInfo;
 import javassist.bytecode.MethodInfo;
@@ -52,6 +54,33 @@ import javassist.bytecode.annotation.StringMemberValue;
 
 public class JavassistUtils {
 	
+	public static void addClassAnnotation(CtClass clazz, Class<?> annotationClass, Object... values) {
+		ClassFile ccFile = clazz.getClassFile();
+		ConstPool constPool = ccFile.getConstPool();
+		AnnotationsAttribute attr = getAnnotationsAttribute(ccFile);
+		Annotation annot = new Annotation(annotationClass.getName(), constPool);
+		
+		for(int i = 0; i < values.length; i = i + 2) {
+			String valueName = (String)values[i];
+			Object value = values[i+1];
+			if (valueName != null && value != null) {
+				MemberValue memberValue = createMemberValue(constPool, value);
+				annot.addMemberValue(valueName, memberValue);
+			}
+		}
+		
+		attr.addAnnotation(annot);
+	}
+	
+	public static AnnotationsAttribute getAnnotationsAttribute(ClassFile ccFile) {
+		AnnotationsAttribute attr = (AnnotationsAttribute) ccFile.getAttribute(AnnotationsAttribute.visibleTag);
+		if (attr == null) {
+			attr = new AnnotationsAttribute(ccFile.getConstPool(), AnnotationsAttribute.visibleTag);
+			ccFile.addAttribute(attr);
+		}
+		return attr;
+	}
+
 	/**
 	 * Clone an annotation and all of it's methods
 	 * @param constPool
@@ -103,8 +132,8 @@ public class JavassistUtils {
 		if (method != null) {
 			MethodInfo methodInfo = ctMethod.getMethodInfo();
 			ConstPool constPool = methodInfo.getConstPool();
+			AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 			for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
-				AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
 
 				// If it's a Transition skip
 				// TODO : Make this a parameterized set of Filters instead of hardcoding
@@ -115,9 +144,9 @@ public class JavassistUtils {
 				} else {
 					clone = cloneAnnotation(constPool, anno);
 					attr.addAnnotation(clone);
-					methodInfo.addAttribute(attr);
 				}
 			}
+			methodInfo.addAttribute(attr);
 		}
 	}
 	

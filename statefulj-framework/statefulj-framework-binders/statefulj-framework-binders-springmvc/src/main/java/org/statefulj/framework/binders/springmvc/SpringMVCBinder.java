@@ -141,8 +141,6 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 				}
 			}
 			
-			AnnotationsAttribute attr = new AnnotationsAttribute(parameterConstPool, AnnotationsAttribute.visibleTag);
-			attr.addAnnotation(clone);
 			ctParmAnnotations.add(clone);
 		}
 		return ctParmAnnotations.toArray(new Annotation[]{});
