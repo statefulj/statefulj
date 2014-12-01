@@ -1,3 +1,20 @@
+/***
+ * 
+ * Copyright 2014 Andrew Hall
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
 package org.statefulj.framework.binders.common;
 
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.addMethodAnnotations;
@@ -46,7 +63,6 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
 	
 	private final String HARNESS_VAR = "harness";
-	private final String CONTROLLER_VAR = "controller";
 	private final String GET = "GET";
 	
 	private LocalVariableTableParameterNameDiscoverer parmDiscover = new LocalVariableTableParameterNameDiscoverer();
@@ -61,6 +77,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			throws CannotCompileException, NotFoundException,
 			IllegalArgumentException, IllegalAccessException,
 			InvocationTargetException {
+		
 		logger.debug("Building proxy for {}", statefulControllerClass);
 		
 		// Set up the ClassPool
@@ -98,13 +115,9 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		
 		CtClass proxyClass = cp.makeClass(proxyClassName);
 		
-		// Add the SpringMVC Controller annotation to the Proxy
+		// Add the Component annotation to the Proxy
 		//
 		addComponentAnnotation(proxyClass);
-		
-		// Add the member variable referencing the StatefulController
-		//
-		addControllerReference(proxyClass, statefulControllerClass, beanName, cp);
 		
 		// Add the member variable referencing the FSMHarness
 		//
@@ -117,12 +130,12 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		return proxyClass;
 	}
 	
-	protected void addComponentAnnotation(CtClass mvcProxyClass) {
-		addClassAnnotation(mvcProxyClass, getComponentClass());
+	protected void addComponentAnnotation(CtClass proxyClass) {
+		addClassAnnotation(proxyClass, getComponentClass());
 	}
 	
 	protected void addRequestMethods(
-			CtClass mvcProxyClass, 
+			CtClass proxyClass, 
 			Class<?> idType,
 			Map<String,Method> eventMapping, 
 			ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
@@ -131,7 +144,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		//
 		for(String event : eventMapping.keySet()) {
 			addRequestMethod(
-					mvcProxyClass,
+					proxyClass,
 					idType,
 					event, 
 					eventMapping.get(event), 
@@ -140,7 +153,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	}
 	
 	protected CtMethod createRequestMethod(
-			CtClass mvcProxyClass, 
+			CtClass proxyClass, 
 			String requestMethod, 
 			String requestEvent, 
 			Method method, 
@@ -150,10 +163,10 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		logger.debug(
 				"Create method {} for {}", 
 				methodName,
-				mvcProxyClass.getSimpleName());
+				proxyClass.getSimpleName());
 
 		CtClass returnClass = (method == null) ? CtClass.voidType : cp.get(method.getReturnType().getName());
-		CtMethod ctMethod = new CtMethod(returnClass, methodName, null, mvcProxyClass);
+		CtMethod ctMethod = new CtMethod(returnClass, methodName, null, proxyClass);
 		return ctMethod;
 	}
 	
@@ -321,30 +334,17 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		ctMethod.setBody(methodBody, "this." + HARNESS_VAR, "onEvent");
 	}
 	
-	protected void addControllerReference(
-			CtClass mvcProxyClass,
-			Class<?> clazz,
-			String beanName, 
-			ClassPool cp) throws NotFoundException, CannotCompileException {
-		CtClass type = cp.get(clazz.getName());
-		CtField field = new CtField(type, getControllerVar(), mvcProxyClass);
-
-		addResourceAnnotation(field, beanName);
-		
-		mvcProxyClass.addField(field);
-	}
-
-	protected void addFSMHarnessReference(CtClass mvcProxyClass, String fsmHarnessId, ClassPool cp) throws NotFoundException, CannotCompileException {
+	protected void addFSMHarnessReference(CtClass proxyClass, String fsmHarnessId, ClassPool cp) throws NotFoundException, CannotCompileException {
 		CtClass type = cp.get(FSMHarness.class.getName());
-		CtField field = new CtField(type, HARNESS_VAR, mvcProxyClass);
+		CtField field = new CtField(type, HARNESS_VAR, proxyClass);
 
 		addResourceAnnotation(field, fsmHarnessId);
 		
-		mvcProxyClass.addField(field);
+		proxyClass.addField(field);
 	}
 
 	protected void addRequestMethod(
-			CtClass mvcProxyClass,
+			CtClass proxyClass,
 			Class<?> idType,
 			String event, 
 			Method method, 
@@ -362,7 +362,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 
 		// Clone Method from the StatefulController
 		//
-		CtMethod ctMethod = createRequestMethod(mvcProxyClass, requestMethod, requestEvent, method, cp);
+		CtMethod ctMethod = createRequestMethod(proxyClass, requestMethod, requestEvent, method, cp);
 
 		// Clone method Annotations
 		//
@@ -382,7 +382,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		
 		// Add the Method to the Proxy class
 		//
-		mvcProxyClass.addMethod(ctMethod);
+		proxyClass.addMethod(ctMethod);
 	}
 
 	protected Annotation[] addIdParameter(
@@ -431,10 +431,6 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		return Component.class;
 	}
 	
-	protected String getControllerVar() {
-		return CONTROLLER_VAR;
-	}
-
 	protected abstract void addEndpointMapping(CtMethod ctMethod, String method, String request);
 
 	protected abstract Class<?> getPathAnnotationClass();

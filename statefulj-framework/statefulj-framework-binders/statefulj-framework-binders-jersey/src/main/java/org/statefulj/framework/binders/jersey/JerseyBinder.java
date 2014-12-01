@@ -28,7 +28,6 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 
 import javassist.CannotCompileException;
-import javassist.ClassClassPath;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;

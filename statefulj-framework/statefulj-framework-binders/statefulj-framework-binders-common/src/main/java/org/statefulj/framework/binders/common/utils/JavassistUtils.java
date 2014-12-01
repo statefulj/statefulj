@@ -146,10 +146,8 @@ public class JavassistUtils {
 					attr.addAnnotation(clone);
 				}
 			}
-			methodInfo.addAttribute(attr);
 		}
 	}
-	
 	
 	public static List<Method> getMethodsAnnotatedWith(final Class<?> type, final Class<? extends java.lang.annotation.Annotation> annotation) {
 	    final List<Method> methods = new ArrayList<Method>();

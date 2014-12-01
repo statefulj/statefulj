@@ -26,6 +26,7 @@ import java.util.Map;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
@@ -61,6 +62,7 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 	private Logger logger = LoggerFactory.getLogger(SpringMVCBinder.class);
 	
 	private final String MVC_SUFFIX = "MVCBinder";
+	private final String CONTROLLER_VAR = "controller";
 	
 	private final Class<?>[] proxyable = new Class<?>[] {
 			ExceptionHandler.class, 
@@ -95,6 +97,10 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 				idType,
 				eventMapping, 
 				refFactory);
+		
+		// Add the member variable referencing the StatefulController
+		//
+		addControllerReference(proxyClass, statefulControllerClass, beanName, cp);
 		
 		// Copy Proxy methods that bypass the FSM
 		//
@@ -217,6 +223,19 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 		mvcProxyClass.addMethod(ctMethod);
 	}
 
+	private void addControllerReference(
+			CtClass proxyClass,
+			Class<?> controllerClass,
+			String beanName, 
+			ClassPool cp) throws NotFoundException, CannotCompileException {
+		CtClass type = cp.get(controllerClass.getName());
+		CtField field = new CtField(type, getControllerVar(), proxyClass);
+
+		addResourceAnnotation(field, beanName);
+		
+		proxyClass.addField(field);
+	}
+
 	private void addProxyMethodBody(CtMethod ctMethod, Method method) throws CannotCompileException, NotFoundException {
 		String returnType = ctMethod.getReturnType().getName();
 		
@@ -232,4 +251,8 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 		ctMethod.setBody(methodBody, "this." + getControllerVar(), method.getName());
 	}
 	
+	private String getControllerVar() {
+		return CONTROLLER_VAR;
+	}
+
 }

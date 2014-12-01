@@ -152,7 +152,6 @@ public class CamelBinder implements EndpointBinder {
 	
 	private void addConsumerMethod(CtClass camelProxyClass, String event, Method method, ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
-
 		// Clone Method from the StatefulController
 		//
 		CtMethod ctMethod = createConsumerMethod(camelProxyClass, event, method, cp);
