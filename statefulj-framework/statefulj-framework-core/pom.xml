@@ -17,7 +17,7 @@
 	<properties>
 		<reflections.version>0.9.9-RC1</reflections.version>
 		<javaassist.version>3.18.2-GA</javaassist.version>
-		<spring.data.commons.version>1.8.0.RELEASE</spring.data.commons.version>
+		<spring.data.commons.version>1.9.1.RELEASE</spring.data.commons.version>
 	</properties>
 
 	<dependencies>

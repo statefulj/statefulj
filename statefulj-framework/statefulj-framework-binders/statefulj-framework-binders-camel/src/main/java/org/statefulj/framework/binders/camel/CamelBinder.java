@@ -72,15 +72,24 @@ public class CamelBinder implements EndpointBinder {
 			if (BeanInvocation.class.isAssignableFrom(msg.getClass())) {
 				msg = ((BeanInvocation)msg).getArgs()[0];
 			}
-			Field idField = ReflectionUtils.getFirstAnnotatedField(msg.getClass(), Id.class);
+			Field idField = null;
+			try {
+				idField = ReflectionUtils.getFirstAnnotatedField(msg.getClass(), Id.class);
+			} catch(Throwable t) {
+				// ignore
+			}
 			if (idField == null) {
-				idField = ReflectionUtils.getFirstAnnotatedField(msg.getClass(), org.springframework.data.annotation.Id.class);
+				try {
+					idField = ReflectionUtils.getFirstAnnotatedField(msg.getClass(), org.springframework.data.annotation.Id.class);
+				} catch(Throwable t) {
+					// ignore
+				}
 			}
 			if (idField == null) {
 				try {
 					idField = msg.getClass().getField("id");
-				} catch (Exception e) {
-					// swallow
+				} catch (Throwable t) {
+					// ignore
 				}
 			}
 			if (idField != null) {

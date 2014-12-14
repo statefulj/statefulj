@@ -66,7 +66,7 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 			stateful = this.finder.find(clazz, id, event, context);
 		}
 
-		if ( stateful == null ) {
+		if (stateful == null) {
 			if (id != null) {
 				logger.error("Unable to locate object of type {}, id={}, event={}", clazz.getName(), id, event);
 				throw new RuntimeException("Unable to locate object of type " + clazz.getName() + ", id=" + ((id == null) ? "null" : id) + ", event=" + event);

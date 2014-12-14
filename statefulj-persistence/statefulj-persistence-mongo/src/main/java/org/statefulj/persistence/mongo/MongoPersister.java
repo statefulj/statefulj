@@ -74,7 +74,7 @@ public class MongoPersister<T>
 	// Private class
 	//
 	@Document(collection=COLLECTION)
-	class StateDocumentImpl implements StateDocument {
+	static class StateDocumentImpl implements StateDocument {
 
 		@Id
 		String id;
