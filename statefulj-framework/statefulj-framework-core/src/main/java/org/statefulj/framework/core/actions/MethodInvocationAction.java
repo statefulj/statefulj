@@ -92,6 +92,7 @@ public class MethodInvocationAction implements Action<Object> {
 			//
 			Method method = controller.getClass().getMethod(this.method, this.parameters);
 			Object[] methodParms = invokeParmList.subList(0, this.parameters.length).toArray();
+			method.setAccessible(true);
 			Object retVal = method.invoke(this.controller, methodParms);
 			if (retVal instanceof String) {
 				Pair<String, String> pair = this.parseResponse((String)retVal);
