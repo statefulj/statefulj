@@ -842,7 +842,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			BeanDefinition factory = reg.getBeanDefinition(bf.getFactoryBeanName());
 			String factoryClassName = factory.getBeanClassName();
 			Class<?> factoryClass = Class.forName(factoryClassName);
-			for (Method method : factoryClass.getMethods()) {
+			List<Method> methods = new LinkedList<Method>();
+			methods.addAll(Arrays.asList(factoryClass.getMethods()));
+			methods.addAll(Arrays.asList(factoryClass.getDeclaredMethods()));
+			for (Method method : methods) {
+				method.setAccessible(true);
 				if (method.getName().equals(bf.getFactoryMethodName())) {
 					clazz = method.getReturnType();
 					break;

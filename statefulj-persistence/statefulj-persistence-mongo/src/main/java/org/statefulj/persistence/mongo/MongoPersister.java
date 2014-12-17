@@ -367,7 +367,6 @@ public class MongoPersister<T>
 		stateDoc.setUpdated(Calendar.getInstance().getTime());
 	}
 
-	@SuppressWarnings("unchecked")
 	protected StateDocumentImpl getStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException {
 		return (StateDocumentImpl)getStateField().get(stateful);
 	}
@@ -412,12 +411,10 @@ public class MongoPersister<T>
 		return (MongoTemplate)appContext.getBean(this.templateId);
 	}
   	
-	@SuppressWarnings("unchecked")
 	protected StateDocumentImpl updateStateDoc(Query query, Update update) {
 		return (StateDocumentImpl)getMongoTemplate().findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
 	}
 
-	@SuppressWarnings("unchecked")
 	protected StateDocumentImpl findStateDoc(String id) {
 		return (StateDocumentImpl)getMongoTemplate().findById(id, StateDocumentImpl.class);
 	}
