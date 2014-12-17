@@ -20,7 +20,6 @@ package org.statefulj.persistence.mongo;
 
 import java.lang.reflect.Field;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -36,10 +35,8 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProce
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -61,8 +58,6 @@ public class MongoPersister<T>
 				BeanDefinitionRegistryPostProcessor, 
 				ApplicationContextAware {
 	
-	public static final String COLLECTION = "managedState";
-	
 	final static FindAndModifyOptions RETURN_NEW = FindAndModifyOptions.options().returnNew(true);
 	
 	private ApplicationContext appContext; 
@@ -71,100 +66,6 @@ public class MongoPersister<T>
 	
 	private String templateId;
 
-	// Private class
-	//
-	@Document(collection=COLLECTION)
-	static class StateDocumentImpl implements StateDocument {
-
-		@Id
-		String id;
-		
-		@Transient
-		boolean persisted = true;
-		
-		String state;
-		
-		String prevState;
-		
-		Date updated;
-		
-		String managedCollection;
-		
-		Object managedId;
-		
-		String managedField;
-		
-		public String getId() {
-			return id;
-		}
-
-		public void setId(String id) {
-			this.id = id;
-		}
-
-		public boolean isPersisted() {
-			return persisted;
-		}
-
-		public void setPersisted(boolean persisted) {
-			this.persisted = persisted;
-		}
-
-		@Override
-		public String getState() {
-			return state;
-		}
-
-		public void setState(String state) {
-			this.state = state;
-		}
-
-		@Override
-		public String getPrevState() {
-			return prevState;
-		}
-
-		public void setPrevState(String prevState) {
-			this.prevState = prevState;
-		}
-
-		@Override
-		public Date getUpdated() {
-			return updated;
-		}
-
-		public void setUpdated(Date updated) {
-			this.updated = updated;
-		}
-
-		@Override
-		public String getManagedCollection() {
-			return managedCollection;
-		}
-
-		public void setManagedCollection(String managedCollection) {
-			this.managedCollection = managedCollection;
-		}
-
-		@Override
-		public Object getManagedId() {
-			return managedId;
-		}
-
-		public void setManagedId(Object managedId) {
-			this.managedId = managedId;
-		}
-
-		@Override
-		public String getManagedField() {
-			return managedField;
-		}
-
-		public void setManagedField(String managedField) {
-			this.managedField = managedField;
-		}
-	}
-	
 	public MongoPersister(
 			List<State<T>> states, 
 			State<T> start, 
