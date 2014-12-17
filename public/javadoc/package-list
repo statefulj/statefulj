@@ -1,6 +1,8 @@
 org.statefulj.common.utils
 org.statefulj.framework.binders.camel
+org.statefulj.framework.binders.common
 org.statefulj.framework.binders.common.utils
+org.statefulj.framework.binders.jersey
 org.statefulj.framework.binders.springmvc
 org.statefulj.framework.core
 org.statefulj.framework.core.actions
