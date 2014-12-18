@@ -133,6 +133,7 @@ public class JavassistUtils {
 			MethodInfo methodInfo = ctMethod.getMethodInfo();
 			ConstPool constPool = methodInfo.getConstPool();
 			AnnotationsAttribute attr = new AnnotationsAttribute(constPool, AnnotationsAttribute.visibleTag);
+			methodInfo.addAttribute(attr);
 			for(java.lang.annotation.Annotation anno : method.getAnnotations()) {
 
 				// If it's a Transition skip
@@ -144,7 +145,6 @@ public class JavassistUtils {
 				} else {
 					clone = cloneAnnotation(constPool, anno);
 					attr.addAnnotation(clone);
-					methodInfo.addAttribute(attr);
 				}
 			}
 		}

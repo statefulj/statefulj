@@ -204,7 +204,11 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 		// Create Method
 		//
 		CtClass returnClass = cp.get(method.getReturnType().getName());
-		CtMethod ctMethod = new CtMethod(returnClass, "$_" + method.getName(), null, mvcProxyClass);
+		String methodName = "$_" + method.getName();
+		
+		logger.debug("Adding proxy method {}", methodName);
+
+		CtMethod ctMethod = new CtMethod(returnClass, methodName, null, mvcProxyClass);
 
 		// Clone method Annotations
 		//
