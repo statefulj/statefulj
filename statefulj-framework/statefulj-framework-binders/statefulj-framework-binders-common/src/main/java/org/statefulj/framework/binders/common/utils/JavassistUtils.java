@@ -144,6 +144,7 @@ public class JavassistUtils {
 				} else {
 					clone = cloneAnnotation(constPool, anno);
 					attr.addAnnotation(clone);
+					methodInfo.addAttribute(attr);
 				}
 			}
 		}
