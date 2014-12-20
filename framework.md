@@ -14,6 +14,7 @@ Installing *StatefulJ Framework* is dependent on the technologies within your st
 Binders "bind" *Endpoint Providers* to the StatefulJ Framework.  The Binders are responsible for forwarding incoming requests from the Endpoint Providers as events along with the accompanying input.  The StatefulJ Framework supports the following Endpoint Providers:
 
 * SpringMVC
+* Jersey
 * Camel
 
 Persisters interacts within the underlying databases.  StatefulJ supports the following Persisters:
@@ -35,17 +36,6 @@ So, depending on your stack, you will need to include the following dependencies
 </dependency>
 ```
 
-#### Camel
-
-```xml
-<dependency>
-	<groupId>org.statefulj.framework</groupId>
-	<artifactId>statefulj-framework-binders-camel</artifactId>
-	<version>{{ site.version }}</version>
-</dependency>
-```
-
-<!--
 #### Jersey
 
 ```xml
@@ -55,7 +45,16 @@ So, depending on your stack, you will need to include the following dependencies
 	<version>{{ site.version }}</version>
 </dependency>
 ```
--->
+
+#### Camel
+
+```xml
+<dependency>
+	<groupId>org.statefulj.framework</groupId>
+	<artifactId>statefulj-framework-binders-camel</artifactId>
+	<version>{{ site.version }}</version>
+</dependency>
+```
 
 ### Persisters
 
@@ -241,6 +240,7 @@ An *Event* is simply a String that directs the *StatefulJ Framework* how to bind
 |---		|-----------------------------------------------------------------------|---	      	|
 | <none> | &lt;event&gt;	| Identifies an event that isn't bound to an Endpoint.  It is invoked directly from a [StatefulFSM](#inject-stateful-fsm) reference 
 | SpringMVC | springmvc:&lt;get&verbar;post&verbar;patch&verbar;put&gt;:&lt;uri&gt;	| SpringMVC events require an *http verb* and a *uri*.  If the verb isn't specfied, it will default to a GET.  The uri must include an identifier for the Entity denoted by {id}, eg. springmvc:post:/foo/{id}/eventA|
+| Jersey | jersey:&lt;get&verbar;post&verbar;patch&verbar;put&gt;:&lt;uri&gt;	| Jersey events require an *http verb* and a *uri*.  If the verb isn't specfied, it will default to a GET.  The uri must include an identifier for the Entity denoted by {id}, eg. jersey:post:/foo/{id}/eventA|
 | Camel     | camel:&lt;route&gt; 												    | Camel events map to a route.  Since routes are typically not resource oriented, you will have to annotate a field in the *Message* with an [@Id](http://docs.spring.io/spring-data/commons/docs/current/api/index.html?org/springframework/data/domain/Persistable.html) annotation indicating the ID of the Entity | 
 
 ```java
