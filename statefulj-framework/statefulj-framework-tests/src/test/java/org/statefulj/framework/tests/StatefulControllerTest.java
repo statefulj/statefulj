@@ -35,6 +35,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.framework.core.annotations.FSM;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.FSMHarness;
@@ -42,7 +44,9 @@ import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.tests.dao.UserRepository;
 import org.statefulj.framework.tests.model.User;
-import org.statefulj.framework.tests.utils.ReflectionUtils;
+
+import static org.statefulj.framework.tests.utils.ReflectionUtils.*;
+
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.TooBusyException;
@@ -79,6 +83,7 @@ public class StatefulControllerTest {
 		// Make sure proxy is constructed
 		//
 		Object mvcBinder = this.appContext.getBean(refFactory.getBinderId("springmvc"));
+		Object jerseyBinder = this.appContext.getBean(refFactory.getBinderId("jersey"));
 		Object camelBinder = this.appContext.getBean(refFactory.getBinderId("camel"));
 		assertNotNull(mvcBinder);
 		assertNotNull(camelBinder);
@@ -86,7 +91,7 @@ public class StatefulControllerTest {
 		// Verify new User scenario
 		//
 		HttpServletRequest context = mock(HttpServletRequest.class);
-		User user = ReflectionUtils.invoke(mvcBinder, "$_get_first", User.class, context );
+		User user = invoke(mvcBinder, "$_get_first", User.class, context );
 
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -94,7 +99,7 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
+		user = invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -102,14 +107,14 @@ public class StatefulControllerTest {
 		
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
-		user = ReflectionUtils.invoke(mvcBinder, "$_post_id_second", User.class, user.getId(), context);
+		user = invoke(mvcBinder, "$_post_id_second", User.class, user.getId(), context);
 
 		assertTrue(user.getId() > 0);
 		assertEquals(User.THREE_STATE, user.getState());
 
 		// Verify "any" scenario
 		//
-		user = ReflectionUtils.invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
+		user = invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
 		
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
@@ -117,7 +122,7 @@ public class StatefulControllerTest {
 		
 		// Verify "any" scenario
 		//
-		Object nulObj = ReflectionUtils.invoke(mvcBinder, "$_get_id_four", User.class, user.getId(), context);
+		Object nulObj = invoke(mvcBinder, "$_get_id_four", User.class, user.getId(), context);
 		
 		assertNull(nulObj);
 		user = userRepo.findOne(user.getId());
@@ -127,14 +132,22 @@ public class StatefulControllerTest {
 		user = userRepo.findOne(user.getId());
 		assertEquals(User.FIVE_STATE, user.getState());
 
-		String retVal = ReflectionUtils.invoke(mvcBinder, "$_handleError", String.class, new Exception());
+		assertEquals(
+				mvcBinder.getClass().getMethod("$_handleError", Exception.class), 
+				ReflectionUtils.getFirstAnnotatedMethod(
+						mvcBinder.getClass(), 
+						ExceptionHandler.class));
+		
+		String retVal = invoke(mvcBinder, "$_handleError", String.class, new Exception());
 		assertEquals("called", retVal);
 		
-		ReflectionUtils.invoke(camelBinder, "$_camelone", user.getId());
-		ReflectionUtils.invoke(camelBinder, "$_six", user.getId());
+		invoke(camelBinder, "$_camelone", user.getId());
+		invoke(camelBinder, "$_six", user.getId());
 		user = userRepo.findOne(user.getId());
 		assertEquals(User.SIX_STATE, user.getState());
 
+		User retUser = invoke(jerseyBinder, "$_get_id_one", User.class, user.getId(), context);
+		assertNotNull(retUser);
 	}
 
 	@SuppressWarnings("unchecked")

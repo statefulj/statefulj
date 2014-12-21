@@ -14,7 +14,7 @@
 	</parent>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<jersey.version>2.13</jersey.version>
 	</properties>
 
 	<dependencies>
@@ -35,8 +35,23 @@
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
+			<artifactId>statefulj-framework-binders-jersey</artifactId>
+			<version>0.9-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-persistence-jpa</artifactId>
 			<version>0.9-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Jersey -->
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<version>${jersey.version}</version>
 			<scope>test</scope>
 		</dependency>
 

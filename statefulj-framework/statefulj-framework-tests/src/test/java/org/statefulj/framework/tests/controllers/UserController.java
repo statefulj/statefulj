@@ -63,6 +63,11 @@ public class UserController {
 		return user;
 	}
 	
+	@Transition(event="jersey:/{id}/one")
+	public User jerseyOne(User user, String event) {
+		return user;
+	}
+	
 	@Transition(event="camel:camelOne")
 	public void camelOne(User user, String event, Long id) {
 	}
