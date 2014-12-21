@@ -68,15 +68,18 @@ public class StatefulControllerTest {
 	@Resource(name="userController.fsmHarness")
 	FSMHarness fsmHarness;
 	
-	@FSM
-	StatefulFSM<User> fsm;
+	@FSM("userController")
+	StatefulFSM<User> userFSM;
+	
+	@FSM("overloadedMethodController")
+	StatefulFSM<User> overloadFSM;
 	
 	// TODO : Need to test for annotated parameters
 	
 	@Test
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
 		
-		assertNotNull(fsm);
+		assertNotNull(userFSM);
 
 		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
 		
@@ -149,12 +152,24 @@ public class StatefulControllerTest {
 		User retUser = invoke(jerseyBinder, "$_get_id_one", User.class, user.getId(), context);
 		assertNotNull(retUser);
 	}
+	
+	@Test
+	public void testOverloadedMethod() throws TooBusyException {
+		assertNotNull(overloadFSM);
+		
+		User user = new User();
+		String response = (String)overloadFSM.onEvent(user, "one");
+		assertEquals("method1", response);
+
+		response = (String)overloadFSM.onEvent(user, "two", "foo");
+		assertEquals("method2", response);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Test(expected=TooBusyException.class)
 	public void testBlockedState() throws TooBusyException, StaleStateException {
 		
-		assertNotNull(fsm);
+		assertNotNull(userFSM);
 
 		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
 
@@ -180,7 +195,7 @@ public class StatefulControllerTest {
 	@SuppressWarnings("unchecked")
 	public void testTransitionOutOfBlocking() throws TooBusyException, StaleStateException {
 
-		assertNotNull(fsm);
+		assertNotNull(userFSM);
 
 
 		// Create a User and force it to SIX_STATE
@@ -214,7 +229,7 @@ public class StatefulControllerTest {
 									public Object doInTransaction(TransactionStatus status) {
 										try {
 											User dbUser = userRepo.findOne(user.getId());
-											fsm.onEvent(dbUser, "unblock");
+											userFSM.onEvent(dbUser, "unblock");
 											return null;
 										} catch (TooBusyException e) {
 											throw new RuntimeException(e);
@@ -228,7 +243,7 @@ public class StatefulControllerTest {
 						}
 					}).start();
 
-					fsm.onEvent(dbUser, "this-should-block");
+					userFSM.onEvent(dbUser, "this-should-block");
 					return null;
 				} catch (TooBusyException e) {
 					throw new RuntimeException(e);

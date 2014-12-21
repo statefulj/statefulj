@@ -80,6 +80,6 @@ public class ReferenceFactoryImpl implements ReferenceFactory {
 	
 	@Override
 	public String getActionId(Method method) {
-		return decapitalize(ctrl + ".action." + method.getName());
+		return decapitalize(ctrl + ".action." + method.getName() + "." + method.getParameterTypes().length);
 	}
 }
