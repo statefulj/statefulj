@@ -109,6 +109,19 @@ The *Stateful Factory* will inspect the [StateControllers](#define-your-controll
 	}
 ```
 
+#### Jersey Binding
+
+For Jersey Binding, you must initialize an instance of StatefulJResourceConfig by extending StatefulJResourceConfig and mapping a root path.
+
+##### Java Configuration
+
+```java
+@ApplicationPath("/ajax")
+public class JerseyConfig extends StatefulJResourceConfig {
+	
+}
+```
+
 ### <a name="define-your-stateful-entity"></a> Define your Stateful Entity
 
 A *Stateful Entity* is a Class that is persisted, managed by Spring Data and contains a *State* field.  The State Field defines the current State of the Entity and is managed by *StatefulJ Framework*.  The state field is annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) annotation.  For your convenience, you can inherit from either the [*StatefulEntity* Class (JPA)](/public/javadoc/org/statefulj/persistence/jpa/model/StatefulEntity.html) or [*StatefulDocument* Class (Mongo)](/public/javadoc/org/statefulj/persistence/mongo/model/StatefulDocument.html).  This will automatically define a state field annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) Annotation.
@@ -220,7 +233,8 @@ Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/fr
 | stateField	| Optional	| The name of the managed State field.  If blank, the Entity will be inspected for a field annotated with [State Annotation](/public/javadoc/org/statefulj/persistence/annotations/State.html) |
 | factoryId		| Optional	| The bean Id of the Factory for this Entity.  The Factory Class must implement the [Factory Interface](/public/javadoc/org/statefulj/framework/core/model/Factory.html).  If not specified, the *StatefulJ Framework* will use the default Factory Implementation. |
 | finderId 		| Optional	| The bean Id of the Finder for this Entity.  The Finder Class must implement the [Finder Interface](/public/javadoc/org/statefulj/framework/core/model/Finder.html).  If not specified, the *StatefulJ Framework* will use the default Finder Implementation. |
-| persisterId	| Optional	| The bean Id of the Persister for this Entity.  The Persister is responsible for updating the State field for the Stateful Entity.  The Persister implment ation implement the [Persister Interface](/public/javadoc/org/statefulj/fsm/Persister.html).  If not specified, the *StatefulJ Framework* will use the default Persister Implementation. |
+| persisterId	| Optional	| The bean Id of the Persister for this Entity.  The Persister is responsible for updating the State field for the Stateful Entity.  The Persister must implement the [Persister Interface](/public/javadoc/org/statefulj/fsm/Persister.html).  If not specified, the *StatefulJ Framework* will use the default Persister Implementation. |
+| blockingStates | Optional	| Defines the set of "Blocking" States.  A Blocking State is a State that "block" an event from being handled until the FSM transitions out of the Blocking State |
 | noops			| Optional	| An array of NOOP Transitions.  These Transitions will update the State field but will not invoke any Actions |
 
 ```java
