@@ -111,6 +111,7 @@ public class StateImpl<T> implements State<T> {
 		return this.isBlocking;
 	}
 	
+	@Override
 	public String toString() {
 		return "State[name=" + this.name + ", isEndState=" + this.isEndState + ", isBlocking=" + this.isBlocking +"]";
 	}

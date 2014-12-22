@@ -53,4 +53,8 @@ public class DeterministicTransitionImpl<T> implements Transition<T> {
 		this.stateActionPair = stateActionPair;
 	}
 
+	@Override
+	public String toString() {
+		return "DeterministicTransition[state=" + this.stateActionPair.getState().getName() + ", action=" + this.stateActionPair.getAction() + "]";
+	}
 }

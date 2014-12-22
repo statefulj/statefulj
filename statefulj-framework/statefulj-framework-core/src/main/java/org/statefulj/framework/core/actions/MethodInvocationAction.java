@@ -59,10 +59,6 @@ public class MethodInvocationAction implements Action<Object> {
 		invoke(stateful, event, parms);
 	}
 	
-	public String toString() {
-		return this.method;
-	}
-	
 	@SuppressWarnings("unchecked")
 	protected void invoke(Object entity, String event, Object... parms) throws RetryException  {
 		try {
@@ -124,6 +120,11 @@ public class MethodInvocationAction implements Action<Object> {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return this.method;
+	}
+	
 	private Pair<String, String> parseResponse(String response) {
 		Matcher matcher = this.protocol.matcher(response);
 		if (!matcher.matches()) {
