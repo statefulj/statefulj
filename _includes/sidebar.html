@@ -53,7 +53,7 @@
   	  </nav>
 	  {% endif %}
 	  
-	  <a class="sidebar-nav-item" target="_blank" href="/demos/">Demos</a>
+	  <a class="sidebar-nav-item{% if page.url == '/demos/' %} active{% endif %}" href="/demos/">Demos</a>
 	  <a class="sidebar-nav-item" target="_blank" href="/public/javadoc/">Javadoc</a>
 
       <!--a class="sidebar-nav-item" href="{{ site.github.repo }}/archive/v{{ site.version }}.zip">Download</a>
