@@ -492,7 +492,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		to = (Transition.ANY_STATE.equals(to)) ? from : to;
 		
 		logger.debug(
-				"Registered: {}({})->{}({})",
+				"Registered: {}({})->{}/{}",
 				from,
 				transition.event(),
 				to,
