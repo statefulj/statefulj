@@ -163,6 +163,9 @@ public class StatefulControllerTest {
 
 		response = (String)overloadFSM.onEvent(user, "two", "foo");
 		assertEquals("method2", response);
+
+		response = (String)overloadFSM.onEvent(user, "three", 1);
+		assertEquals("method3", response);
 	}
 
 	@SuppressWarnings("unchecked")

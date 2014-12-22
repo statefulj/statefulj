@@ -36,8 +36,12 @@ public class OverloadedMethodController {
 	}
 	
 	@Transition(event="two")
-	public String method(User user, String event, Object parm) {
+	public String method(User user, String event, String parm) {
 		return "method2";
 	}
 	
+	@Transition(event="three")
+	public String method(User user, String event, Integer parm) {
+		return "method3";
+	}
 }

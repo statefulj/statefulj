@@ -55,14 +55,14 @@ public @interface StatefulController {
 	 * will pass in a new instance of the Managed Entity.  It is the responsibility of
 	 * the StatefulController to persist the new instance.
 	 * 
-	 * @return
+	 * @return Starting State
 	 */
 	String startState();
 	
 	/**
 	 * The Entity class managed by the StatefulController
 	 * 
-	 * @return
+	 * @return Entity Class
 	 */
 	Class<?> clazz();
 
@@ -70,31 +70,49 @@ public @interface StatefulController {
 	 * The name of the managed State field.  If blank, the Entity will be inspected
 	 * for a field annotated with State
 	 * 
-	 * @return
+	 * @return Name of the State field
 	 */
 	String stateField() default "";
 
 	/**
-	 * Optional Ids of the Persistence beans for this class. 
+	 * The bean Id of the Factory for this Entity. 
+	 * The Factory Class must implement the {@link org.statefulj.framework.core.model.Factory} Interface. 
+	 * If not specified, the StatefulJ Framework will use the default Factory Implementation. 
 	 * 
-	 * @return
+	 * @return Id of the Factory Bean
 	 */
 	String factoryId() default "";
+	
+	/**
+	 * The bean Id of the Finder for this Entity. 
+	 * The Finder Class must implement the {@link org.statefulj.framework.core.model.Finder} Interface. 
+	 * If not specified, the StatefulJ Framework will use the default Finder Implementation.
+	 * 
+	 * @return Id of the Finder Bean
+	 */
 	String finderId() default "";
+	
+	/**
+	 * The bean Id of the Persister for this Entity. 
+	 * The Persister is responsible for updating the State field for the Stateful Entity. 
+	 * The Persister must implement the {@link org.statefulj.framework.core.model.Persister} Interface. If not specified, the StatefulJ Framework will use the default Persister Implementation.
+	 * 
+	 * @return Id of the Persister Bean
+	 */
 	String persisterId() default "";
 	
 	/**
 	 * Defines the set of "Blocking" States.  A Blocking State is a State that "block" an event
 	 * from being handled until the FSM transitions out of the Blocking State
 	 * 
-	 * @return
+	 * @return Array of Blocking States
 	 */
 	String[] blockingStates() default {};
 
 	/**
 	 * A set of NOOP transitions
 	 * 
-	 * @return
+	 * @return Array of NOOP Transitions
 	 */
 	Transition[] noops() default {};
 
