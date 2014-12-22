@@ -174,10 +174,10 @@ stateB.addTransition(eventA, new Transition<Foo>() {
 
 ### <a name="define-your-persister"></a>Define your Persister
 
-A *Persister* is a Class Responsible for persisting the State value for a Stateful Entity.  A Persister implements the 
+A [*Persister*](/persistence/) is a Class Responsible for persisting the State value for a Stateful Entity.  A Persister implements the 
 Persister interface and *must* ensure that updates are atomic, isolated and thread-safe.  The *Stateful FSM* library comes with an
 in-memory Persister which maintains the State only on the in-memory *Stateful Entity*.  If you need to persist to a database, you will
-need to use one of the Database Persisters or integrate the *StatefulJ Framework*.
+need to use one of the [Database Persisters](/persistence/) or integrate the *StatefulJ Framework*.
 
 ```java
 // In-Memory Persister

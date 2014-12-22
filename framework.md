@@ -24,7 +24,7 @@ Persisters interacts within the underlying databases.  StatefulJ supports the fo
 
 So, depending on your stack, you will need to include the following dependencies into your Maven project:
 
-### Binders
+### <a href="#installation-binders"></a>Binders
 
 #### SpringMVC
 
@@ -56,7 +56,7 @@ So, depending on your stack, you will need to include the following dependencies
 </dependency>
 ```
 
-### Persisters
+### <a href="#installation-persisters"></a>Persisters
 
 #### JPA
 
