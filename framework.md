@@ -113,8 +113,6 @@ The *Stateful Factory* will inspect the [StateControllers](#define-your-controll
 
 For Jersey Binding, you must initialize an instance of StatefulJResourceConfig by extending StatefulJResourceConfig and mapping a root path.
 
-##### Java Configuration
-
 ```java
 @ApplicationPath("/ajax")
 public class JerseyConfig extends StatefulJResourceConfig {

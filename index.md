@@ -14,9 +14,9 @@ I won't go into detail here as there is [a lot already written about them](http:
 
 ## Why should I use StatefulJ?
 
-Modern day applications have to manage and orchestrate requests and events from many sources: REST and SOAP APIs, Web Page requests, Message Queues, Internal Application Events, etc...  Handling concurrency and reliably updating Application state becomes a major challenge without the proper framework.  
+Applications have to manage and orchestrate [synchronous and asynchronous requests and events](http://www.reactivemanifesto.org/) from many sources: REST and SOAP APIs, Web Page requests, Message Queues, Internal Application Events, etc...  Handling concurrency and reliably updating Application state becomes a major challenge without the proper framework.  
 
-By making easy to integrate State Machines into your Application, *StatefulJ* provides you the ability to meet these challenges by creating *State Models* instead of writing ad-hoc code.  
+By making easy to integrate State Machines into your Application, *StatefulJ* provides you the ability to meet these challenges by creating *State Models* instead of writing ad-hoc code.
 
 ## What does StatefulJ provide?
 
