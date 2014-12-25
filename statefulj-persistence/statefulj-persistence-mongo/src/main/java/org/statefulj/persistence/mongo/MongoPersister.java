@@ -64,8 +64,58 @@ public class MongoPersister<T>
 	
 	private String repoId;
 	
+	private MongoTemplate mongoTemplate;
+
 	private String templateId;
 
+	/**
+	 * Instantiate the MongoPersister with a specified template.  The State field
+	 * on the Entity will be determined by inspection of Entity for the @State annotation
+	 * 
+	 * @param states List of the States
+	 * @param start The Start State
+	 * @param clazz The Managed Entity class
+	 * @param mongoTemplate MongoTemplate to use to persist the Managed Entity
+	 */
+	public MongoPersister(
+			List<State<T>> states, 
+			State<T> start, 
+			Class<T> clazz, 
+			MongoTemplate mongoTemplate) {
+		super(states, null, start, clazz);
+		this.mongoTemplate = mongoTemplate;
+	}
+
+	/**
+	 * Instantiate the MongoPersister with a specified template.  The MongoPersister
+	 * will use the stateFieldName to determine the State field.
+	 * 
+	 * @param states List of the States
+	 * @param stateFieldName The name of the State Field
+	 * @param start The Start State
+	 * @param clazz The Managed Entity class
+	 * @param mongoTemplate MongoTemplate to use to persist the Managed Entity
+	 */
+	public MongoPersister(
+			List<State<T>> states, 
+			String stateFieldName, 
+			State<T> start, 
+			Class<T> clazz, 
+			MongoTemplate mongoTemplate) {
+		super(states, stateFieldName, start, clazz);
+		this.mongoTemplate = mongoTemplate;
+	}
+
+	/**
+	 * Instantiate the MongoPersister with the id of the MongoRepository bean for
+	 * the Managed Entity.  The State field on the Entity will be 
+	 * determined by inspection of Entity for the @State annotation
+	 * 
+	 * @param states List of the States
+	 * @param start The Start State
+	 * @param clazz The Managed Entity class
+	 * @param repoId Bean Id of the Managed Entity's MongoRepository
+	 */
 	public MongoPersister(
 			List<State<T>> states, 
 			State<T> start, 
@@ -74,13 +124,24 @@ public class MongoPersister<T>
 		this(states, null, start,clazz, repoId);
 	}
 
+	/**
+	 * Instantiate the MongoPersister with the id of the MongoRepository bean for
+	 * the Managed Entity.  The MongoPersister will use the stateFieldName to 
+	 * determine the State field.
+	 * 
+	 * @param states List of States
+	 * @param stateFieldName The name of the State Field
+	 * @param start The Start State
+	 * @param clazz The Managed Entity class
+	 * @param repoId Bean Id of the Managed Entity's MongoRepository
+	 */
 	public MongoPersister(
 			List<State<T>> states, 
 			String stateFieldName, 
 			State<T> start, 
 			Class<T> clazz, 
 			String repoId) {
-		super(states, stateFieldName, start,clazz);
+		super(states, stateFieldName, start, clazz);
 		this.repoId = repoId;
 	}
 
@@ -165,11 +226,24 @@ public class MongoPersister<T>
 	public void postProcessBeanDefinitionRegistry(
 			BeanDefinitionRegistry registry) throws BeansException {
 		
-		// Fetch the MongoTemplate Bean Id
-		//
-		BeanDefinition repo = registry.getBeanDefinition(this.repoId);
-		this.templateId = ((BeanReference)repo.getPropertyValues().get("mongoOperations")).getBeanName();
+		if (this.mongoTemplate == null) {
+			
+			if (this.repoId != null) {
+
+				// Fetch the MongoTemplate Bean Id
+				//
+				BeanDefinition repo = registry.getBeanDefinition(this.repoId);
+				this.templateId = ((BeanReference)repo.getPropertyValues().get("mongoOperations")).getBeanName();
+			}
+			
+			// Check to make sure we have a reference to the MongoTemplate
+			//
+			if (this.templateId == null) {
+				throw new RuntimeException("Unable to obtain a reference to a MongoTemplate");
+			}
+		}
 		
+
 		// Add in CascadeSupport
 		//
 		BeanDefinition mongoCascadeSupportBean = BeanDefinitionBuilder
@@ -309,7 +383,10 @@ public class MongoPersister<T>
 	}
 
 	protected MongoTemplate getMongoTemplate() {
-		return (MongoTemplate)appContext.getBean(this.templateId);
+		if (this.mongoTemplate == null) {
+			this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
+		}
+		return this.mongoTemplate;
 	}
   	
 	protected StateDocumentImpl updateStateDoc(Query query, Update update) {
