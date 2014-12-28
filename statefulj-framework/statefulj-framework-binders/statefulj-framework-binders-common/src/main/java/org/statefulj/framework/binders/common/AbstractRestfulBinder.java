@@ -72,6 +72,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			String beanName, 
 			Class<?> statefulControllerClass,
 			Class<?> idType,
+			boolean isDomainEntity,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory)
 			throws CannotCompileException, NotFoundException,
@@ -97,6 +98,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 				proxyClassName,
 				statefulControllerClass,
 				idType,
+				isDomainEntity,
 				eventMapping, 
 				refFactory).toClass();
 	}
@@ -107,6 +109,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			String proxyClassName,
 			Class<?> statefulControllerClass,
 			Class<?> idType,
+			boolean isDomainEntity,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory) 
 			throws CannotCompileException, NotFoundException,
@@ -125,7 +128,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 		
 		// Copy methods that have a Transition annotation from the StatefulController to the Binder
 		//
-		addRequestMethods(proxyClass, idType, eventMapping, cp);
+		addRequestMethods(proxyClass, idType, isDomainEntity, eventMapping, cp);
 		
 		return proxyClass;
 	}
@@ -137,6 +140,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	protected void addRequestMethods(
 			CtClass proxyClass, 
 			Class<?> idType,
+			boolean isDomainEntity,
 			Map<String,Method> eventMapping, 
 			ClassPool cp) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
@@ -146,6 +150,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			addRequestMethod(
 					proxyClass,
 					idType,
+					isDomainEntity,
 					event, 
 					eventMapping.get(event), 
 					cp);
@@ -173,10 +178,13 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	protected void addRequestParameters(
 			boolean referencesId, 
 			Class<?> idType,
+			boolean isDomainEntity,
 			CtMethod ctMethod, 
 			Method method, 
 			ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 
+		int fixedParmCnt = (isDomainEntity) ? 1 : 2;
+		
 		String[] parmNames = (method != null) ? parmDiscover.getParameterNames(method) : null;
  		MethodInfo methodInfo = ctMethod.getMethodInfo();
 		ParameterAnnotationsAttribute paramAtrributeInfo = 
@@ -192,12 +200,13 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			// Does this event reference the stateful object?
 			//
 			int annotationCnt = (referencesId) 
-					? method.getParameterTypes().length 
-					: method.getParameterTypes().length - 1;
+					? method.getParameterTypes().length + 2 - fixedParmCnt
+					: method.getParameterTypes().length + 1 - fixedParmCnt;
 			annotationCnt = Math.max(annotationCnt, 1);
 
 			// Pull the Parameter Annotations from the StatefulController - we're going to skip
-			// over the first two - but then we're going to add a parameter for the HttpServletRequest and "id" parameter
+			// over the first one (DomainEntity) or two (Controller) - but then we're going to 
+			// add a parameter for the HttpServletRequest and "id" parameter
 			//
 			java.lang.annotation.Annotation[][] parmAnnotations = method.getParameterAnnotations();
 			paramArrays = new Annotation[annotationCnt][];
@@ -220,7 +229,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 				
 				// Skip first two parameters - they are the Stateful Object and event String.
 				//
-				if (parmCnt < 2) {
+				if (parmCnt < fixedParmCnt) {
 					parmCnt++;
 					continue;
 				}
@@ -346,6 +355,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 	protected void addRequestMethod(
 			CtClass proxyClass,
 			Class<?> idType,
+			boolean isDomainEntity,
 			String event, 
 			Method method, 
 			ClassPool cp) throws NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException, CannotCompileException {
@@ -374,7 +384,7 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 
 		// Clone the parameters, along with the Annotations
 		//
-		addRequestParameters(referencesId, idType, ctMethod, method, cp);
+		addRequestParameters(referencesId, idType, isDomainEntity, ctMethod, method, cp);
 
 		// Add the Method Body
 		//

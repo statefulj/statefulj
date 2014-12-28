@@ -15,24 +15,10 @@
  * limitations under the License.
  * 
  */
-package org.statefulj.framework.core.model;
+package org.statefulj.framework.tests.ddd;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Map;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import javassist.CannotCompileException;
-import javassist.NotFoundException;
+public interface DomainEntityRepository extends JpaRepository<DomainEntity, Long> {
 
-public interface EndpointBinder {
-	
-	String getKey();
-
-	Class<?> bindEndpoints(
-			String beanName, 
-			Class<?> stateControllerClass,
-			Class<?> idType,
-			boolean isDomainEntity,
-			Map<String, Method> eventMapping, 
-			ReferenceFactory refFactory) throws CannotCompileException, NotFoundException, IllegalArgumentException, IllegalAccessException, InvocationTargetException;
 }

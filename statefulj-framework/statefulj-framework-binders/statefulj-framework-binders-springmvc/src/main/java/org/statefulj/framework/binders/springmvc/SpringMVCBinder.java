@@ -81,6 +81,7 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 			String proxyClassName,
 			Class<?> statefulControllerClass,
 			Class<?> idType,
+			boolean isDomainEntity,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory) 
 			throws CannotCompileException, NotFoundException,
@@ -95,6 +96,7 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 				proxyClassName, 
 				statefulControllerClass, 
 				idType,
+				isDomainEntity,
 				eventMapping, 
 				refFactory);
 		

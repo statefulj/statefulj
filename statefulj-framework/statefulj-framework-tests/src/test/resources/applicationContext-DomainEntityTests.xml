@@ -9,7 +9,7 @@
 
     <context:property-placeholder location="classpath:test.database.properties" ignore-unresolvable="true"/>
     <import resource="classpath:statefulj-framework-test-db.xml" />
- 	<context:component-scan base-package="org.statefulj.framework.tests.controllers" />
+ 	<context:component-scan base-package="org.statefulj.framework.tests.ddd" />
  	
  	<bean id="factory" class="org.statefulj.framework.core.StatefulFactory" />
 </beans>

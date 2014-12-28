@@ -61,6 +61,7 @@ public class JerseyBinder extends AbstractRestfulBinder {
 			String beanName, 
 			Class<?> statefulControllerClass,
 			Class<?> idType,
+			boolean isDomainEntity,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory)
 			throws CannotCompileException, NotFoundException,
@@ -71,6 +72,7 @@ public class JerseyBinder extends AbstractRestfulBinder {
 				beanName, 
 				statefulControllerClass, 
 				idType, 
+				isDomainEntity,
 				eventMapping, 
 				refFactory);
 		
@@ -88,6 +90,7 @@ public class JerseyBinder extends AbstractRestfulBinder {
 			String proxyClassName,
 			Class<?> statefulControllerClass,
 			Class<?> idType,
+			boolean isDomainEntity,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory) 
 			throws CannotCompileException, NotFoundException,
@@ -102,6 +105,7 @@ public class JerseyBinder extends AbstractRestfulBinder {
 				proxyClassName, 
 				statefulControllerClass, 
 				idType,
+				isDomainEntity,
 				eventMapping, 
 				refFactory);
 		

@@ -39,6 +39,7 @@ public class MockBinder implements EndpointBinder {
 			String beanId,
 			Class<?> stateControllerClass,
 			Class<?> idType,
+			boolean isDomainEntity,
 			Map<String, Method> eventMapping, 
 			ReferenceFactory refFactory)
 			throws CannotCompileException, NotFoundException,

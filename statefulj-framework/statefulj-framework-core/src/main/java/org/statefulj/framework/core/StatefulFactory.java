@@ -60,6 +60,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
+import org.statefulj.framework.core.actions.DomainEntityMethodInvocationAction;
 import org.statefulj.framework.core.actions.MethodInvocationAction;
 import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
@@ -159,7 +160,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 	/* 
 	 * Override postProcessBeanDefinitionRegistry to dynamically generate all the StatefulJ beans for each StatefulController
-	 * s
+	 * 
 	 * (non-Javadoc)
 	 * @see org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor#postProcessBeanDefinitionRegistry(org.springframework.beans.factory.support.BeanDefinitionRegistry)
 	 */
@@ -287,7 +288,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	}
 	
 	private void buildFramework(
-			String controllerBeanId, 
+			String statefulControllerBeanId, 
 			Class<?> statefulControllerClass, 
 			BeanDefinitionRegistry reg, 
 			Map<Class<?>, String> entityMappings) throws CannotCompileException, IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
@@ -295,8 +296,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		// Determine the managed class
 		// 
 		StatefulController scAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
-		Class<?> statefulClass = scAnnotation.clazz();
-		ReferenceFactory referenceFactory = new ReferenceFactoryImpl(controllerBeanId);
+		Class<?> managedClass = scAnnotation.clazz();
+		
+		// Is the the Controller and ManagedClass the same?  (DomainEntity)
+		//
+		boolean isDomainEntity = managedClass.equals(statefulControllerClass);
+		
+		ReferenceFactory referenceFactory = new ReferenceFactoryImpl(statefulControllerBeanId);
 		
 		// Gather all the events from across all the methods
 		//
@@ -308,10 +314,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		// Fetch Repo info
 		//
-		String repoBeanId = getRepoId(entityMappings, statefulClass);
+		String repoBeanId = getRepoId(entityMappings, managedClass);
 		
 		if (repoBeanId == null) {
-			throw new RuntimeException("Unable to determine Repository for class " + statefulClass.getName());
+			throw new RuntimeException("Unable to determine Repository for class " + managedClass.getName());
 		}
 		
 		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
@@ -348,9 +354,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			// Build out the Binder Class
 			//
 			Class<?> binderClass = binder.bindEndpoints(
-					controllerBeanId, 
+					statefulControllerBeanId, 
 					statefulControllerClass, 
 					factory.getIdType(),
+					isDomainEntity,
 					entry.getValue(), 
 					referenceFactory);
 
@@ -377,7 +384,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		// Build out the Action classes and the Transitions
 		//
-		RuntimeBeanReference controllerRef = new RuntimeBeanReference(controllerBeanId);
+		RuntimeBeanReference controllerRef = new RuntimeBeanReference(statefulControllerBeanId);
 		int cnt = 1;
 		List<String> transitionIds = new LinkedList<String>();
 		for(Entry<Transition, Method> entry : anyMapping.entrySet()) {
@@ -392,6 +399,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 						to, 
 						entry.getKey(), 
 						entry.getValue(), 
+						isDomainEntity,
 						controllerRef, 
 						transitionId, 
 						reg);
@@ -407,6 +415,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					entry.getKey().to(), 
 					entry.getKey(), 
 					entry.getValue(), 
+					isDomainEntity,
 					controllerRef, 
 					transitionId, 
 					reg);
@@ -440,7 +449,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				referenceFactory, 
 				factory, 
 				statefulContollerAnnotation, 
-				statefulClass, 
+				managedClass, 
 				repoBeanId,
 				stateBeans, 
 				reg);
@@ -457,7 +466,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		//
 		String statefulFSMBeanId = registerStatefulFSMBean(
 				referenceFactory,
-				statefulClass, 
+				managedClass, 
 				fsmBeanId, 
 				factoryId, 
 				transitionIds,
@@ -468,7 +477,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		registerFSMHarness(
 				referenceFactory,
 				factory, 
-				statefulClass, 
+				managedClass, 
 				statefulFSMBeanId, 
 				factoryId, 
 				finderId, 
@@ -483,6 +492,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			String to, 
 			Transition transition, 
 			Method method, 
+			boolean isDomainEntity,
 			RuntimeBeanReference controllerRef, 
 			String transitionId, 
 			BeanDefinitionRegistry reg) {
@@ -504,14 +514,27 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		if (method != null) {
 			String actionId = referenceFactory.getActionId(method);
 			if (!reg.isBeanNameInUse(actionId)) {
+				
+				// Choose the type of invocationAction based off of 
+				// whether the controller is a DomainEntity
+				//
+				Class<?> methodInvocationAction = (isDomainEntity) ?
+						DomainEntityMethodInvocationAction.class :
+						MethodInvocationAction.class;
+				
 				BeanDefinition actionBean = BeanDefinitionBuilder
-						.genericBeanDefinition(MethodInvocationAction.class)
+						.genericBeanDefinition(methodInvocationAction)
 						.getBeanDefinition();
+				
 				ConstructorArgumentValues args = actionBean.getConstructorArgumentValues();
-				args.addIndexedArgumentValue(0, controllerRef);
-				args.addIndexedArgumentValue(1, method.getName());
-				args.addIndexedArgumentValue(2, method.getParameterTypes());
-				args.addIndexedArgumentValue(3, new RuntimeBeanReference(referenceFactory.getFSMId()));
+				args.addIndexedArgumentValue(0, method.getName());
+				args.addIndexedArgumentValue(1, method.getParameterTypes());
+				args.addIndexedArgumentValue(2, new RuntimeBeanReference(referenceFactory.getFSMId()));
+				 
+				if (!isDomainEntity) {
+					args.addIndexedArgumentValue(3, controllerRef);
+				}
+				
 				reg.registerBeanDefinition(actionId, actionBean);
 			}
 			actionRef = new RuntimeBeanReference(actionId);

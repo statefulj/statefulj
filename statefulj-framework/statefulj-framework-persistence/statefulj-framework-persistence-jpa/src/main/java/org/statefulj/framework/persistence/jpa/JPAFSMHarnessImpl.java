@@ -30,19 +30,17 @@ import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
 import org.statefulj.fsm.TooBusyException;
 
-public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
+public class JPAFSMHarnessImpl<T, CT> extends FSMHarnessImpl<T, CT> {
 	
 	@Resource
 	JpaTransactionManager transactionManager;
-	
-	FSMHarnessImpl<T, CT> fsm;
 	
 	public JPAFSMHarnessImpl(
 			StatefulFSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T, CT> factory,
 			Finder<T, CT> finder) {
-		this.fsm = new FSMHarnessImpl<T, CT>(fsm, clazz, factory, finder);
+		super(fsm, clazz, factory, finder);
 	}
 	
 	@Override
@@ -53,7 +51,7 @@ public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
 			@Override
 			public Object doInTransaction(TransactionStatus status) {
 				try {
-					return fsm.onEvent(event, id, parms);
+					return JPAFSMHarnessImpl.super.onEvent(event, id, parms);
 				} catch (TooBusyException e) {
 					throw new RuntimeException(e);
 				}
@@ -70,7 +68,7 @@ public class JPAFSMHarnessImpl<T, CT> implements FSMHarness {
 			@Override
 			public Object doInTransaction(TransactionStatus status) {
 				try {
-					return fsm.onEvent(event, parms);
+					return JPAFSMHarnessImpl.super.onEvent(event, parms);
 				} catch (TooBusyException e) {
 					throw new RuntimeException(e);
 				} 

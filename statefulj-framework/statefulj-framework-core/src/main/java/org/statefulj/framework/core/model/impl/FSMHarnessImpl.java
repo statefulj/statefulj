@@ -20,8 +20,12 @@ package org.statefulj.framework.core.model.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.annotation.Resource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
@@ -40,6 +44,9 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	
 	private Class<T> clazz;
 	
+	@Resource
+	ApplicationContext appContext;
+	
 	public FSMHarnessImpl(
 			StatefulFSM<T> fsm, 
 			Class<T> clazz, 
@@ -52,7 +59,7 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	}
 	
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked" })
 	public Object onEvent(String event, Object id, Object[] parms) throws TooBusyException {
 		
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
@@ -78,6 +85,14 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 				}
 			}
 		}
+		
+		// Autowire instantiated object 
+		// TODO: Make this configurable - if using @Configurable - then this isn't necessary
+		//
+		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
+				stateful,
+			    AutowireCapableBeanFactory.AUTOWIRE_NO, 
+			    true);
 		
 		return fsm.onEvent(stateful, event, parmList.toArray());
 	}

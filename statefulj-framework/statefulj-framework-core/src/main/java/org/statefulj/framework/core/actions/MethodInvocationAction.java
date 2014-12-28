@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,35 +46,60 @@ public class MethodInvocationAction implements Action<Object> {
 	private FSM<Object> fsm;
 	
 	public MethodInvocationAction(
-			Object controller,
 			String method,
 			Class<?>[] parameters,
-			FSM<Object> fsm) {
-		this.controller = controller;
+			FSM<Object> fsm,
+			Object controller) {
 		this.method = method;
 		this.parameters = parameters;
 		this.fsm = fsm;	
+		this.controller = controller;
 	}
 
-	public void execute(Object stateful, String event, Object... parms) throws RetryException {
-		invoke(stateful, event, parms);
+	public Object getController() {
+		return controller;
 	}
-	
+
+	public void setController(Object controller) {
+		this.controller = controller;
+	}
+
+	public String getMethod() {
+		return method;
+	}
+
+	public void setMethod(String method) {
+		this.method = method;
+	}
+
+	public Class<?>[] getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(Class<?>[] parameters) {
+		this.parameters = parameters;
+	}
+
+	public FSM<Object> getFsm() {
+		return fsm;
+	}
+
+	public void setFsm(FSM<Object> fsm) {
+		this.fsm = fsm;
+	}
+
+	public Pattern getProtocol() {
+		return protocol;
+	}
+
 	@SuppressWarnings("unchecked")
-	protected void invoke(Object entity, String event, Object... parms) throws RetryException  {
+	public void execute(Object stateful, String event, Object... parms) throws RetryException {
 		try {
 			// Remove the first Object in the parm list - it's our Return Value
 			//
-			ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
+			List<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 			MutableObject<Object> returnValue = (MutableObject<Object>)parmList.remove(0);
-			
-			// Add the Entity and Event to the pam list to pass to the Controller
-			// TODO : Inspect method signature - make entity and event optional
-			//
-			ArrayList<Object> invokeParmList = new ArrayList<Object>(parmList.size() + 2);
-			invokeParmList.add(entity);
-			invokeParmList.add(event);
-			invokeParmList.addAll(parmList);
+			List<Object> invokeParmList = buildInvokeParameters(stateful, event, parmList);
 			
 			if (invokeParmList.size() < this.parameters.length) {
 				throw new RuntimeException(
@@ -86,14 +112,11 @@ public class MethodInvocationAction implements Action<Object> {
 			// Call the method on the Controller
 			// TODO : Add test case
 			//
-			Method method = controller.getClass().getMethod(this.method, this.parameters);
-			Object[] methodParms = invokeParmList.subList(0, this.parameters.length).toArray();
-			method.setAccessible(true);
-			Object retVal = method.invoke(this.controller, methodParms);
+			Object retVal = invoke(stateful, event, invokeParmList);
 			if (retVal instanceof String) {
 				Pair<String, String> pair = this.parseResponse((String)retVal);
 				if ("event".equals(pair.getLeft())) {
-					this.fsm.onEvent(entity, pair.getRight(), returnValue, parms);
+					this.fsm.onEvent(stateful, pair.getRight(), returnValue, parms);
 				} else {
 					returnValue.setValue(retVal);
 				}
@@ -123,6 +146,30 @@ public class MethodInvocationAction implements Action<Object> {
 	@Override
 	public String toString() {
 		return this.method;
+	}
+	
+	protected Object invoke(Object stateful, String event, List<Object> invokeParmList) throws RetryException, SecurityException, IllegalArgumentException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+		return invoke(this.controller, invokeParmList);
+	}
+	
+	protected Object invoke(Object context, List<Object> invokeParmList) throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		Method method = context.getClass().getDeclaredMethod(this.method, this.parameters);
+		Object[] methodParms = invokeParmList.subList(0, this.parameters.length).toArray();
+		method.setAccessible(true);
+		return method.invoke(context, methodParms);
+	}
+	
+	protected List<Object> buildInvokeParameters(Object stateful, String event, List<Object> parmList) {
+
+		// Add the Entity and Event to the parm list to pass to the Controller
+		// TODO : Inspect method signature - make entity and event optional
+		//
+		ArrayList<Object> invokeParmList = new ArrayList<Object>(parmList.size() + 2);
+		invokeParmList.add(stateful);
+		invokeParmList.add(event);
+		invokeParmList.addAll(parmList);
+		
+		return invokeParmList;
 	}
 	
 	private Pair<String, String> parseResponse(String response) {
