@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @Component
 public @interface Transition {
 	
-	public final String ANY_STATE = "*";
+	final String ANY_STATE = "*";
 	
 	String from() default ANY_STATE;
 	
