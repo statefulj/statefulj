@@ -15,7 +15,7 @@
  * limitations under the License.
  * 
  */
-package org.statefulj.framework.core.springdata;
+package org.statefulj.framework.core.model;
 
 import java.util.List;
 

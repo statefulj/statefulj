@@ -24,10 +24,10 @@ import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactoryBean;
+import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 import org.statefulj.framework.core.model.impl.CrudRepositoryFinderImpl;
 import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
 import org.statefulj.framework.core.model.impl.FactoryImpl;
-import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
 import org.statefulj.persistence.mongo.MongoPersister;
 
 public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBeanFactory {

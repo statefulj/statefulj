@@ -68,11 +68,11 @@ import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.fsm.FSM;
 import org.statefulj.framework.core.fsm.TransitionImpl;
 import org.statefulj.framework.core.model.EndpointBinder;
+import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
-import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
 import org.statefulj.fsm.model.impl.StateImpl;
 
 /**

@@ -22,7 +22,7 @@ import java.util.List;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.statefulj.framework.core.springdata.PersistenceSupportBeanFactory;
+import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 
 public class MockPersistenceSupportBeanFactory implements
 		PersistenceSupportBeanFactory {
