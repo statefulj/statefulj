@@ -92,7 +92,7 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
 				stateful,
 			    AutowireCapableBeanFactory.AUTOWIRE_NO, 
-			    true);
+			    false);
 		
 		return fsm.onEvent(stateful, event, parmList.toArray());
 	}
