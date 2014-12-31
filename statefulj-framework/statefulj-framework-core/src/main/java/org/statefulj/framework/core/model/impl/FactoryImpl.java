@@ -17,21 +17,33 @@
  */
 package org.statefulj.framework.core.model.impl;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import org.statefulj.framework.core.model.Factory;
 
 public class FactoryImpl<T, CT> implements Factory<T, CT> {
 
 	@Override
 	public T create(Class<T> clazz, String event, CT context) {
-		T newInstance = null;
 		try {
-			newInstance = clazz.newInstance();
+			Constructor<T> ctr = clazz.getDeclaredConstructor();
+			ctr.setAccessible(true);
+			return ctr.newInstance();
 		} catch(IllegalAccessException e) {
 			throw new RuntimeException(e);
 		} catch (InstantiationException e) {
 			throw new RuntimeException(e);
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		} catch (InvocationTargetException e) {
+			throw new RuntimeException(e);
+		} catch (SecurityException e) {
+			throw new RuntimeException(e);
+		} catch (NoSuchMethodException e) {
+			throw new RuntimeException(clazz.getCanonicalName() + " does not have a default constructor");
 		}
-		return newInstance;
 	}
 
 }
