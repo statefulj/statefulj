@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.ReflectionUtils;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.RetryException;
 import org.statefulj.fsm.TooBusyException;
@@ -153,7 +154,10 @@ public class MethodInvocationAction implements Action<Object> {
 	}
 	
 	protected Object invoke(Object context, List<Object> invokeParmList) throws SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
-		Method method = context.getClass().getDeclaredMethod(this.method, this.parameters);
+		Method method = ReflectionUtils.findMethod(context.getClass(), this.method, this.parameters);
+		if (method == null) {
+			throw new NoSuchMethodException(this.method);
+		}
 		Object[] methodParms = invokeParmList.subList(0, this.parameters.length).toArray();
 		method.setAccessible(true);
 		return method.invoke(context, methodParms);
