@@ -25,7 +25,6 @@ import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
-import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.FSMHarnessImpl;
 import org.statefulj.fsm.TooBusyException;

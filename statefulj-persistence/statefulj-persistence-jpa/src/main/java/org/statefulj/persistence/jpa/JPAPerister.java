@@ -25,6 +25,13 @@ import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,25 +81,20 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 				// Entity is in the database - perform qualified update based off 
 				// the current State value
 				//
-				String update = buildUpdateStatement(id, stateful, current, next, getIdField(), getStateField());
+				Query update = buildUpdateStatement(id, stateful, current, next, getIdField(), getStateField());
 				
 				// Successful update?
 				//
-				if (entityManager.createQuery(update).executeUpdate() == 0) {
+				if (update.executeUpdate() == 0) {
 					
 					// If we aren't able to update - it's most likely that we are out of sync.
 					// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
 					// This will cause the event to be reprocessed by the FSM
 					//
-					String query = String.format(
-							"select %s from %s where %s=%s", 
-							this.getStateField().getName(), 
-							getClazz().getSimpleName(),
-							this.getIdField().getName(),
-							id);
+					Query query = buildQuery(id, stateful);
 					String state = getStart().getName();
 					try {
-						state = (String)entityManager.createQuery(query).getSingleResult();
+						state = (String)query.getSingleResult();
 					} catch(NoResultException nre) {
 						// This is the first time setting the state, ignore
 						//
@@ -131,39 +133,60 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 		}
 	}
 	
-	protected String buildUpdateStatement(
+	protected Query buildUpdateStatement(
 			Object id, 
 			T stateful, 
 			State<T> current, 
 			State<T> next, 
 			Field idField, 
-			Field stateField) {
+			Field stateField) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+
+		CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
 		
-		String where = (current.equals(getStart())) 
-				?
-				String.format(
-						"%s=%s and (%s='%s' or %s is null)",
-						getIdField().getName(),
-						id,
-						getStateField().getName(), 
-						current.getName(),
-						getStateField().getName()) 
-				:
-				String.format(
-						"%s=%s and %s='%s'",
-						getIdField().getName(),
-						id,
-						getStateField().getName(), 
-						current.getName());
+		// update <class>
+		//
+		CriteriaUpdate<T> cu = cb.createCriteriaUpdate(this.getClazz());
+		Root<T> t = cu.from(this.getClazz());
 		
-		String update = String.format(
-				"update %s set %s='%s' where %s", 
-				getClazz().getSimpleName(), 
-				getStateField().getName(), 
-				next.getName(),
-				where);
+		Path<?> idPath = t.get(this.getIdField().getName());
+		Path<String> statePath = t.get(this.getStateField().getName());
 		
-		return update;
+		// set state=<new_state>
+		//
+		cu.set(statePath, next.getName());
+		
+		// where id=<id> and state=<old_state>
+		//
+		Predicate statePredicate = (current.equals(getStart())) ?
+				cb.or(
+					cb.equal(
+						statePath, 
+						current.getName()
+					),
+					cb.equal(
+						statePath, 
+						cb.nullLiteral(String.class)
+					)
+				) :
+				cb.equal(
+					statePath, 
+					current.getName()
+				);
+
+				
+		cu.where(
+			cb.and(
+				cb.equal(
+					idPath, 
+					this.getId(stateful)
+				),
+				statePredicate
+			)
+		);
+		
+		Query query = entityManager.createQuery(cu);
+		logger.debug(query.unwrap(org.hibernate.Query.class).getQueryString());
+		return query;
 	}
 
 	@Override
@@ -181,4 +204,17 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 		return String.class;
 	}
 	
+	private Query buildQuery(Object id, T stateful) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+		CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
+		CriteriaQuery<String> cq = cb.createQuery(String.class);
+		Root<T> t = cq.from(this.getClazz());
+		Path<?> idPath = t.get(this.getIdField().getName());
+		Path<String> statePath = t.get(this.getStateField().getName());
+		cq.select(statePath);
+		cq.where(cb.equal(idPath, this.getId(stateful)));
+
+		Query query = entityManager.createQuery(cq);
+		logger.debug(query.unwrap(org.hibernate.Query.class).getQueryString());
+		return query;
+	}
 }
