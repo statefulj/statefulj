@@ -21,6 +21,7 @@ package org.statefulj.persistence.jpa;
 import java.lang.reflect.Field;
 import java.util.List;
 
+import javax.persistence.EmbeddedId;
 import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import javax.persistence.NoResultException;
@@ -43,8 +44,6 @@ import org.statefulj.persistence.common.AbstractPersister;
 
 import static org.statefulj.common.utils.ReflectionUtils.*;
 
-// TODO : Rewrite this to use "safe" query building instead of string construction
-//
 @Transactional
 public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T> {
 
@@ -52,7 +51,7 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 
 	@PersistenceContext
 	private EntityManager entityManager;
-	
+  	
 	public JPAPerister(List<State<T>> states, State<T> start, Class<T> clazz) {
 		this(states, null, start, clazz);
 	}
@@ -81,7 +80,7 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 				// Entity is in the database - perform qualified update based off 
 				// the current State value
 				//
-				Query update = buildUpdateStatement(id, stateful, current, next, getIdField(), getStateField());
+				Query update = buildUpdate(id, stateful, current, next, getIdField(), getStateField());
 				
 				// Successful update?
 				//
@@ -133,7 +132,7 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 		}
 	}
 	
-	protected Query buildUpdateStatement(
+	protected Query buildUpdate(
 			Object id, 
 			T stateful, 
 			State<T> current, 
@@ -151,11 +150,11 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 		Path<?> idPath = t.get(this.getIdField().getName());
 		Path<String> statePath = t.get(this.getStateField().getName());
 		
-		// set state=<new_state>
+		// set state=<next_state>
 		//
 		cu.set(statePath, next.getName());
 		
-		// where id=<id> and state=<old_state>
+		// where id=<id> and state=<current_state>
 		//
 		Predicate statePredicate = (current.equals(getStart())) ?
 				cb.or(
@@ -172,7 +171,6 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 					statePath, 
 					current.getName()
 				);
-
 				
 		cu.where(
 			cb.and(
@@ -185,7 +183,9 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 		);
 		
 		Query query = entityManager.createQuery(cu);
-		logger.debug(query.unwrap(org.hibernate.Query.class).getQueryString());
+		if (logger.isDebugEnabled()) {
+			logger.debug(query.unwrap(org.hibernate.Query.class).getQueryString());
+		}
 		return query;
 	}
 
@@ -196,25 +196,36 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		return getReferencedField(clazz, Id.class);
+		Field idField = null;
+		idField = getReferencedField(clazz, Id.class);
+		if (idField == null) {
+			idField = getReferencedField(clazz, EmbeddedId.class);
+		}
+		return idField;
 	}
 
 	@Override
 	protected Class<?> getStateFieldType() {
 		return String.class;
 	}
-	
+
 	private Query buildQuery(Object id, T stateful) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+		
 		CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
 		CriteriaQuery<String> cq = cb.createQuery(String.class);
+		
 		Root<T> t = cq.from(this.getClazz());
 		Path<?> idPath = t.get(this.getIdField().getName());
 		Path<String> statePath = t.get(this.getStateField().getName());
+		
 		cq.select(statePath);
+		
 		cq.where(cb.equal(idPath, this.getId(stateful)));
 
 		Query query = entityManager.createQuery(cq);
-		logger.debug(query.unwrap(org.hibernate.Query.class).getQueryString());
+		if (logger.isDebugEnabled()) {
+			logger.debug(query.unwrap(org.hibernate.Query.class).getQueryString());
+		}
 		return query;
 	}
 }

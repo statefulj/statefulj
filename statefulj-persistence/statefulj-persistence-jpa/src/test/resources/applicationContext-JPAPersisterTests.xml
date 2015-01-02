@@ -34,5 +34,17 @@
     	</constructor-arg>
     </bean>
 
+    <bean id="embeddedJPAPersister" class="org.statefulj.persistence.jpa.JPAPerister">
+    	<constructor-arg name="clazz" value="org.statefulj.persistence.jpa.embedded.EmbeddedOrder"/>
+    	<constructor-arg name="start" ref="stateA"/>
+    	<constructor-arg name="states">
+		    <util:list>
+		    	<ref bean="stateA"/>
+		    	<ref bean="stateB"/>
+		    	<ref bean="stateC"/>
+		    </util:list>
+    	</constructor-arg>
+    </bean>
+
 </beans>
     
