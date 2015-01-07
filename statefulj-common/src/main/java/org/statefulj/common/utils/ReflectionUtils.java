@@ -82,6 +82,58 @@ public class ReflectionUtils {
 		
 		return match;
 	}
+
+	public static Class<?> getFirstAnnotatedClass(
+			Class<?> clazz,
+			Class<? extends Annotation> annotationClass) {
+		
+		if (clazz == null) {
+			return null;
+		}
+		
+		Class<?> annotatedClass = (clazz.isAnnotationPresent(annotationClass)) ? clazz : null;
+		
+		if (annotatedClass == null ) {
+			annotatedClass = getFirstAnnotatedClass(clazz.getSuperclass(), annotationClass);
+		}
+		
+		return annotatedClass;
+	}
+
+	public static <T extends Annotation> T  getFirstClassAnnotation(
+			Class<?> clazz,
+			Class<T> annotationClass) {
+		
+		if (clazz == null) {
+			return null;
+		}
+		
+		T annotation = clazz.getAnnotation(annotationClass);
+		
+		if (annotation == null ) {
+			annotation = getFirstClassAnnotation(clazz.getSuperclass(), annotationClass);
+		}
+		
+		return annotation;
+	}
+
+	public static boolean isAnnotationPresent(
+			Class<?> clazz,
+			Class<? extends Annotation> annotationClass) {
+		
+		if (clazz == null) {
+			return false;
+		}
+		
+		boolean annotationPresent = clazz.isAnnotationPresent(annotationClass);
+		
+		if (!annotationPresent) {
+			annotationPresent = isAnnotationPresent(clazz.getSuperclass(), annotationClass);
+		}
+		
+		return annotationPresent;
+	}
+
 	public static boolean isGetter(Method method){
 		  if(!method.getName().startsWith("get"))      return false;
 		  if(method.getParameterTypes().length != 0)   return false;  

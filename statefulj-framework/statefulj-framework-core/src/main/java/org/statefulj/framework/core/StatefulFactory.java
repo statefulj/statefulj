@@ -60,6 +60,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.core.support.RepositoryFactoryBeanSupport;
+import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.framework.core.actions.DomainEntityMethodInvocationAction;
 import org.statefulj.framework.core.actions.MethodInvocationAction;
 import org.statefulj.framework.core.annotations.StatefulController;
@@ -235,9 +236,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			
 			// If it's a StatefulController, map controller to the entity and the entity to the controller
 			//
-			if (clazz.isAnnotationPresent(StatefulController.class)) {
+			if (ReflectionUtils.isAnnotationPresent(clazz, StatefulController.class)) {
 				
-				logger.debug("Found StatefulController, class = \"{}\"", clazz.getName());
+				logger.debug("Found StatefulController, class = \"{}\", beanName = \"{}\"", clazz.getName(), bfName);
 
 				// Ctrl -> Entity
 				//
@@ -245,7 +246,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				
 				// Entity -> Ctrls
 				//
-				Class<?> managedEntity = ((StatefulController)clazz.getAnnotation(StatefulController.class)).clazz();
+				Class<?> managedEntity = ReflectionUtils.getFirstClassAnnotation(clazz, StatefulController.class).clazz();
 				Set<String> controllers = entityToControllers.get(managedEntity);
 				if (controllers == null) {
 					controllers = new HashSet<String>();
@@ -295,7 +296,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		// Determine the managed class
 		// 
-		StatefulController scAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
+		StatefulController scAnnotation = ReflectionUtils.getFirstClassAnnotation(statefulControllerClass, StatefulController.class);
 		Class<?> managedClass = scAnnotation.clazz();
 		
 		// Is the the Controller and ManagedClass the same?  (DomainEntity)
@@ -424,7 +425,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		// Fetch the StatefulController Annotation
 		//
-		StatefulController statefulContollerAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
+		StatefulController statefulContollerAnnotation = ReflectionUtils.getFirstClassAnnotation(statefulControllerClass, StatefulController.class);
 
 		// Build out the Managed Entity Factory Bean
 		//
@@ -570,28 +571,48 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Set<String> states,
 			Set<String> blockingStates) throws IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, CannotCompileException {
 		
-		logger.debug("Mapping events and transitions for {}", statefulControllerClass);
 		
+		// Walk up the Class hierarchy building out the FSM
+		//
+		if (statefulControllerClass == null) {
+			return;
+		} else {
+			mapEventsTransitionsAndStates(
+				statefulControllerClass.getSuperclass(), 
+				providerMappings,
+				transitionMapping,
+				anyMapping,
+				states,
+				blockingStates
+			);
+		}
+		
+		logger.debug("Mapping events and transitions for {}", statefulControllerClass);
+
+		// Pull StateController Annotation
+		//
 		StatefulController ctrlAnnotation = statefulControllerClass.getAnnotation(StatefulController.class);
 
-		// Add Start State
-		//
-		states.add(ctrlAnnotation.startState());
-		
-		// Add the list of BlockingStates
-		//
-		blockingStates.addAll(Arrays.asList(ctrlAnnotation.blockingStates()));
+		if (ctrlAnnotation != null) {
+			// Add Start State
+			//
+			states.add(ctrlAnnotation.startState());
+			
+			// Add the list of BlockingStates
+			//
+			blockingStates.addAll(Arrays.asList(ctrlAnnotation.blockingStates()));
 
-		// Map the NOOP Transitions
-		//
-		for (Transition transition : ctrlAnnotation.noops()) {
-			mapTransition(
-					transition, 
-					null,
-					providerMappings,
-					transitionMapping, 
-					anyMapping,
-					states);
+			// Map the NOOP Transitions
+			//
+			for (Transition transition : ctrlAnnotation.noops()) {
+				mapTransition(
+						transition, 
+						null,
+						providerMappings,
+						transitionMapping, 
+						anyMapping,
+						states);
+			}
 		}
 		
 		// TODO : As we map the events, we need to make sure that the method signature and return
