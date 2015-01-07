@@ -199,10 +199,9 @@ public abstract class AbstractRestfulBinder implements EndpointBinder {
 			
 			// Does this event reference the stateful object?
 			//
-			int annotationCnt = (referencesId) 
-					? method.getParameterTypes().length + 2 - fixedParmCnt
-					: method.getParameterTypes().length + 1 - fixedParmCnt;
-			annotationCnt = Math.max(annotationCnt, 1);
+			int additionalParmCnt = (referencesId) ? 2 : 1;
+			int annotationCnt = method.getParameterTypes().length + additionalParmCnt - fixedParmCnt;
+			annotationCnt = Math.max(annotationCnt, additionalParmCnt);
 
 			// Pull the Parameter Annotations from the StatefulController - we're going to skip
 			// over the first one (DomainEntity) or two (Controller) - but then we're going to 
