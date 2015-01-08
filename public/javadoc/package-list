@@ -10,7 +10,6 @@ org.statefulj.framework.core.annotations
 org.statefulj.framework.core.fsm
 org.statefulj.framework.core.model
 org.statefulj.framework.core.model.impl
-org.statefulj.framework.core.springdata
 org.statefulj.framework.persistence.jpa
 org.statefulj.framework.persistence.mongo
 org.statefulj.fsm
