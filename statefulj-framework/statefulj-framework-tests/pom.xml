@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>org.statefulj.framework</groupId>
 		<artifactId>statefulj-framework</artifactId>
-		<version>0.9</version>
+		<version>1.0-SNAPSHOT</version>
 	</parent>
 
 	<properties>
@@ -22,28 +22,28 @@
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-binders-springmvc</artifactId>
-			<version>0.9</version>
+			<version>1.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-binders-camel</artifactId>
-			<version>0.9</version>
+			<version>1.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-binders-jersey</artifactId>
-			<version>0.9</version>
+			<version>1.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.statefulj.framework</groupId>
 			<artifactId>statefulj-framework-persistence-jpa</artifactId>
-			<version>0.9</version>
+			<version>1.0-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
