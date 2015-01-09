@@ -4,11 +4,11 @@ title: Demos
 weight: 0
 ---
 
-## Demos
-
 ### Domain Driven Design oriented, JPA Based Banking Demo
 
 A complete Banking Application running on an embedded [HyperSQL Database](http://hsqldb.org/), [Jetty Server](http://www.eclipse.org/jetty/), [SpringMVC UI](http://projects.spring.io/spring-framework/), [Camel Messaging](http://camel.apache.org/) and [Jersey based JAX-RS](https://jersey.java.net/).  This demo takes a [Domain Driven Design](http://en.wikipedia.org/wiki/Domain-driven_design) approach to the architecture.  In particular, this demo shows how you can integrate the [StatefulJ Framework](/framework) into the Domain Entities
+
+#### Repo: https://github.com/statefulj/statefulj-framework-demo-ddd
 
 #### Steps
 
@@ -21,6 +21,8 @@ A complete Banking Application running on an embedded [HyperSQL Database](http:/
 
 This demonstrates how to construct a FSM with the Mongo Persister.
 
+#### Repo: https://github.com/statefulj/statefulj-persistence-mongo-demo
+
 #### Steps
 
 1. `git clone git@github.com:statefulj/statefulj-persistence-mongo-demo.git`
@@ -30,6 +32,8 @@ This demonstrates how to construct a FSM with the Mongo Persister.
 ### JPA Based Banking Demo
 
 A complete Banking Application running on an embedded [HyperSQL Database](http://hsqldb.org/), [Jetty Server](http://www.eclipse.org/jetty/), [SpringMVC UI](http://projects.spring.io/spring-framework/), [Camel Messaging](http://camel.apache.org/) and [Jersey based JAX-RS](https://jersey.java.net/).
+
+#### Repo: https://github.com/statefulj/statefulj-framework-demo-jpa
 
 #### Steps
 
@@ -41,6 +45,8 @@ A complete Banking Application running on an embedded [HyperSQL Database](http:/
 ### Mongo Based Banking Demo
 
 A complete Banking Application running on an embedded [Mongo](http://www.mongodb.org/), [Jetty Server](http://www.eclipse.org/jetty/), [SpringMVC UI](http://projects.spring.io/spring-framework/), [Camel Messaging](http://camel.apache.org/) and [Jersey based JAX-RS](https://jersey.java.net/).
+
+#### Repo: https://github.com/statefulj/statefulj-framework-demo-mongo
 
 #### Steps
 
