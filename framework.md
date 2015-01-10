@@ -244,6 +244,19 @@ public class FooController {
 }
 ```
 
+#### Domain Entity Support
+
+If you are designing applications using a [Domain Driven Design (DDD)](http://en.wikipedia.org/wiki/Domain-driven_design) architecture, then you will want to integrate StatefulJ directly into the *Domain Entity* or *Aggregate Root*.  If the StatefulController is bound to an Entity, then when StatefulJ fetches/creates the Entity, it will automatically perform *Dependency Injection* on the Domain Entity.  As such, you will not need to define your Entity as @Configurable to perform dependency injection
+
+```java
+@StatefulController(
+	clazz=Foo.class,
+	startState=NON_EXISTENT
+)
+public class Foo {
+}
+```
+
 ### <a name="define-your-events"></a> Define your Events
 
 An *Event* is simply a String that directs the *StatefulJ Framework* how to bind an *Endpoint* to the Framework.  The format of the Event is &lt;binder&gt;:&lt;event&gt;
@@ -268,7 +281,9 @@ public class FooController {
 	public static final String GET_FOO = "springmvc:get:/foo/{id}";
 	public static final String UPGRADE_REQUEST = 
 								"springmvc:post:/foo/{id}/upgrade";
+								"springmvc:post:/foo/{id}/upgrade";
 	public static final String UPGRADE_APPROVED = "upgrade.approved";
+	public static final String SUBSCRIPTION_REVOKED = "camel:vm:subscription.revoked";
 	
 
 }
@@ -286,14 +301,16 @@ In the *Stateful Framework*, a Transition is a method in the *Stateful Controlle
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
 | to		| &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
 
-When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  The first two parameters are always:
+When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  If the StatefulController is a Controller, then the first two parameters of the method are always:
 
 1. Stateful Entity
 2. The Event
 
-When the Stateful Framework binds the Endpoint, it will read all the Annotations on the method and all the Parameters after the StatefulEntity and Event and propagate to the Endpoint.  So, can define your  Transition with the parameters and annotations would normally would for the Endpoint. 
+When the Stateful Framework binds the Endpoint, it will read all the Annotations on the method and all the Parameters after the StatefulEntity and 
+Event and propagate to the Endpoint.  So, can define your  Transition with the parameters and annotations would normally would for the Endpoint. 
 
-**Note:** If your method returns a String, and that String is prefixed with **event:**, then the return value will be treated as Event and re-propagated.  
+**Note:** If your method returns a String, and that String is prefixed with **event:** then 
+the return value will be treated as Event and re-propagated.  
 
 ```java
 @StatefulController(
@@ -321,6 +338,36 @@ public class FooController {
 	public String details(Foo foo, String event, Model model) {
 		model.addAttribute("foo", foo);
 		return "foo-details";
+	}
+}
+```
+
+If the StatefulController is a Domain Entity, then the first parameter is:
+
+1. The Event
+
+
+```java
+@StatefulController(
+	clazz=Foo.class,
+	startState=NON_EXISTENT
+)
+public class Foo {
+
+	// Events
+	//
+	public static final String UPGRADE_APPROVED = "upgrade.approved";
+	
+	@FSM
+	StatefulFSM<Foo> fsm;
+	
+	public approveUpgrade() {
+		fsm.onEvent(UPGRADE_APPROVED);
+	}
+	
+	@Transition(from=UPGRADE_PENDING, event=UPGRADE_APPROVED, to=UPGRADED)
+	private String doNotifyOfUpgrade(String event) {
+		FooObserver.notifyUpgrade(new UpgradeEvent(this));
 	}
 }
 ```

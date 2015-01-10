@@ -12,12 +12,12 @@ relative_permalinks: true
 title:            StatefulJ
 tagline:          ''
 description:      'State Machines made easy'
-url:              http://hyde.getpoole.com 
+url:              http://statefulj.org 
 baseurl:          /
 
 author:
-  name:           'Mark Otto'
-  url:            https://twitter.com/mdo
+  name:           'Andrew Hall'
+  url:            https://twitter.com/developfwd
 
 paginate:         5
 
@@ -25,4 +25,4 @@ paginate:         5
 version:          0.9
 
 github:
-  repo:           https://github.com/poole/hyde
+  repo:           https://github.com/statefulj
