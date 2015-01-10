@@ -19,7 +19,7 @@ A complete Banking Application running on an embedded [HyperSQL Database](http:/
 
 ### Mongo Persistence Demo
 
-This demonstrates how to construct a FSM with the Mongo Persister.
+This demonstrates how to construct an FSM with the Mongo Persister.
 
 #### Repo: https://github.com/statefulj/statefulj-persistence-mongo-demo
 
