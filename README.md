@@ -1,7 +1,7 @@
 StatefulJ
 =========
 
-An Open Source implementation of a Finite State Machine with support for non-determinstic transitions and state persistence
+[StatefulJ](http://www.statefulj.org) is a lightweight, open source Java [*Event Driven Finite State Machine(FSM)*](http://en.wikipedia.org/wiki/Event-driven_finite-state_machine) and a complete [*Spring Data*](http://projects.spring.io/spring-data/) based framework which lets you easily define and integrate State Machines into your Applications.
 
 Features
 =========
@@ -15,4 +15,9 @@ StatefulJ is documented in detail at http://www.statefulj.org
 
 Demos
 =====
-* The Framework includes a [banking application](https://github.com/statefulj/statefulj-framework-demo) demonstrating how you can build an entire application using StatefulJ
+* The Framework includes:
+
+  * [An FSM with Mongo Persistence support](https://github.com/statefulj/statefulj-persistence-mongo-demo)
+  * [A JPA based banking application](https://github.com/statefulj/statefulj-framework-demo-jpa) demonstrating how you can build an entire application using StatefulJ Framework
+  * [A Mongo based banking application](https://github.com/statefulj/statefulj-framework-demo-mongo) demonstrating how you can build an entire application using StatefulJ
+  * [A DDD based banking application](https://github.com/statefulj/statefulj-framework-demo-ddd) demonstrating how you can build an entire application using StatefulJ
