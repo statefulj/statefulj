@@ -18,6 +18,6 @@ Demos
 * The Framework includes:
 
   * [An FSM with Mongo Persistence support](https://github.com/statefulj/statefulj-persistence-mongo-demo)
-  * [A JPA based banking application](https://github.com/statefulj/statefulj-framework-demo-jpa) demonstrating how you can build an entire application using StatefulJ Framework
-  * [A Mongo based banking application](https://github.com/statefulj/statefulj-framework-demo-mongo) demonstrating how you can build an entire application using StatefulJ
-  * [A DDD based banking application](https://github.com/statefulj/statefulj-framework-demo-ddd) demonstrating how you can build an entire application using StatefulJ
+  * [A DDD based banking application](https://github.com/statefulj/statefulj-framework-demo-ddd) demonstrating how you can build an entire application using [Domain Driven Design](http://domaindrivendesign.org/), StatefulJ and JPA.
+  * [A JPA based banking application](https://github.com/statefulj/statefulj-framework-demo-jpa) demonstrating how you can build an entire application using StatefulJ Framework and JPA.
+  * [A Mongo based banking application](https://github.com/statefulj/statefulj-framework-demo-mongo) demonstrating how you can build an entire application using StatefulJ and Mongo.
