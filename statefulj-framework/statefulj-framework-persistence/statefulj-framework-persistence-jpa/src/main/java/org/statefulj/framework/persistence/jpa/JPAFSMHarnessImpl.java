@@ -58,21 +58,4 @@ public class JPAFSMHarnessImpl<T, CT> extends FSMHarnessImpl<T, CT> {
 			
 		});
 	}
-
-	@Override
-	public Object onEvent(final String event, final Object[] parms) throws TooBusyException {
-		TransactionTemplate tt = new TransactionTemplate(transactionManager);
-		return tt.execute(new TransactionCallback<Object>() {
-
-			@Override
-			public Object doInTransaction(TransactionStatus status) {
-				try {
-					return JPAFSMHarnessImpl.super.onEvent(event, parms);
-				} catch (TooBusyException e) {
-					throw new RuntimeException(e);
-				} 
-			}
-			
-		});
-	}
 }

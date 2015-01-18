@@ -66,7 +66,10 @@ public class StatefulControllerTest {
 	JpaTransactionManager transactionManager;
 	
 	@Resource(name="userController.fsmHarness")
-	FSMHarness fsmHarness;
+	FSMHarness userFSMHarness;
+	
+	@Resource(name="concurrencyController.fsmHarness")
+	FSMHarness concurrencydFSMHarness;
 	
 	@FSM("userController")
 	StatefulFSM<User> userFSM;
@@ -131,7 +134,7 @@ public class StatefulControllerTest {
 		user = userRepo.findOne(user.getId());
 		assertEquals(User.FOUR_STATE, user.getState());
 
-		fsmHarness.onEvent("five", user.getId(), new Object[]{context});
+		userFSMHarness.onEvent("five", user.getId(), new Object[]{context});
 		user = userRepo.findOne(user.getId());
 		assertEquals(User.FIVE_STATE, user.getState());
 
@@ -200,7 +203,6 @@ public class StatefulControllerTest {
 
 		assertNotNull(userFSM);
 
-
 		// Create a User and force it to SIX_STATE
 		//
 		final User user = userRepo.save(new User());
@@ -260,5 +262,36 @@ public class StatefulControllerTest {
 		User dbUser = userRepo.findOne(user.getId());
 		
 		assertEquals(User.SEVEN_STATE, dbUser.getState());
+	}
+
+	@Test
+	public void testConcurrency() throws TooBusyException, StaleStateException, InterruptedException, InstantiationException {
+
+		final User user = userRepo.save(new User());
+		
+		// Spawn another Thread
+		//
+		final Object monitor = new Object();
+		Thread t = new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				synchronized(monitor) {
+					try {
+						concurrencydFSMHarness.onEvent("two", new Object[]{user.getId(), null, monitor});
+					} catch(Exception e) {
+						throw new RuntimeException(e);
+					} finally {
+						monitor.notify();
+					}
+				}
+			}
+		});
+		synchronized(monitor) {
+			t.start();
+			concurrencydFSMHarness.onEvent("one", new Object[]{user.getId(), null, monitor});
+		}
+		User user2 = userRepo.findOne(user.getId());
+		assertEquals(User.THREE_STATE, user2.getState());
 	}
 }
