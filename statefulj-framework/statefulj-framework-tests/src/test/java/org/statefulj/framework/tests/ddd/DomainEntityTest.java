@@ -57,7 +57,7 @@ public class DomainEntityTest {
 
 		// Verify new User scenario
 		//
-		HttpServletRequest context = mock(HttpServletRequest.class);		int value = 1;
+		HttpServletRequest context = mock(HttpServletRequest.class);		
 		DomainEntity entity = invoke(mvcBinder, "$_get_event-x", DomainEntity.class, context, 1);
 		
 		assertNotNull(entity);
