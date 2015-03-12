@@ -18,7 +18,7 @@
 package org.statefulj.framework.persistence.jpa;
 
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -30,7 +30,7 @@ import org.statefulj.fsm.TooBusyException;
 
 public class JPAFSMHarnessImpl<T, CT> extends FSMHarnessImpl<T, CT> {
 	
-	JpaTransactionManager transactionManager;
+	private PlatformTransactionManager transactionManager;
 	
 	public JPAFSMHarnessImpl(
 			StatefulFSM<T> fsm, 
@@ -38,7 +38,7 @@ public class JPAFSMHarnessImpl<T, CT> extends FSMHarnessImpl<T, CT> {
 			Factory<T, CT> factory,
 			Finder<T, CT> finder,
 			ApplicationContext appContext,
-			JpaTransactionManager transactionManager) {
+			PlatformTransactionManager transactionManager) {
 		super(fsm, clazz, factory, finder, appContext);
 		this.transactionManager = transactionManager;
 	}
