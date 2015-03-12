@@ -22,9 +22,9 @@ By making easy to integrate State Machines into your Application, *StatefulJ* pr
 
 StatefulJ provides the following "packages":
 
+* [**StatefulJ Framework:**](/framework) A framework built off [*StatefulJ FSM*](/fsm), [*StatefulJ Persister*](/fsm#define-your-persister) and [Spring Data](http://projects.spring.io/spring-data/) to easily integrate State Machines into your Application.
 * [**StatefulJ FSM:**](/fsm) A dependency free, Finite State Machine implementation with support for non-determinstic Transitions.
 * [**StatefulJ Persistence:**](/persistence/) A set of persistence support (JPA and Mongo) which works with the FSM library to persist your Stateful objects.
-* [**StatefulJ Framework:**](/framework) A framework built off StatefulJ FSM, StatefulJ Persistence and Spring Data to easily integrate State Machines into your Application.
 
 ## How do I get started?
 
