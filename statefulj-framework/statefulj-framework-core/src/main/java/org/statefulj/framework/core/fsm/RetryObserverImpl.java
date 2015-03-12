@@ -52,23 +52,24 @@ public class RetryObserverImpl<T, CT> implements RetryObserver<T> {
 	@Override
 	public T onRetry(T stateful, String event, Object... args) {
 		
-		T retVal = stateful;
-		CT context = null;
-		Object id = null;
+		T retVal = null;
 		
 		// Pull out the Context if available
 		//
-		context = getContext(context, args);
+		CT context = getContext(args);
 		
-		// Fetch the ID value
+		// Fetch the ID value from the StatefulEntity
 		//
-		id = getIdField(stateful, id);
+		Object id = getId(stateful);
 		
 		// Get a fresh copy of the StatefulEntity
 		//
 		retVal = findStatefulEntity(event, context, id);
 		
-		return retVal;
+		// If we fetched a fresh instance, return it.  Otherwise,
+		// return the current StatefulEntity.  Never pass back a null value
+		//
+		return (retVal != null) ? retVal : stateful;
 	}
 
 	/**
@@ -93,7 +94,8 @@ public class RetryObserverImpl<T, CT> implements RetryObserver<T> {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private CT getContext(CT context, Object... args) {
+	private CT getContext(Object... args) {
+		CT context = null;
 		if (args.length > 0 && (args[0] instanceof ContextWrapper<?>)) {
 			ContextWrapper<CT> retryParms = (ContextWrapper<CT>)args[0];
 			context = retryParms.getContext();
@@ -106,7 +108,8 @@ public class RetryObserverImpl<T, CT> implements RetryObserver<T> {
 	 * @param id
 	 * @return
 	 */
-	private Object getIdField(T stateful, Object id) {
+	private Object getId(T stateful) {
+		Object id = null;
 		if (this.idType != null) {
 			Field idField = ReflectionUtils.getReferencedField(stateful.getClass(), this.idType);
 			if (idField != null) {
