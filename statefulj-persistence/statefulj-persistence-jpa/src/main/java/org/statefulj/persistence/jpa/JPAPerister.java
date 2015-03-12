@@ -47,7 +47,7 @@ import static org.statefulj.common.utils.ReflectionUtils.*;
 @Transactional
 public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T> {
 
-	Logger logger = LoggerFactory.getLogger(JPAPerister.class);
+	private static final Logger logger = LoggerFactory.getLogger(JPAPerister.class);
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -76,50 +76,10 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 			//
 			Object id = getId(stateful);
 			if (id != null && entityManager.contains(stateful)) {
-				
-				// Entity is in the database - perform qualified update based off 
-				// the current State value
-				//
-				Query update = buildUpdate(id, stateful, current, next, getIdField(), getStateField());
-				
-				// Successful update?
-				//
-				if (update.executeUpdate() == 0) {
-					
-					// If we aren't able to update - it's most likely that we are out of sync.
-					// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
-					// This will cause the event to be reprocessed by the FSM
-					//
-					Query query = buildQuery(id, stateful);
-					String state = getStart().getName();
-					try {
-						state = (String)query.getSingleResult();
-					} catch(NoResultException nre) {
-						// This is the first time setting the state, ignore
-						//
-					}
-					
-					logger.warn("Stale State, expected={}, actual={}", current.getName(), state);
-					
-					setState(stateful, state);
-					throwStaleState(current, next);
-				}
+				updateStateInDB(stateful, current, next, id);
 				setState(stateful, next.getName());
 			} else {
-				
-				// The Entity hasn't been persisted to the database - so it exists only
-				// this Application memory.  So, serialize the qualified update to prevent
-				// concurrency conflicts
-				//
-				synchronized(stateful) {
-					String state = this.getState(stateful);
-					state = (state == null) ? getStart().getName() : state;
-					if (state.equals(current.getName())) {
-						setState(stateful, next.getName());
-					} else {
-						throwStaleState(current, next);
-					}
-				}
+				updateStateInMemory(stateful, current, next);
 			}
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
@@ -129,6 +89,73 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 			throw new RuntimeException(e);
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * @param stateful
+	 * @param current
+	 * @param next
+	 * @throws NoSuchFieldException
+	 * @throws IllegalAccessException
+	 * @throws StaleStateException
+	 */
+	private void updateStateInMemory(T stateful, State<T> current, State<T> next)
+			throws NoSuchFieldException, IllegalAccessException,
+			StaleStateException {
+		// The Entity hasn't been persisted to the database - so it exists only
+		// this Application memory.  So, serialize the qualified update to prevent
+		// concurrency conflicts
+		//
+		synchronized(stateful) {
+			String state = this.getState(stateful);
+			state = (state == null) ? getStart().getName() : state;
+			if (state.equals(current.getName())) {
+				setState(stateful, next.getName());
+			} else {
+				throwStaleState(current, next);
+			}
+		}
+	}
+
+	/**
+	 * @param stateful
+	 * @param current
+	 * @param next
+	 * @param id
+	 * @throws NoSuchFieldException
+	 * @throws IllegalAccessException
+	 * @throws StaleStateException
+	 */
+	private void updateStateInDB(T stateful, State<T> current, State<T> next,
+			Object id) throws NoSuchFieldException, IllegalAccessException,
+			StaleStateException {
+		// Entity is in the database - perform qualified update based off 
+		// the current State value
+		//
+		Query update = buildUpdate(id, stateful, current, next, getIdField(), getStateField());
+		
+		// Successful update?
+		//
+		if (update.executeUpdate() == 0) {
+			
+			// If we aren't able to update - it's most likely that we are out of sync.
+			// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
+			// This will cause the event to be reprocessed by the FSM
+			//
+			Query query = buildQuery(id, stateful);
+			String state = getStart().getName();
+			try {
+				state = (String)query.getSingleResult();
+			} catch(NoResultException nre) {
+				// This is the first time setting the state, ignore
+				//
+			}
+			
+			logger.warn("Stale State, expected={}, actual={}", current.getName(), state);
+			
+			setState(stateful, state);
+			throwStaleState(current, next);
 		}
 	}
 	

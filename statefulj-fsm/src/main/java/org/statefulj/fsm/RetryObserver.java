@@ -15,26 +15,21 @@
  * limitations under the License.
  * 
  */
-package org.statefulj.fsm.model;
+package org.statefulj.fsm;
 
-public interface State<T> {
-	
-	String getName();
-	
-	Transition<T> getTransition(String event);
-	
-	boolean isEndState();
-	
-	public boolean isBlocking();
+/**
+ * RetryObserver is invoke on each retry.  It is responsible for fetching a fresh
+ * version of the Stateful Entity.
+ * 
+ * @author Andrew Hall
+ *
+ */
+public interface RetryObserver<T> {
 
-	public void setBlocking(boolean isBlocking);
-
-	public void removeTransition(String event);
-
-	public void addTransition(String event, Transition<T> transition);
-
-	public void addTransition(String event, State<T> next, Action<T> action);
-
-	public void addTransition(String event, State<T> next);
-
+	/**
+	 * Fetch a new version of the Stateful Entity
+	 * @param stateful
+	 * @return a new version of the Stateful Entity
+	 */
+	T onRetry(T stateful, String event, Object... args);
 }

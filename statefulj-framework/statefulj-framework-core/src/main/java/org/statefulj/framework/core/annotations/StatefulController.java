@@ -26,15 +26,12 @@ import java.lang.annotation.Target;
 import org.springframework.stereotype.Component;
 
 
-// TODO : Add in Blocking support
-// TODO : Add in explicit Mongo or jpa persistence
-// TODO : Add in licensing
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Component
 /**
- * The StatefuleController annotation defines a Finite State Machine
+ * The StatefulController annotation defines a Finite State Machine
  * for the specified managed Entity.  A StatefulController is a Spring Component that will
  * be managed by Spring via Component scanning.
  * 
@@ -115,5 +112,14 @@ public @interface StatefulController {
 	 * @return Array of NOOP Transitions
 	 */
 	Transition[] noops() default {};
+
+	/**
+	 * Set whether or not a new version of the Stateful Entity is fetched on a 
+	 * retry.  Defaults to true
+	 * 
+	 * @return A boolean indicating whether or not to load a new version of the 
+	 * Stateful Entity on retry
+	 */
+	boolean reloadEntityOnRetry() default true;
 
 }

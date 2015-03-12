@@ -30,7 +30,7 @@ import org.statefulj.fsm.TooBusyException;
 
 public class StatefulFSMImpl<T> implements StatefulFSM<T> {
 	
-	private Logger logger = LoggerFactory.getLogger(StatefulFSMImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(StatefulFSMImpl.class);
 	
 	private FSM<T> fsm;
 	
@@ -60,13 +60,12 @@ public class StatefulFSMImpl<T> implements StatefulFSM<T> {
 	@Override
 	public Object onEvent(T stateful, String event, Object... parms) throws TooBusyException {
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
-		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length + 1);
-		
 		
 		// Create a Mutable Object and add it to the Parameter List - it will be used
 		// to return the returned value from the Controller as the FSM returns the State
 		//
 		MutableObject<T> returnValue = new MutableObject<T>();
+		ArrayList<Object> invokeParmlist = new ArrayList<Object>(parms.length + 1);
 		invokeParmlist.add(returnValue);
 		invokeParmlist.addAll(parmList);
 		

@@ -20,21 +20,21 @@ package org.statefulj.framework.core.model.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import javax.annotation.Resource;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.statefulj.framework.core.fsm.ContextWrapper;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.framework.core.model.StatefulFSM;
+import org.statefulj.fsm.RetryObserver;
 import org.statefulj.fsm.TooBusyException;
 
-public class FSMHarnessImpl<T, CT> implements FSMHarness {
+public class FSMHarnessImpl<T, CT> implements FSMHarness, RetryObserver<T> {
 	
-	private Logger logger = LoggerFactory.getLogger(FSMHarnessImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(FSMHarnessImpl.class);
 	
 	private Factory<T, CT> factory;
 	
@@ -44,18 +44,19 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	
 	private Class<T> clazz;
 	
-	@Resource
-	ApplicationContext appContext;
+	private ApplicationContext appContext;
 	
 	public FSMHarnessImpl(
 			StatefulFSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T, CT> factory,
-			Finder<T, CT> finder) {
+			Finder<T, CT> finder,
+			ApplicationContext applicationContext) {
 		this.fsm = fsm;
 		this.clazz = clazz;
 		this.factory = factory;
 		this.finder = finder;
+		this.appContext = applicationContext;
 	}
 	
 	@Override
@@ -64,13 +65,15 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 		
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		CT context = (parmList.size() > 0) ? (CT)parmList.remove(0) : null;
+		ContextWrapper<CT> retryParms = new ContextWrapper<CT>(context);
+		parmList.add(0, retryParms);
 		
 		T stateful = null;
 		
 		if (id == null) {
-			stateful = this.finder.find(clazz, event, context);
+			stateful = findStateful(event, context);
 		} else {
-			stateful = this.finder.find(clazz, id, event, context);
+			stateful = findStateful(event, id, context);
 		}
 
 		if (stateful == null) {
@@ -96,7 +99,7 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 		
 		return fsm.onEvent(stateful, event, parmList.toArray());
 	}
-	
+
 	@Override
 	public Object onEvent(String event, Object[] parms) throws TooBusyException {
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
@@ -104,4 +107,31 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 		return onEvent(event, id, parmList.toArray());
 	}
 
+	/* (non-Javadoc)
+	 * @see org.statefulj.fsm.RetryObserver#onRetry(java.lang.Object, java.lang.String, java.lang.Object[])
+	 */
+	@Override
+	public T onRetry(T stateful, String event, Object... args) {
+		return stateful;
+	}
+
+	/**
+	 * @param event
+	 * @param id
+	 * @param context
+	 * @return
+	 */
+	private T findStateful(String event, Object id, CT context) {
+		return this.finder.find(clazz, id, event, context);
+	}
+
+	/**
+	 * @param event
+	 * @param context
+	 * @return
+	 */
+	private T findStateful(String event, CT context) {
+		return this.finder.find(clazz, event, context);
+	}
+	
 }

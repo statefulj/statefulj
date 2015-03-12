@@ -53,7 +53,7 @@ public class CamelBinder implements EndpointBinder {
 	
 	public final static String KEY = "camel";
 
-	private Logger logger = LoggerFactory.getLogger(CamelBinder.class);
+	private static final Logger logger = LoggerFactory.getLogger(CamelBinder.class);
 
 	private final String CONSUMER_SUFFIX = "CamelBinder";
 	

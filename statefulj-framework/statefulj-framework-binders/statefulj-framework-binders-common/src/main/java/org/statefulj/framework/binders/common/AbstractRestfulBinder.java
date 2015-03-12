@@ -58,7 +58,7 @@ import static org.statefulj.framework.binders.common.utils.JavassistUtils.*;
 
 public abstract class AbstractRestfulBinder implements EndpointBinder {
 
-	private Logger logger = LoggerFactory.getLogger(AbstractRestfulBinder.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractRestfulBinder.class);
 	
 	private final Pattern methodPattern = Pattern.compile("(([^:]*):)?(.*)");
 	

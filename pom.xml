@@ -50,6 +50,7 @@
 		<mockito.version>1.9.5</mockito.version>
 		<logback.version>1.0.13</logback.version>
 		<jdk.version>1.6</jdk.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<dependencyManagement>

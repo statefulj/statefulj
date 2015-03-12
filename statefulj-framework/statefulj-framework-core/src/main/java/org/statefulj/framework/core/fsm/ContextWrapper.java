@@ -15,26 +15,21 @@
  * limitations under the License.
  * 
  */
-package org.statefulj.fsm.model;
+package org.statefulj.framework.core.fsm;
 
-public interface State<T> {
+/**
+ * @author Andrew Hall
+ *
+ */
+public class ContextWrapper<CT> {
 	
-	String getName();
+	private CT context;
 	
-	Transition<T> getTransition(String event);
-	
-	boolean isEndState();
-	
-	public boolean isBlocking();
+	public ContextWrapper(CT context) {
+		this.context = context;
+	}
 
-	public void setBlocking(boolean isBlocking);
-
-	public void removeTransition(String event);
-
-	public void addTransition(String event, Transition<T> transition);
-
-	public void addTransition(String event, State<T> next, Action<T> action);
-
-	public void addTransition(String event, State<T> next);
-
+	public CT getContext() {
+		return context;
+	}
 }

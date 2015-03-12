@@ -29,6 +29,7 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.util.ReflectionUtils;
+import org.statefulj.framework.core.fsm.ContextWrapper;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.RetryException;
 import org.statefulj.fsm.TooBusyException;
@@ -96,10 +97,21 @@ public class MethodInvocationAction implements Action<Object> {
 	@SuppressWarnings("unchecked")
 	public void execute(Object stateful, String event, Object... parms) throws RetryException {
 		try {
-			// Remove the first Object in the parm list - it's our Return Value
+			
+			// Parse out incoming parms to pass into the method
 			//
 			List<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
+
+			// Remove the first Object in the parm list - it's our Return Value
+			//
 			MutableObject<Object> returnValue = (MutableObject<Object>)parmList.remove(0);
+
+			// If there is a retry parameter object, pop it off 
+			//
+			popOffRetryParms(parmList);
+			
+			// Now build the list of parameters to pass into the method
+			//
 			List<Object> invokeParmList = buildInvokeParameters(stateful, event, parmList);
 			
 			if (invokeParmList.size() < this.parameters.length) {
@@ -111,9 +123,12 @@ public class MethodInvocationAction implements Action<Object> {
 			}
 			
 			// Call the method on the Controller
-			// TODO : Add test case
 			//
 			Object retVal = invoke(stateful, event, invokeParmList);
+			
+			// If the return value is a String prefixed with "event:", then it's an event 
+			// so forward the event to the FSM.  Else, return the value as-is
+			//
 			if (retVal instanceof String) {
 				Pair<String, String> pair = this.parseResponse((String)retVal);
 				if ("event".equals(pair.getLeft())) {
@@ -141,6 +156,15 @@ public class MethodInvocationAction implements Action<Object> {
 			}
 		} catch (TooBusyException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * @param parmList
+	 */
+	private void popOffRetryParms(List<Object> parmList) {
+		if (parmList.size() > 0 && (parmList.get(0) instanceof ContextWrapper<?>)) {
+			parmList.remove(0);			
 		}
 	}
 

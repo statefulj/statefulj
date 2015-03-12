@@ -59,7 +59,7 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 	
 	public final static String KEY = "springmvc";
 
-	private Logger logger = LoggerFactory.getLogger(SpringMVCBinder.class);
+	private static final Logger logger = LoggerFactory.getLogger(SpringMVCBinder.class);
 	
 	private final String MVC_SUFFIX = "MVCBinder";
 	private final String CONTROLLER_VAR = "controller";

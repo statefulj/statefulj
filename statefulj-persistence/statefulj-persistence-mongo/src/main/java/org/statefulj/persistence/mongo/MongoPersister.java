@@ -167,38 +167,10 @@ public class MongoPersister<T>
 			//
 			StateDocumentImpl stateDoc = this.getStateDocument(stateful);
 			if (stateDoc != null && stateDoc.isPersisted()) {
-				
-				// Entity is in the database - perform qualified update based off 
-				// the current State value
-				//
-				Query query = buildQuery(stateDoc, current);
-				Update update = buildUpdate(current, next);
 
-				// Update state in DB
+				// Update state in the DB
 				//
-				StateDocumentImpl updatedDoc = updateStateDoc(query, update); 
-				if (updatedDoc != null) {
-					
-					// Success, update in memory
-					//
-					setStateDocument(stateful, updatedDoc);
-					
-				} else {
-					
-					// If we aren't able to update - it's most likely that we are out of sync.
-					// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
-					// This will cause the event to be reprocessed by the FSM
-					//
-					updatedDoc = findStateDoc(stateDoc.getId());
-					
-					if (updatedDoc != null) {
-						String currentState = stateDoc.getState();
-						setStateDocument(stateful, updatedDoc);
-						throwStaleState(currentState, updatedDoc.getState());
-					} else {
-						throw new RuntimeException("Unable to find StateDocument with id=" + stateDoc.getId());
-					}
-				}
+				updateStateInDB(stateful, current, next, stateDoc);
 			} else {
 				
 				// The Entity hasn't been persisted to Mongo - so it exists only
@@ -215,6 +187,50 @@ public class MongoPersister<T>
 			throw new RuntimeException(e);
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
+		}
+	}
+
+	/**
+	 * @param stateful
+	 * @param current
+	 * @param next
+	 * @param stateDoc
+	 * @throws IllegalAccessException
+	 * @throws StaleStateException
+	 */
+	private void updateStateInDB(T stateful, State<T> current, State<T> next,
+			StateDocumentImpl stateDoc) throws IllegalAccessException,
+			StaleStateException {
+		// Entity is in the database - perform qualified update based off 
+		// the current State value
+		//
+		Query query = buildQuery(stateDoc, current);
+		Update update = buildUpdate(current, next);
+
+		// Update state in DB
+		//
+		StateDocumentImpl updatedDoc = updateStateDoc(query, update); 
+		if (updatedDoc != null) {
+			
+			// Success, update in memory
+			//
+			setStateDocument(stateful, updatedDoc);
+			
+		} else {
+			
+			// If we aren't able to update - it's most likely that we are out of sync.
+			// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
+			// This will cause the event to be reprocessed by the FSM
+			//
+			updatedDoc = findStateDoc(stateDoc.getId());
+			
+			if (updatedDoc != null) {
+				String currentState = stateDoc.getState();
+				setStateDocument(stateful, updatedDoc);
+				throwStaleState(currentState, updatedDoc.getState());
+			} else {
+				throw new RuntimeException("Unable to find StateDocument with id=" + stateDoc.getId());
+			}
 		}
 	}
 	

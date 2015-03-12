@@ -17,13 +17,18 @@
  */
 package org.statefulj.framework.persistence.jpa;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
+
+import javax.persistence.Id;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
+import org.springframework.orm.jpa.JpaTransactionManager;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 import org.statefulj.framework.core.model.impl.CrudRepositoryFinderImpl;
 import org.statefulj.framework.core.model.impl.FactoryImpl;
@@ -39,6 +44,11 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	@Override
 	public Class<?> getIdType() {
 		return Long.class;
+	}
+
+	@Override
+	public Class<? extends Annotation> getIdAnnotationType() {
+		return Id.class;
 	}
 
 	@Override
@@ -83,8 +93,18 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 			Class<?> statefulClass,
 			String fsmBeanId,
 			String factoryId, 
-			String finderId) {
+			String finderId,
+			ApplicationContext appContext) {
 
+		String[] beanNames = appContext.getBeanNamesForType(JpaTransactionManager.class);
+		if (beanNames.length == 0) {
+			throw new RuntimeException("Unable to locate a JpaTransactionManager");
+		}
+		if (beanNames.length > 1) {
+			throw new RuntimeException("StatefulJ can only support a single JpaTransactionManager");
+		}
+		String jpaTransactionManagerId = beanNames[0];
+		
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAFSMHarnessImpl.class)
 				.getBeanDefinition();
@@ -93,6 +113,8 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
+		args.addIndexedArgumentValue(4, appContext);
+		args.addIndexedArgumentValue(5, new RuntimeBeanReference(jpaTransactionManagerId));
 		return fsmHarness;
 	}
 }

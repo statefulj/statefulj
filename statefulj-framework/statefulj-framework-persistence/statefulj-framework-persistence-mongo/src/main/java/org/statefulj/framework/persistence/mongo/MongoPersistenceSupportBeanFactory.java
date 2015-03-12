@@ -17,12 +17,15 @@
  */
 package org.statefulj.framework.persistence.mongo;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.context.ApplicationContext;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactoryBean;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 import org.statefulj.framework.core.model.impl.CrudRepositoryFinderImpl;
@@ -40,6 +43,11 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 	@Override
 	public Class<?> getIdType() {
 		return String.class;
+	}
+
+	@Override
+	public Class<? extends Annotation> getIdAnnotationType() {
+		return Id.class;
 	}
 
 	@Override
@@ -85,7 +93,8 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 			Class<?> statefulClass,
 			String fsmBeanId,
 			String factoryId, 
-			String finderId) {
+			String finderId,
+			ApplicationContext appContext) {
 
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
 				.genericBeanDefinition(FSMHarnessImpl.class)
@@ -95,6 +104,8 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
+		args.addIndexedArgumentValue(4, appContext);
 		return fsmHarness;
 	}
+
 }

@@ -17,11 +17,13 @@
  */
 package org.statefulj.framework.core.mocks;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.context.ApplicationContext;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 
 public class MockPersistenceSupportBeanFactory implements
@@ -35,6 +37,14 @@ public class MockPersistenceSupportBeanFactory implements
 	@Override
 	public Class<?> getIdType() {
 		return Object.class;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.statefulj.framework.core.model.PersistenceSupportBeanFactory#getIdAnnotationType()
+	 */
+	@Override
+	public Class<? extends Annotation> getIdAnnotationType() {
+		return null;
 	}
 
 	@Override
@@ -59,7 +69,7 @@ public class MockPersistenceSupportBeanFactory implements
 
 	@Override
 	public BeanDefinition buildFSMHarnessBean(Class<?> statefulClass,
-			String fsmBeanId, String factoryId, String finderId) {
+			String fsmBeanId, String factoryId, String finderId, ApplicationContext appContext) {
 		return mockDef();
 	}
 	

@@ -17,10 +17,9 @@
  */
 package org.statefulj.framework.core.fsm;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.RetryException;
+import org.statefulj.fsm.RetryObserver;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.StateActionPair;
 import org.statefulj.fsm.model.Transition;
@@ -28,10 +27,8 @@ import org.statefulj.fsm.model.Transition;
 
 public class FSM<T> extends org.statefulj.fsm.FSM<T> {
 
-	Logger logger = LoggerFactory.getLogger(FSM.class);
-
-	public FSM(String name, Persister<T> persister) {
-		super(name, persister);
+	public FSM(String name, Persister<T> persister, RetryObserver<T> retryObserver) {
+		super(name, persister, retryObserver);
 	}
 
 	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> transition, Object... args) throws RetryException {

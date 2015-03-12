@@ -60,9 +60,9 @@ public class FSMTest {
 		
 		// States
 		//
-		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
-		StateImpl<Foo> stateB = new StateImpl<Foo>("stateB");
-		StateImpl<Foo> stateC = new StateImpl<Foo>("stateC", true); // End State
+		State<Foo> stateA = new StateImpl<Foo>("stateA");
+		State<Foo> stateB = new StateImpl<Foo>("stateB");
+		State<Foo> stateC = new StateImpl<Foo>("stateC", true); // End State
 		
 		// Transitions
 		//
@@ -125,8 +125,8 @@ public class FSMTest {
 		
 		// States
 		//
-		final StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
-		final StateImpl<Foo> stateB = new StateImpl<Foo>("stateB", true);
+		final State<Foo> stateA = new StateImpl<Foo>("stateA");
+		final State<Foo> stateB = new StateImpl<Foo>("stateB", true);
 		
 		// Non-Deterministic Transition
 		//
@@ -207,9 +207,9 @@ public class FSMTest {
 		
 		// States
 		//
-		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
-		StateImpl<Foo> statePending = new StateImpl<Foo>("statePending");
-		StateImpl<Foo> stateEnd = new StateImpl<Foo>("stateEnd");
+		State<Foo> stateA = new StateImpl<Foo>("stateA");
+		State<Foo> statePending = new StateImpl<Foo>("statePending");
+		State<Foo> stateEnd = new StateImpl<Foo>("stateEnd");
 		
 		// Transitions
 		//
@@ -290,7 +290,7 @@ public class FSMTest {
 		
 		// States
 		//
-		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA");
+		State<Foo> stateA = new StateImpl<Foo>("stateA");
 		
 		// Transitions
 		//
@@ -323,7 +323,7 @@ public class FSMTest {
 
 		// States
 		//
-		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA", false, true);
+		State<Foo> stateA = new StateImpl<Foo>("stateA", false, true);
 		
 		// FSM
 		//
@@ -343,8 +343,8 @@ public class FSMTest {
 	public void testStateFieldName() {
 		Foo2 stateful = new Foo2();
 		
-		StateImpl<Foo2> stateA = new StateImpl<Foo2>("stateA");
-		StateImpl<Foo2> stateB = new StateImpl<Foo2>("stateA");
+		State<Foo2> stateA = new StateImpl<Foo2>("stateA");
+		State<Foo2> stateB = new StateImpl<Foo2>("stateA");
 		
 		List<State<Foo2>> states = new LinkedList<State<Foo2>>();
 		states.add(stateA);
@@ -371,8 +371,8 @@ public class FSMTest {
 
 		// States
 		//
-		StateImpl<Foo> stateA = new StateImpl<Foo>("stateA", false, true);
-		StateImpl<Foo> stateB = new StateImpl<Foo>("stateB");
+		State<Foo> stateA = new StateImpl<Foo>("stateA", false, true);
+		State<Foo> stateB = new StateImpl<Foo>("stateB");
 
 		// Transitions
 		//

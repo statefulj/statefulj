@@ -33,13 +33,14 @@ import org.statefulj.fsm.model.Transition;
  */
 public class FSM<T> {
 	
-	Logger logger = LoggerFactory.getLogger(FSM.class);
+	private static final Logger logger = LoggerFactory.getLogger(FSM.class);
 
-	static final int DEFAULT_RETRIES = 20;
-	static final int DEFAULT_BLOCKING_WAIT = 250;  // 250 ms
+	private static final int DEFAULT_RETRIES = 20;
+	private static final int DEFAULT_BLOCKING_WAIT = 250;  // 250 ms
 
 	private int retries = DEFAULT_RETRIES;
 	private Persister<T> persister;
+	private RetryObserver<T> retryObserver;
 	private String name = "FSM";
 	
 	/**
@@ -53,18 +54,20 @@ public class FSM<T> {
 	/**
 	 * 
 	 * @param persister
-	 */
+	 */ 
 	public FSM(Persister<T> persister) {
 		this.persister = persister;
 	}
 	
-	/**
-	 * 
-	 * @param persister
-	 */
 	public FSM(String name, Persister<T> persister) {
 		this.name = name;
 		this.persister = persister;
+	}
+	
+	public FSM(String name, Persister<T> persister, RetryObserver<T> retryObserver) {
+		this.name = name;
+		this.persister = persister;
+		this.retryObserver = retryObserver;
 	}
 	
 	/**
@@ -87,7 +90,7 @@ public class FSM<T> {
 	 * @return
 	 * @throws TooBusyException
 	 */
-	public State<T> onEvent(final T stateful, final String event, final Object ... args) throws TooBusyException {
+	public State<T> onEvent(T stateful, String event, Object ... args) throws TooBusyException {
 		
 		int attempts = 0;
 		
@@ -135,6 +138,9 @@ public class FSM<T> {
 					}
 				}
 				attempts++;
+				if (this.retryObserver != null) {
+					stateful = this.retryObserver.onRetry(stateful, event, args);
+				}
 			}
 		}
 		logger.error("{}({})::Unable to process event", this.name, stateful);

@@ -44,6 +44,11 @@ public class ReferenceFactoryImpl implements ReferenceFactory {
 	}
 
 	@Override
+	public String getRetryObserverId() {
+		return decapitalize(ctrl + ".retryObserver");
+	}
+
+	@Override
 	public String getFSMHarnessId() {
 		return decapitalize(ctrl + ".fsmHarness");
 	}

@@ -69,7 +69,7 @@ public class StatefulControllerTest {
 	FSMHarness userFSMHarness;
 	
 	@Resource(name="concurrencyController.fsmHarness")
-	FSMHarness concurrencydFSMHarness;
+	FSMHarness concurrencyFSMHarness;
 	
 	@FSM("userController")
 	StatefulFSM<User> userFSM;
@@ -278,7 +278,7 @@ public class StatefulControllerTest {
 			public void run() {
 				synchronized(monitor) {
 					try {
-						concurrencydFSMHarness.onEvent("two", new Object[]{user.getId(), null, monitor});
+						concurrencyFSMHarness.onEvent("two", new Object[]{user.getId(), null, monitor});
 					} catch(Exception e) {
 						throw new RuntimeException(e);
 					} finally {
@@ -289,7 +289,7 @@ public class StatefulControllerTest {
 		});
 		synchronized(monitor) {
 			t.start();
-			concurrencydFSMHarness.onEvent("one", new Object[]{user.getId(), null, monitor});
+			concurrencyFSMHarness.onEvent("one", new Object[]{user.getId(), null, monitor});
 		}
 		User user2 = userRepo.findOne(user.getId());
 		assertEquals(User.THREE_STATE, user2.getState());

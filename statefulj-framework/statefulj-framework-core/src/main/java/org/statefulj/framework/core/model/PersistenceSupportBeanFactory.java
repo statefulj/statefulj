@@ -17,10 +17,12 @@
  */
 package org.statefulj.framework.core.model;
 
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
+import org.springframework.context.ApplicationContext;
 
 public interface PersistenceSupportBeanFactory {
 
@@ -32,6 +34,8 @@ public interface PersistenceSupportBeanFactory {
 	Class<?> getKey(); 
 	
 	Class<?> getIdType(); 
+
+	Class<? extends Annotation> getIdAnnotationType();
 
 	BeanDefinition buildFactoryBean(Class<?> statefulClass);
 	
@@ -48,5 +52,6 @@ public interface PersistenceSupportBeanFactory {
 			Class<?> statefulClass, 
 			String fsmBeanId,
 			String factoryId,
-			String finderId);
+			String finderId,
+			ApplicationContext applicationContext);
 }

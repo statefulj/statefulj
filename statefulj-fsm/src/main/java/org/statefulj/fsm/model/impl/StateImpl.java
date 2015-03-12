@@ -86,22 +86,27 @@ public class StateImpl<T> implements State<T> {
 		this.isEndState = isEndState;
 	}
 
+	@Override
 	public void addTransition(String event, State<T> next) {
 		this.transitions.put(event, new DeterministicTransitionImpl<T>(next, null));
 	}
 	
+	@Override
 	public void addTransition(String event, State<T> next, Action<T> action) {
 		this.transitions.put(event, new DeterministicTransitionImpl<T>(next, action));
 	}
 	
+	@Override
 	public void addTransition(String event, Transition<T> transition) {
 		this.transitions.put(event, transition);
 	}
 	
+	@Override
 	public void removeTransition(String event) {
 		this.transitions.remove(event);
 	}
 
+	@Override
 	public void setBlocking(boolean isBlocking) {
 		this.isBlocking = isBlocking;
 	}

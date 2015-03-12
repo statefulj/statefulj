@@ -45,7 +45,7 @@ import org.statefulj.framework.core.model.ReferenceFactory;
 
 public class JerseyBinder extends AbstractRestfulBinder {
 	
-	private Logger logger = LoggerFactory.getLogger(JerseyBinder.class);
+	private static final Logger logger = LoggerFactory.getLogger(JerseyBinder.class);
 	
 	public final static String KEY = "jersey";
 

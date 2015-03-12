@@ -17,6 +17,7 @@
  */
 package org.statefulj.framework.core;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -67,6 +68,7 @@ import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.fsm.FSM;
+import org.statefulj.framework.core.fsm.RetryObserverImpl;
 import org.statefulj.framework.core.fsm.TransitionImpl;
 import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
@@ -88,7 +90,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	
 	private ApplicationContext appContext;
 	
-	Logger logger = LoggerFactory.getLogger(StatefulFactory.class);
+	private static final Logger logger = LoggerFactory.getLogger(StatefulFactory.class);
 	
 	private final Pattern binder = Pattern.compile("(([^:]*):)?(.*)");
 
@@ -106,43 +108,75 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Object suggested = null;
 			Field field = descriptor.getField();
 			
+			// If this field is annotated with StatefulFSM, determine the bean Id
+			//
 			if (field != null && field.getType().isAssignableFrom(StatefulFSM.class)) {
 				
+				// Is the Annotation parameterized with the StatefulController class?
+				//
 				org.statefulj.framework.core.annotations.FSM fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
 				String controllerId = (fsmAnnotation != null ) ? fsmAnnotation.value() : null;
 				
+				// Not parameterized, derive from the generized field type
+				//
 				if (StringUtils.isEmpty(controllerId)) {
 	
-					Type genericFieldType = field.getGenericType();
-					Class<?> managedClass = null;
-	
-					if(genericFieldType instanceof ParameterizedType){
-					    ParameterizedType aType = (ParameterizedType) genericFieldType;
-					    Type[] fieldArgTypes = aType.getActualTypeArguments();
-					    for(Type fieldArgType : fieldArgTypes){
-					    	managedClass = (Class<?>) fieldArgType;
-					    	break;
-					    }
-					}
+					// Get the Managed Class
+					//
+					Class<?> managedClass = getManagedClass(field);
 					
-					if (managedClass == null) {
-						logger.error("Field {} isn't paramertized", field.getName());
-						throw new RuntimeException("Field " + field.getName() + " isn't paramertized");
-					}
-					
-					Set<String> controllers = entityToControllers.get(managedClass);
-					if (controllers == null) {
-						throw new RuntimeException("Unable to resolve FSM for field " + field.getName());
-					}
-					if (controllers.size() > 1) {
-						throw new RuntimeException("Ambiguous fsm for " + field.getName());
-					}
-					controllerId = controllers.iterator().next();
+					// Fetch the Controller from the mapping
+					//
+					controllerId = getControllerId(field, managedClass);
 				}
 				ReferenceFactory refFactory = new ReferenceFactoryImpl(controllerId);
 				suggested = appContext.getBean(refFactory.getStatefulFSMId());
 			} 
 			return (suggested != null) ? suggested : super.getSuggestedValue(descriptor);
+		}
+
+		/**
+		 * @param field
+		 * @param managedClass
+		 * @return
+		 */
+		private String getControllerId(Field field, Class<?> managedClass) {
+			String controllerId;
+			Set<String> controllers = entityToControllers.get(managedClass);
+			
+			if (controllers == null) {
+				throw new RuntimeException("Unable to resolve FSM for field " + field.getName());
+			}
+			if (controllers.size() > 1) {
+				throw new RuntimeException("Ambiguous fsm for " + field.getName());
+			}
+			
+			controllerId = controllers.iterator().next();
+			return controllerId;
+		}
+
+		/**
+		 * @param field
+		 * @return
+		 */
+		private Class<?> getManagedClass(Field field) {
+			Type genericFieldType = field.getGenericType();
+			Class<?> managedClass = null;
+
+			if(genericFieldType instanceof ParameterizedType){
+			    ParameterizedType aType = (ParameterizedType) genericFieldType;
+			    Type[] fieldArgTypes = aType.getActualTypeArguments();
+			    for(Type fieldArgType : fieldArgTypes){
+			    	managedClass = (Class<?>) fieldArgType;
+			    	break;
+			    }
+			}
+			
+			if (managedClass == null) {
+				logger.error("Field {} isn't paramertized", field.getName());
+				throw new RuntimeException("Field " + field.getName() + " isn't paramertized");
+			}
+			return managedClass;
 		}
 
 	}
@@ -159,6 +193,12 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		bf.setAutowireCandidateResolver(new FSMAnnotationResolver());
 	}
 
+	@Override
+	public void setApplicationContext(ApplicationContext applicationContext)
+			throws BeansException {
+		this.appContext = applicationContext;
+	}
+
 	/* 
 	 * Override postProcessBeanDefinitionRegistry to dynamically generate all the StatefulJ beans for each StatefulController
 	 * 
@@ -172,24 +212,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			
 			// Load up all Endpoint Binders
 			//
-			Reflections reflections = new Reflections("org.statefulj");
-			Set<Class<? extends EndpointBinder>> endpointBinders = reflections.getSubTypesOf(EndpointBinder.class);
-			for(Class<?> binderClass : endpointBinders) {
-				if (!Modifier.isAbstract(binderClass.getModifiers())) {
-					EndpointBinder binder = (EndpointBinder)binderClass.newInstance();
-					binders.put(binder.getKey(), binder);
-				}
-			}
+			Reflections reflections = loadEndpointBinders();
 		    
 			// Load up all PersistenceSupportBeanFactories
 			//
-			Set<Class<? extends PersistenceSupportBeanFactory>> persistenceFactoryTypes = reflections.getSubTypesOf(PersistenceSupportBeanFactory.class);
-			for(Class<?> persistenceFactories : persistenceFactoryTypes) {
-				if (!Modifier.isAbstract(persistenceFactories.getModifiers())) {
-					PersistenceSupportBeanFactory factory = (PersistenceSupportBeanFactory)persistenceFactories.newInstance();
-					this.persistenceFactories.put(factory.getKey(), factory);
-				}
-			}
+			loadPersistenceSupportBeanFactories(reflections);
 		    
 			// Map Controllers and Entities
 			//
@@ -209,7 +236,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		}
 		logger.debug("postProcessBeanDefinitionRegistry : exit");
 	}
-	
+
 	/**
 	 * Iterate thru all beans and fetch the StatefulControllers
 	 * 
@@ -455,12 +482,22 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				stateBeans, 
 				reg);
 
+		// Build out the RetryObserver Bean
+		//
+		String retryObserverId = registerRetryObserver(
+				referenceFactory,
+				managedClass, 
+				finderId, 
+				factory.getIdAnnotationType(),
+				reg);
+
 		// Build out the FSM Bean
 		//
 		String fsmBeanId = registerFSM(
 				referenceFactory,
 				statefulControllerClass, 
 				persisterId, 
+				retryObserverId,
 				reg);
 
 		// Build out the StatefulFSM Bean
@@ -716,10 +753,29 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		return stateId;
 	}
 	
+	private String registerRetryObserver(
+			ReferenceFactory referenceFactory,
+			Class<?> statefulClass, 
+			String finderId, 
+			Class<? extends Annotation> idType,
+			BeanDefinitionRegistry reg) {
+		String retryObserverId = referenceFactory.getRetryObserverId();
+		BeanDefinition retryObserverBean = BeanDefinitionBuilder
+				.genericBeanDefinition(RetryObserverImpl.class)
+				.getBeanDefinition();
+		ConstructorArgumentValues args = retryObserverBean.getConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, statefulClass);
+		args.addIndexedArgumentValue(1, new RuntimeBeanReference(finderId));
+		args.addIndexedArgumentValue(2, idType);
+		reg.registerBeanDefinition(retryObserverId, retryObserverBean);
+		return retryObserverId;
+	}
+
 	private String registerFSM(
 			ReferenceFactory referenceFactory,
 			Class<?> statefulControllerClass, 
 			String persisterId, 
+			String retryObserverId,
 			BeanDefinitionRegistry reg) {
 		String fsmBeanId = referenceFactory.getFSMId();
 		BeanDefinition fsmBean = BeanDefinitionBuilder
@@ -728,6 +784,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		ConstructorArgumentValues args = fsmBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, fsmBeanId);
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(persisterId));
+		args.addIndexedArgumentValue(2, new RuntimeBeanReference(retryObserverId));
 		reg.registerBeanDefinition(fsmBeanId, fsmBean);
 		return fsmBeanId;
 	}
@@ -856,7 +913,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 						statefulClass, 
 						fsmBeanId, 
 						factoryId, 
-						finderId));
+						finderId,
+						this.appContext));
 		return fsmHarnessId;
 	}
 	
@@ -901,10 +959,38 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		}
 		return clazz;
 	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext)
-			throws BeansException {
-		this.appContext = applicationContext;
+	
+	/**
+	 * @param reflections
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	private void loadPersistenceSupportBeanFactories(Reflections reflections)
+			throws InstantiationException, IllegalAccessException {
+		Set<Class<? extends PersistenceSupportBeanFactory>> persistenceFactoryTypes = reflections.getSubTypesOf(PersistenceSupportBeanFactory.class);
+		for(Class<?> persistenceFactories : persistenceFactoryTypes) {
+			if (!Modifier.isAbstract(persistenceFactories.getModifiers())) {
+				PersistenceSupportBeanFactory factory = (PersistenceSupportBeanFactory)persistenceFactories.newInstance();
+				this.persistenceFactories.put(factory.getKey(), factory);
+			}
+		}
 	}
+
+	/**
+	 * @return
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 */
+	private Reflections loadEndpointBinders() throws InstantiationException,
+			IllegalAccessException {
+		Reflections reflections = new Reflections("org.statefulj");
+		Set<Class<? extends EndpointBinder>> endpointBinders = reflections.getSubTypesOf(EndpointBinder.class);
+		for(Class<?> binderClass : endpointBinders) {
+			if (!Modifier.isAbstract(binderClass.getModifiers())) {
+				EndpointBinder binder = (EndpointBinder)binderClass.newInstance();
+				binders.put(binder.getKey(), binder);
+			}
+		}
+		return reflections;
+	}	
 }

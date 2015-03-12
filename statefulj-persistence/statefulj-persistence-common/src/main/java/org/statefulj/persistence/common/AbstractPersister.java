@@ -32,7 +32,7 @@ import org.statefulj.fsm.model.State;
 
 public abstract class AbstractPersister<T> implements Persister<T> {
 	
-	Logger logger = LoggerFactory.getLogger(AbstractPersister.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractPersister.class);
 	
 	private Field idField;
 	private Field stateField;
