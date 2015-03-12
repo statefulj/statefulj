@@ -3,7 +3,7 @@ layout: page
 title: StatefulJ Framework
 ---
 
-The *StatefulJ Framework* leverages [*StatefulJ FSM*](/fsm), [*StatefulJ Persister*](/fsm#define-your-persister) and [Spring Data](http://projects.spring.io/spring-data/) to seamlessly integrate
+The *StatefulJ Framework* leverages [*StatefulJ FSM*](/fsm), [*StatefulJ Persistence*](/persistence/) and [Spring Data](http://projects.spring.io/spring-data/) to seamlessly integrate
 StatefulJ into your Application.  Using Annotations to define your State Model, StatefulJ will auto generate the FSM 
 infrastructure, bind with with *Endpoint Providers* and manage all State Persistence.
 
