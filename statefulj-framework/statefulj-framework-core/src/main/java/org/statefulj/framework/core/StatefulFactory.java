@@ -110,14 +110,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			
 			// If this field is annotated with StatefulFSM, determine the bean Id
 			//
-			if (field != null && field.getType().isAssignableFrom(StatefulFSM.class)) {
+			if (isAnnotatedWithStatefulFSM(field)) {
 				
 				// Is the Annotation parameterized with the StatefulController class?
 				//
-				org.statefulj.framework.core.annotations.FSM fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
-				String controllerId = (fsmAnnotation != null ) ? fsmAnnotation.value() : null;
+				String controllerId = getControllerIdFromParameterizedValue(field);
 				
-				// Not parameterized, derive from the generized field type
+				// Not parameterized, derive from the generic field type
 				//
 				if (StringUtils.isEmpty(controllerId)) {
 	
@@ -127,7 +126,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					
 					// Fetch the Controller from the mapping
 					//
-					controllerId = getControllerId(field, managedClass);
+					controllerId = deriveControllerId(field, managedClass);
 				}
 				ReferenceFactory refFactory = new ReferenceFactoryImpl(controllerId);
 				suggested = appContext.getBean(refFactory.getStatefulFSMId());
@@ -137,10 +136,28 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		/**
 		 * @param field
+		 * @return
+		 */
+		private String getControllerIdFromParameterizedValue(Field field) {
+			org.statefulj.framework.core.annotations.FSM fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
+			String controllerId = (fsmAnnotation != null ) ? fsmAnnotation.value() : null;
+			return controllerId;
+		}
+
+		/**
+		 * @param field
+		 * @return
+		 */
+		private boolean isAnnotatedWithStatefulFSM(Field field) {
+			return field != null && field.getType().isAssignableFrom(StatefulFSM.class);
+		}
+
+		/**
+		 * @param field
 		 * @param managedClass
 		 * @return
 		 */
-		private String getControllerId(Field field, Class<?> managedClass) {
+		private String deriveControllerId(Field field, Class<?> managedClass) {
 			String controllerId;
 			Set<String> controllers = entityToControllers.get(managedClass);
 			
@@ -210,9 +227,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		logger.debug("postProcessBeanDefinitionRegistry : enter");
 		try {
 			
+			// Reflect over StatefulJ
+			//
+			Reflections reflections = new Reflections("org.statefulj");
+
 			// Load up all Endpoint Binders
 			//
-			Reflections reflections = loadEndpointBinders();
+			loadEndpointBinders(reflections);
 		    
 			// Load up all PersistenceSupportBeanFactories
 			//
@@ -981,9 +1002,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	private Reflections loadEndpointBinders() throws InstantiationException,
+	private void loadEndpointBinders(Reflections reflections) throws InstantiationException,
 			IllegalAccessException {
-		Reflections reflections = new Reflections("org.statefulj");
 		Set<Class<? extends EndpointBinder>> endpointBinders = reflections.getSubTypesOf(EndpointBinder.class);
 		for(Class<?> binderClass : endpointBinders) {
 			if (!Modifier.isAbstract(binderClass.getModifiers())) {
@@ -991,6 +1011,5 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				binders.put(binder.getKey(), binder);
 			}
 		}
-		return reflections;
 	}	
 }
