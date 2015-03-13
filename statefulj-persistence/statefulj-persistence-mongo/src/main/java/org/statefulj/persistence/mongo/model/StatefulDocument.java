@@ -30,8 +30,7 @@ import org.statefulj.persistence.annotations.State;
 public abstract class StatefulDocument {
 	
 	/**
-	 * State field is managed by StatefulJ and is done automically.  So we'll mark this as Transient
-	 * to prevent SpringData from overwriting it
+	 * State field is managed by StatefulJ.
 	 * 
 	 */
 	@State
