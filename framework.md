@@ -294,7 +294,7 @@ public class FooController {
 
 A *Transition* is a reaction to an *Event* directed at a *Stateful Entity*.  The *Transition* can involve a possible change in *State* and a possible *Action*.  
 
-In the *Stateful Framework*, a Transition is a method in the *Stateful Controller* annotated with the [@Transition](public/javadoc/org/statefulj/framework/core/annotations/Transition.html) annotation.  
+In the *StatefulJ Framework*, a Transition is a method in the *Stateful Controller* annotated with the [@Transition](public/javadoc/org/statefulj/framework/core/annotations/Transition.html) annotation.  
 
 | Field	    |Value 				         	| Description                                                |
 |---		|-------------------         	| -------------                                                                                        |
@@ -302,16 +302,15 @@ In the *Stateful Framework*, a Transition is a method in the *Stateful Controlle
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
 | to		| &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
 
-When a Transition is invoked, the *StatefulJ Framework* will invoke the associated method.  If the StatefulController is a Controller, then the first two parameters of the method are always:
+When a Transition is invoked, the *StatefulJ Framework* will call the associated method.  
+If the StatefulController is a Controller (vs a Domain Entity), 
+then the first two parameters of the method are always:
 
 1. Stateful Entity
 2. The Event
 
-When the Stateful Framework binds the Endpoint, it will read all the Annotations on the method and all the Parameters after the StatefulEntity and 
-Event and propagate to the Endpoint.  So, can define your  Transition with the parameters and annotations would normally would for the Endpoint. 
-
-**Note:** If your method returns a String, and that String is prefixed with **event:** then 
-the return value will be treated as Event and re-propagated.  
+**Note:** When the StatefulJ Framework binds the Endpoint, it reads all the Annotations on the method and all the Parameters after the StatefulEntity and 
+Event and then propagates these parameters to the Endpoint.  So, you can define your Transition with the parameters and annotations that you normally would for the Endpoint. 
 
 ```java
 @StatefulController(
@@ -371,6 +370,35 @@ public class Foo {
 		FooObserver.notifyUpgrade(new UpgradeEvent(this));
 	}
 }
+```
+#### Propagating Events and Non-Determinism
+
+If your method returns a String, and that String is prefixed with **event:**,
+then the return value will be treated as an Event and re-propagated.
+This can be used to implement *Non-Deterministic Transitions*.
+For example, you can define a *Transition* without a *to* but in the associated method,
+do further conditionals to determine an event to propagate.
+The returned event can then determine the actual State change.
+
+```java
+
+	@Transition(from=STATE_A, event=EVENT_A
+	private String doNonDeterministic(Foo foo, String event) {
+		if (foo.getBar().equals("b")) {
+			return "event:" + EVENT_B;
+		} else {
+			return "event:" + EVENT_C;
+		}
+	}
+
+	@Transitions({
+		@Transition(from=STATE_A, event=EVENT_B, to=STATE_B),
+		@Transition(from=STATE_A, event=EVENT_C, to=STATE_C)
+	})
+	private String doDeterministic(Foo foo, String event) {
+		System.out.println("Event = " + event);
+		System.out.println("State = " + foo.getState());
+	}
 ```
 
 ### <a name="inject-stateful-fsm"></a> Inject the StatefulFSM
