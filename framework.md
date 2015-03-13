@@ -376,13 +376,13 @@ public class Foo {
 If your method returns a String, and that String is prefixed with **event:**,
 then the return value will be treated as an Event and re-propagated.
 This can be used to implement *Non-Deterministic Transitions*.
-For example, you can define a *Transition* without a *to* but in the associated method,
+For example, you can define a *Transition* without a **to** and in the associated method
 do further conditionals to determine an event to propagate.
 The returned event can then determine the actual State change.
 
 ```java
 
-	@Transition(from=STATE_A, event=EVENT_A
+	@Transition(from=STATE_A, event=EVENT_A)
 	private String doNonDeterministic(Foo foo, String event) {
 		if (foo.getBar().equals("b")) {
 			return "event:" + EVENT_B;
