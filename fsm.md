@@ -85,9 +85,9 @@ A State defines the state value for an Entity and holds the mapping of all Trans
 ```java		
 // States
 //
-StateImpl<Foo> stateA = new StateImpl<Foo>("State A");
-StateImpl<Foo> stateB = new StateImpl<Foo>("State B");
-StateImpl<Foo> stateC = new StateImpl<Foo>("State C", true); // End State
+State<Foo> stateA = new StateImpl<Foo>("State A");
+State<Foo> stateB = new StateImpl<Foo>("State B");
+State<Foo> stateC = new StateImpl<Foo>("State C", true); // End State
 ```
 		
 ### <a name="define-your-actions"></a> Define your Actions
