@@ -21,7 +21,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.statefulj.persistence.annotations.State;
 
 /**
- * A convenience class for a Stateful Document.  This Class ensures read-only behavior for the State
+ * A convenience class for a StatefulDocument.  This Class ensures read-only behavior for the State
  * field
  * 
  * @author Andrew Hall
