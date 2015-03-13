@@ -39,6 +39,7 @@ public class FSM<T> {
 	private static final int DEFAULT_BLOCKING_WAIT = 250;  // 250 ms
 
 	private int retries = DEFAULT_RETRIES;
+
 	private Persister<T> persister;
 	private RetryObserver<T> retryObserver;
 	private String name = "FSM";

@@ -76,7 +76,7 @@ public class FSMTest {
 		states.add(stateB);
 		states.add(stateC);
 		
-		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		FSM<Foo> fsm = new FSM<Foo>("SimpleFSM", persister);
 
 		// Verify that on eventA, we transition to StateB and verify
@@ -150,7 +150,7 @@ public class FSMTest {
 		states.add(stateA);
 		states.add(stateB);
 		
-		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("NDFSM", persister);
 
 		// Verify that the first two eventA returns stateA
@@ -226,7 +226,7 @@ public class FSMTest {
 		states.add(statePending);
 		states.add(stateEnd);
 		
-		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(states, stateA);
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(states, stateA);
 
 		// Set the Persister
 		//
@@ -301,13 +301,68 @@ public class FSMTest {
 		List<State<Foo>> states = new LinkedList<State<Foo>>();
 		states.add(stateA);
 		
-		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
 		fsm.setRetries(1);
 
 		// Boom
 		//
 		fsm.onEvent(stateful, eventA);
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testRetryWithObserver() throws TooBusyException {
+
+		// Stateful
+		//
+		final Foo stateful = new Foo();
+
+		// Events
+		//
+		final String eventA = "eventA";
+
+		// Actions
+		//
+		Action<Foo> throwAction = new Action<Foo>() {
+			
+			public void execute(Foo stateful, String event, Object... args) throws RetryException {
+				throw new RetryException();
+			}
+		};
+		
+		// States
+		//
+		State<Foo> stateA = new StateImpl<Foo>("stateA");
+		
+		// Transitions
+		//
+		stateA.addTransition(eventA, stateA, throwAction);
+
+		// FSM
+		//
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		
+		// Move RetryObserver
+		//
+		RetryObserver<Foo> retryObserver = mock(RetryObserver.class);
+		when(retryObserver.onRetry(stateful, eventA)).thenReturn(stateful);
+		
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister, retryObserver);
+		fsm.setRetries(2);
+
+		// Boom
+		//
+		boolean caught = false;
+		try {
+			fsm.onEvent(stateful, eventA);
+		} catch(TooBusyException tbe) {
+			caught = true;
+		}
+		assertTrue(caught);
+		verify(retryObserver, times(2)).onRetry(stateful, eventA);
 	}
 	
 	@Test(expected=TooBusyException.class)
@@ -330,7 +385,7 @@ public class FSMTest {
 		List<State<Foo>> states = new LinkedList<State<Foo>>();
 		states.add(stateA);
 		
-		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
 		fsm.setRetries(1);
 
@@ -384,7 +439,7 @@ public class FSMTest {
 		states.add(stateA);
 		states.add(stateB);
 		
-		MemoryPersisterImpl<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
 		fsm.setRetries(1000);
 
