@@ -471,16 +471,12 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			transitionIds.add(transitionId);
 		}
 		
-		// Fetch the StatefulController Annotation
-		//
-		StatefulController statefulContollerAnnotation = ReflectionUtils.getFirstClassAnnotation(statefulControllerClass, StatefulController.class);
-
 		// Build out the Managed Entity Factory Bean
 		//
 		String factoryId = registerFactoryBean(
 				referenceFactory, 
 				factory,
-				statefulContollerAnnotation, 
+				scAnnotation, 
 				reg);
 
 		// Build out the Managed Entity Finder Bean
@@ -488,7 +484,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		String finderId = registerFinderBean(
 				referenceFactory, 
 				factory,
-				statefulContollerAnnotation, 
+				scAnnotation, 
 				repoBeanId,
 				reg);
 
@@ -497,7 +493,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		String persisterId = registerPersisterBean(
 				referenceFactory, 
 				factory, 
-				statefulContollerAnnotation, 
+				scAnnotation, 
 				managedClass, 
 				repoBeanId,
 				stateBeans, 
@@ -505,12 +501,16 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		// Build out the RetryObserver Bean
 		//
-		String retryObserverId = registerRetryObserver(
+		String retryObserverId = null;
+		
+		if (scAnnotation.reloadEntityOnRetry()) {
+			retryObserverId = registerRetryObserver(
 				referenceFactory,
 				managedClass, 
 				finderId, 
 				factory.getIdAnnotationType(),
 				reg);
+		}
 
 		// Build out the FSM Bean
 		//
@@ -805,7 +805,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		ConstructorArgumentValues args = fsmBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, fsmBeanId);
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(persisterId));
-		args.addIndexedArgumentValue(2, new RuntimeBeanReference(retryObserverId));
+		if (retryObserverId != null) {
+			args.addIndexedArgumentValue(2, new RuntimeBeanReference(retryObserverId));
+		}
+
 		reg.registerBeanDefinition(fsmBeanId, fsmBean);
 		return fsmBeanId;
 	}

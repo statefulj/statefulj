@@ -22,8 +22,10 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.statefulj.framework.core.controllers.NoRetryController;
 import org.statefulj.framework.core.controllers.UserController;
 import org.statefulj.framework.core.dao.UserRepository;
 import org.statefulj.framework.core.mocks.MockBeanDefinitionRegistryImpl;
@@ -33,6 +35,7 @@ import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 
 public class StatefulFactoryTest {
+	
 	
 	@Test
 	public void testFSMConstruction() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
@@ -72,6 +75,57 @@ public class StatefulFactoryTest {
 		BeanDefinition stateFive = registry.getBeanDefinition(refFactory.getStateId(UserController.FIVE_STATE));
 		
 		assertEquals(true, stateFive.getConstructorArgumentValues().getArgumentValue(2, Boolean.class).getValue());
+		
+		// Verify that the FSM has a RetryObserver
+		//
+		BeanDefinition retryObserver = registry.getBeanDefinition(refFactory.getRetryObserverId());
+		assertNotNull(retryObserver);
+		
+		BeanDefinition fsm = registry.getBeanDefinition(refFactory.getFSMId());
+		assertNotNull(fsm);
+		assertEquals(
+				new RuntimeBeanReference(refFactory.getRetryObserverId()), 
+				fsm.
+					getConstructorArgumentValues().
+					getArgumentValue(2, RuntimeBeanReference.class).
+					getValue());
+		
+	}
+ 
+	@Test
+	public void testFSMConstructionWithoutRetry() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+		
+		BeanDefinitionRegistry registry = new MockBeanDefinitionRegistryImpl();
+		
+		BeanDefinition userRepo = BeanDefinitionBuilder
+				.genericBeanDefinition(MockRepositoryFactoryBeanSupport.class)
+				.getBeanDefinition();
+		userRepo.getPropertyValues().add("repositoryInterface", UserRepository.class.getName());
+
+		registry.registerBeanDefinition("userRepo", userRepo);
+	
+		BeanDefinition noRetryController = BeanDefinitionBuilder
+				.genericBeanDefinition(NoRetryController.class)
+				.getBeanDefinition();
+
+		registry.registerBeanDefinition("noRetryController", noRetryController);
+	
+		ReferenceFactory refFactory = new ReferenceFactoryImpl("noRetryController");
+		StatefulFactory factory = new StatefulFactory();
+		
+		factory.postProcessBeanDefinitionRegistry(registry);
+
+		// Verify that the FSM has a RetryObserver
+		//
+		BeanDefinition retryObserver = registry.getBeanDefinition(refFactory.getRetryObserverId());
+		assertNull(retryObserver);
+		
+		BeanDefinition fsm = registry.getBeanDefinition(refFactory.getFSMId());
+		assertNotNull(fsm);
+		assertNull(
+				fsm.
+					getConstructorArgumentValues().
+					getArgumentValue(2, RuntimeBeanReference.class));
 		
 	}
  
