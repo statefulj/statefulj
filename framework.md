@@ -92,7 +92,10 @@ To integrate the *StatefulJ Framework*, you define your *State Model*.  To creat
 
 ### <a name="instantiate-stateful-factory"></a> Instantiate the Stateful Factory
 
-The *Stateful Factory* will inspect the [StateControllers](#define-your-controller), bind with with *Endpoint Providers* and construct the *State Model*.  In order for the Stateful Factory to discover the [StateControllers](#define-your-controller), you must ensure that you have correctly defined your [Spring Component Scans](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-scanning-autodetection) to include the StateController's package.
+The *Stateful Factory* will inspect the [StateControllers](#define-your-controller), bind with with *Endpoint Providers* and construct the *State Model*.
+In order for the Stateful Factory to discover the [StateControllers](#define-your-controller), 
+you must ensure that you have correctly defined your [Spring Component Scans](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/beans.html#beans-scanning-autodetection) 
+to include the StateController's package or individually define each StatefulController bean via Spring XML or Java Config.
 
 #### XML Configuration
 
