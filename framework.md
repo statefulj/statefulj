@@ -234,8 +234,10 @@ Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/fr
 | persisterId	      | Optional	| The bean Id of the Persister for this Entity.  The Persister is responsible for updating the State field for the Stateful Entity.  The Persister must implement the [Persister Interface](/public/javadoc/org/statefulj/fsm/Persister.html).  If not specified, the *StatefulJ Framework* will use the default Persister Implementation. |
 | blockingStates      | Optional	| Defines the set of "Blocking" States.  A Blocking State is a State that "block" an event from being handled until the FSM transitions out of the Blocking State |
 | noops			      | Optional	| An array of NOOP Transitions.  These Transitions will update the State field but will not invoke any Actions |
+| retryAttempts       | Optional	| Specify the number of times StatefulJ should attempt to handle the event.  If retryAttempts is -1, then it will always attempt to handle the event.  Default is 20 retry attempts |
+| retryInterval       | Optional	| The interval, in milliseconds, between each retry attempt.  Default is 250 milliseconds between retries |
 | reloadEntityOnRetry | Optional	| Set whether or not a new version of the Stateful Entity is fetched on a retry.  Defaults to true |
-
+	 
 ```java
 @StatefulController(
 	clazz=Foo.class,
