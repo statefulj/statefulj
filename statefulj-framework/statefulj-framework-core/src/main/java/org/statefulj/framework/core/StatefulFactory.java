@@ -351,9 +351,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		//
 		boolean isDomainEntity = managedClass.equals(statefulControllerClass);
 		
+		// ReferenceFactory will generate all the necessary bean ids
+		//
 		ReferenceFactory referenceFactory = new ReferenceFactoryImpl(statefulControllerBeanId);
 		
-		// Gather all the events from across all the methods
+		// We need to map Transitions across all Methods
 		//
 		Map<String, Map<String, Method>> providersMappings = new HashMap<String, Map<String, Method>>();
 		Map<Transition, Method> transitionMapping = new HashMap<Transition, Method>();
@@ -373,6 +375,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
 
 		// Fetch the PersistenceFactory
+		//
 		PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoBeanClass);
 		
 		// Map the Events and Transitions for the Controller
@@ -514,11 +517,15 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		// Build out the FSM Bean
 		//
+		int retryAttempts = scAnnotation.retryAttempts();
+		int retryInterval = scAnnotation.retryInterval();
 		String fsmBeanId = registerFSM(
 				referenceFactory,
 				statefulControllerClass, 
 				persisterId, 
 				retryObserverId,
+				retryAttempts,
+				retryInterval,
 				reg);
 
 		// Build out the StatefulFSM Bean
@@ -797,7 +804,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Class<?> statefulControllerClass, 
 			String persisterId, 
 			String retryObserverId,
+			int retryAttempts,
+			int retryInterval,
 			BeanDefinitionRegistry reg) {
+		
 		String fsmBeanId = referenceFactory.getFSMId();
 		BeanDefinition fsmBean = BeanDefinitionBuilder
 				.genericBeanDefinition(FSM.class)
@@ -805,8 +815,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		ConstructorArgumentValues args = fsmBean.getConstructorArgumentValues();
 		args.addIndexedArgumentValue(0, fsmBeanId);
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(persisterId));
+		args.addIndexedArgumentValue(2, retryAttempts);
+		args.addIndexedArgumentValue(3, retryInterval);
 		if (retryObserverId != null) {
-			args.addIndexedArgumentValue(2, new RuntimeBeanReference(retryObserverId));
+			args.addIndexedArgumentValue(4, new RuntimeBeanReference(retryObserverId));
 		}
 
 		reg.registerBeanDefinition(fsmBeanId, fsmBean);

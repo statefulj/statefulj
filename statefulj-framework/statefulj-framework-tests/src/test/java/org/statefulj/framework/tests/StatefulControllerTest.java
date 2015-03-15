@@ -193,7 +193,7 @@ public class StatefulControllerTest {
 		// Now kick off an event, it should block and then eventually throw a TooBusyException
 		//
 		org.statefulj.framework.core.fsm.FSM<User> fsm = (org.statefulj.framework.core.fsm.FSM<User>)this.appContext.getBean(refFactory.getFSMId());
-		fsm.setRetries(1);
+		fsm.setRetryAttempts(1);
 		fsm.onEvent(user, "block.me");
 	}
 

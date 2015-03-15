@@ -36,9 +36,10 @@ public class FSM<T> {
 	private static final Logger logger = LoggerFactory.getLogger(FSM.class);
 
 	private static final int DEFAULT_RETRIES = 20;
-	private static final int DEFAULT_BLOCKING_WAIT = 250;  // 250 ms
+	private static final int DEFAULT_RETRY_INTERVAL = 250;  // 250 ms
 
-	private int retries = DEFAULT_RETRIES;
+	private int retryAttempts = DEFAULT_RETRIES;
+	private int retryInterval = DEFAULT_RETRY_INTERVAL;
 
 	private Persister<T> persister;
 	private RetryObserver<T> retryObserver;
@@ -65,9 +66,24 @@ public class FSM<T> {
 		this.persister = persister;
 	}
 	
+	public FSM(String name, Persister<T> persister, int retryAttempts, int retryInterval) {
+		this.name = name;
+		this.persister = persister;
+		this.retryAttempts = retryAttempts;
+		this.retryInterval = retryInterval;
+	}
+	
 	public FSM(String name, Persister<T> persister, RetryObserver<T> retryObserver) {
 		this.name = name;
 		this.persister = persister;
+		this.retryObserver = retryObserver;
+	}
+	
+	public FSM(String name, Persister<T> persister, int retryAttempts, int retryInterval, RetryObserver<T> retryObserver) {
+		this.name = name;
+		this.persister = persister;
+		this.retryAttempts = retryAttempts;
+		this.retryInterval = retryInterval;
 		this.retryObserver = retryObserver;
 	}
 	
@@ -78,7 +94,7 @@ public class FSM<T> {
 	 */
 	public FSM(Persister<T> persister, int retries) {
 		this.persister = persister;
-		this.retries = retries;
+		this.retryAttempts = retries;
 	}
 
 	/**
@@ -95,7 +111,7 @@ public class FSM<T> {
 		
 		int attempts = 0;
 		
-		while(attempts < this.retries) {
+		while(this.retryAttempts == -1 || attempts < this.retryAttempts) {
 			try {
 				State<T> current = getCurrentState(stateful);
 				
@@ -121,7 +137,7 @@ public class FSM<T> {
 					//
 					if (current.isBlocking()) {
 						setCurrent(stateful, current, current);
-						throw new WaitAndRetryException(DEFAULT_BLOCKING_WAIT);
+						throw new WaitAndRetryException(this.retryInterval);
 					}
 				}
 				return current;
@@ -148,12 +164,28 @@ public class FSM<T> {
 		throw new TooBusyException();
 	}
 	
-	public int getRetries() {
-		return retries;
+	public int getRetryAttempts() {
+		return retryAttempts;
 	}
 
-	public void setRetries(int retries) {
-		this.retries = retries;
+	public void setRetryAttempts(int retries) {
+		this.retryAttempts = retries;
+	}
+
+	public int getRetryInterval() {
+		return retryInterval;
+	}
+
+	public void setRetryInterval(int retryInterval) {
+		this.retryInterval = retryInterval;
+	}
+	
+	public RetryObserver<T> getRetryObserver() {
+		return retryObserver;
+	}
+
+	public void setRetryObserver(RetryObserver<T> retryObserver) {
+		this.retryObserver = retryObserver;
 	}
 
 	public Persister<T> getPersister() {

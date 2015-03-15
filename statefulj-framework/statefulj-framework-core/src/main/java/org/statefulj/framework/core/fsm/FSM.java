@@ -31,6 +31,10 @@ public class FSM<T> extends org.statefulj.fsm.FSM<T> {
 		super(name, persister, retryObserver);
 	}
 
+	public FSM(String name, Persister<T> persister, int retryAttempts, int retryInterval, RetryObserver<T> retryObserver) {
+		super(name, persister, retryAttempts, retryInterval, retryObserver);
+	}
+
 	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> transition, Object... args) throws RetryException {
 		State<T> next = null;
 		

@@ -24,7 +24,7 @@ import org.statefulj.framework.core.model.Finder;
 
 public class CrudRepositoryFinderImpl<T, CT> implements Finder<T, CT> {
 	
-	CrudRepository<T, Serializable> repo;
+	private CrudRepository<T, Serializable> repo;
 	
 	public CrudRepositoryFinderImpl(CrudRepository<T, Serializable> repo) {
 		this.repo = repo;

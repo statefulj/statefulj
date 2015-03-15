@@ -114,6 +114,21 @@ public @interface StatefulController {
 	Transition[] noops() default {};
 
 	/**
+	 * Specify the number of times StatefulJ should attempt to handle the event.  If retryAttempts
+	 * is -1, then it will always attempt to handle the event
+	 * 
+	 * @return number of retry attempts
+	 */
+	int retryAttempts() default 20;
+	
+	/**
+	 * The interval, in milliseconds, between each retry attempt
+	 * 
+	 * @return retry interval in milliseconds
+	 */
+	int retryInterval() default 250;
+	
+	/**
 	 * Set whether or not a new version of the Stateful Entity is fetched on a 
 	 * retry.  Defaults to true
 	 * 

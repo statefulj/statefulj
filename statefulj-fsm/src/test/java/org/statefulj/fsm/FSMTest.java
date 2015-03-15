@@ -19,10 +19,12 @@ package org.statefulj.fsm;
 
 import static org.junit.Assert.*;
 
+import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.junit.Test;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.RetryException;
@@ -303,11 +305,48 @@ public class FSMTest {
 		
 		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
-		fsm.setRetries(1);
+		fsm.setRetryAttempts(1);
 
 		// Boom
 		//
 		fsm.onEvent(stateful, eventA);
+	}
+	
+	@Test
+	public void testRetryInterval()  {
+
+		// Stateful
+		//
+		final Foo stateful = new Foo();
+
+		// Events
+		//
+		final String eventA = "eventA";
+
+		// States
+		//
+		State<Foo> stateA = new StateImpl<Foo>("stateA", false, true); // blocking
+		
+		// FSM
+		//
+		List<State<Foo>> states = new LinkedList<State<Foo>>();
+		states.add(stateA);
+		
+		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
+		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
+		fsm.setRetryAttempts(1);
+		fsm.setRetryInterval(500);
+
+		// Run
+		//
+		long start = Calendar.getInstance().getTimeInMillis();
+		try {
+			fsm.onEvent(stateful, eventA);
+		} catch (TooBusyException e) {
+		}
+		long end = Calendar.getInstance().getTimeInMillis();
+		assertTrue((end - start) > 499);
+		assertTrue((end - start) < 600);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -351,7 +390,7 @@ public class FSMTest {
 		
 		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister, retryObserver);
-		fsm.setRetries(2);
+		fsm.setRetryAttempts(2);
 
 		// Boom
 		//
@@ -387,7 +426,7 @@ public class FSMTest {
 		
 		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
-		fsm.setRetries(1);
+		fsm.setRetryAttempts(1);
 
 		// Boom
 		//
@@ -441,7 +480,7 @@ public class FSMTest {
 		
 		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
 		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister);
-		fsm.setRetries(1000);
+		fsm.setRetryAttempts(1000);
 
 		// Spawn another Thread
 		//

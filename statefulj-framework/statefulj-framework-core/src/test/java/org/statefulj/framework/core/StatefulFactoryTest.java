@@ -83,11 +83,13 @@ public class StatefulFactoryTest {
 		
 		BeanDefinition fsm = registry.getBeanDefinition(refFactory.getFSMId());
 		assertNotNull(fsm);
+		assertEquals(20, fsm.getConstructorArgumentValues().getArgumentValue(2, Integer.class).getValue());
+		assertEquals(250, fsm.getConstructorArgumentValues().getArgumentValue(3, Integer.class).getValue());
 		assertEquals(
 				new RuntimeBeanReference(refFactory.getRetryObserverId()), 
 				fsm.
 					getConstructorArgumentValues().
-					getArgumentValue(2, RuntimeBeanReference.class).
+					getArgumentValue(4, RuntimeBeanReference.class).
 					getValue());
 		
 	}
@@ -122,11 +124,9 @@ public class StatefulFactoryTest {
 		
 		BeanDefinition fsm = registry.getBeanDefinition(refFactory.getFSMId());
 		assertNotNull(fsm);
-		assertNull(
-				fsm.
-					getConstructorArgumentValues().
-					getArgumentValue(2, RuntimeBeanReference.class));
-		
+		assertEquals(1, fsm.getConstructorArgumentValues().getArgumentValue(2, Integer.class).getValue());
+		assertEquals(1, fsm.getConstructorArgumentValues().getArgumentValue(3, Integer.class).getValue());
+		assertNull(fsm.getConstructorArgumentValues().getArgumentValue(4, RuntimeBeanReference.class));
 	}
  
 }
