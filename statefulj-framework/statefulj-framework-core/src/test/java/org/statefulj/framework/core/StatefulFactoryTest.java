@@ -76,26 +76,14 @@ public class StatefulFactoryTest {
 		
 		assertEquals(true, stateFive.getConstructorArgumentValues().getArgumentValue(2, Boolean.class).getValue());
 		
-		// Verify that the FSM has a RetryObserver
-		//
-		BeanDefinition retryObserver = registry.getBeanDefinition(refFactory.getRetryObserverId());
-		assertNotNull(retryObserver);
-		
 		BeanDefinition fsm = registry.getBeanDefinition(refFactory.getFSMId());
 		assertNotNull(fsm);
 		assertEquals(20, fsm.getConstructorArgumentValues().getArgumentValue(2, Integer.class).getValue());
 		assertEquals(250, fsm.getConstructorArgumentValues().getArgumentValue(3, Integer.class).getValue());
-		assertEquals(
-				new RuntimeBeanReference(refFactory.getRetryObserverId()), 
-				fsm.
-					getConstructorArgumentValues().
-					getArgumentValue(4, RuntimeBeanReference.class).
-					getValue());
-		
 	}
  
 	@Test
-	public void testFSMConstructionWithoutRetry() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
+	public void testFSMConstructionWithNonDefaultRetry() throws ClassNotFoundException, NoSuchMethodException, SecurityException {
 		
 		BeanDefinitionRegistry registry = new MockBeanDefinitionRegistryImpl();
 		
@@ -117,16 +105,10 @@ public class StatefulFactoryTest {
 		
 		factory.postProcessBeanDefinitionRegistry(registry);
 
-		// Verify that the FSM has a RetryObserver
-		//
-		BeanDefinition retryObserver = registry.getBeanDefinition(refFactory.getRetryObserverId());
-		assertNull(retryObserver);
-		
 		BeanDefinition fsm = registry.getBeanDefinition(refFactory.getFSMId());
 		assertNotNull(fsm);
 		assertEquals(1, fsm.getConstructorArgumentValues().getArgumentValue(2, Integer.class).getValue());
 		assertEquals(1, fsm.getConstructorArgumentValues().getArgumentValue(3, Integer.class).getValue());
-		assertNull(fsm.getConstructorArgumentValues().getArgumentValue(4, RuntimeBeanReference.class));
 	}
  
 }

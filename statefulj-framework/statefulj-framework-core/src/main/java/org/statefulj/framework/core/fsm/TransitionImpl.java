@@ -24,15 +24,19 @@ import org.statefulj.fsm.model.impl.DeterministicTransitionImpl;
 public class TransitionImpl<T> extends DeterministicTransitionImpl<T> {
 	
 	private boolean any = false;
+	
+	private boolean reload = false;
 
 	public TransitionImpl(
 			State<T> from, 
 			State<T> to, 
 			String event,
 			Action<T> action,
-			boolean any) {
+			boolean any,
+			boolean reload) {
 		super(from, to, event, action);
 		this.any = any;
+		this.reload = reload;
 	}
 
 	public boolean isAny() {
@@ -41,5 +45,13 @@ public class TransitionImpl<T> extends DeterministicTransitionImpl<T> {
 
 	public void setAny(boolean any) {
 		this.any = any;
+	}
+
+	public boolean isReload() {
+		return reload;
+	}
+
+	public void setReload(boolean reload) {
+		this.reload = reload;
 	}
 }

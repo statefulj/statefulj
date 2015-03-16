@@ -25,8 +25,6 @@ public interface ReferenceFactory {
 
 	String getFinderId();
 	
-	String getRetryObserverId();
-	
 	String getFSMHarnessId(); 
 
 	String getPersisterId(); 

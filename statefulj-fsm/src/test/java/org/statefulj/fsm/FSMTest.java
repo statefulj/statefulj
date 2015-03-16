@@ -24,7 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.lang3.mutable.MutableLong;
 import org.junit.Test;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.RetryException;
@@ -347,61 +346,6 @@ public class FSMTest {
 		long end = Calendar.getInstance().getTimeInMillis();
 		assertTrue((end - start) > 499);
 		assertTrue((end - start) < 600);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testRetryWithObserver() throws TooBusyException {
-
-		// Stateful
-		//
-		final Foo stateful = new Foo();
-
-		// Events
-		//
-		final String eventA = "eventA";
-
-		// Actions
-		//
-		Action<Foo> throwAction = new Action<Foo>() {
-			
-			public void execute(Foo stateful, String event, Object... args) throws RetryException {
-				throw new RetryException();
-			}
-		};
-		
-		// States
-		//
-		State<Foo> stateA = new StateImpl<Foo>("stateA");
-		
-		// Transitions
-		//
-		stateA.addTransition(eventA, stateA, throwAction);
-
-		// FSM
-		//
-		List<State<Foo>> states = new LinkedList<State<Foo>>();
-		states.add(stateA);
-		
-		// Move RetryObserver
-		//
-		RetryObserver<Foo> retryObserver = mock(RetryObserver.class);
-		when(retryObserver.onRetry(stateful, eventA)).thenReturn(stateful);
-		
-		Persister<Foo> persister = new MemoryPersisterImpl<Foo>(stateful, states, stateA);
-		final FSM<Foo> fsm = new FSM<Foo>("TooBusy", persister, retryObserver);
-		fsm.setRetryAttempts(2);
-
-		// Boom
-		//
-		boolean caught = false;
-		try {
-			fsm.onEvent(stateful, eventA);
-		} catch(TooBusyException tbe) {
-			caught = true;
-		}
-		assertTrue(caught);
-		verify(retryObserver, times(2)).onRetry(stateful, eventA);
 	}
 	
 	@Test(expected=TooBusyException.class)

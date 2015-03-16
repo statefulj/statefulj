@@ -128,13 +128,4 @@ public @interface StatefulController {
 	 */
 	int retryInterval() default 250;
 	
-	/**
-	 * Set whether or not a new version of the Stateful Entity is fetched on a 
-	 * retry.  Defaults to true
-	 * 
-	 * @return A boolean indicating whether or not to load a new version of the 
-	 * Stateful Entity on retry
-	 */
-	boolean reloadEntityOnRetry() default true;
-
 }

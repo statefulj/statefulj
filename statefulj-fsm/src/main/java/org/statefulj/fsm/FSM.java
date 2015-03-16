@@ -42,7 +42,6 @@ public class FSM<T> {
 	private int retryInterval = DEFAULT_RETRY_INTERVAL;
 
 	private Persister<T> persister;
-	private RetryObserver<T> retryObserver;
 	private String name = "FSM";
 	
 	/**
@@ -71,20 +70,6 @@ public class FSM<T> {
 		this.persister = persister;
 		this.retryAttempts = retryAttempts;
 		this.retryInterval = retryInterval;
-	}
-	
-	public FSM(String name, Persister<T> persister, RetryObserver<T> retryObserver) {
-		this.name = name;
-		this.persister = persister;
-		this.retryObserver = retryObserver;
-	}
-	
-	public FSM(String name, Persister<T> persister, int retryAttempts, int retryInterval, RetryObserver<T> retryObserver) {
-		this.name = name;
-		this.persister = persister;
-		this.retryAttempts = retryAttempts;
-		this.retryInterval = retryInterval;
-		this.retryObserver = retryObserver;
 	}
 	
 	/**
@@ -155,9 +140,6 @@ public class FSM<T> {
 					}
 				}
 				attempts++;
-				if (this.retryObserver != null) {
-					stateful = this.retryObserver.onRetry(stateful, event, args);
-				}
 			}
 		}
 		logger.error("{}({})::Unable to process event", this.name, stateful);
@@ -180,14 +162,6 @@ public class FSM<T> {
 		this.retryInterval = retryInterval;
 	}
 	
-	public RetryObserver<T> getRetryObserver() {
-		return retryObserver;
-	}
-
-	public void setRetryObserver(RetryObserver<T> retryObserver) {
-		this.retryObserver = retryObserver;
-	}
-
 	public Persister<T> getPersister() {
 		return persister;
 	}

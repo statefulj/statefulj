@@ -24,8 +24,7 @@ import org.statefulj.framework.core.model.User;
 	clazz=User.class, 
 	startState=NoRetryController.ONE_STATE,
 	retryAttempts=1,
-	retryInterval=1,
-	reloadEntityOnRetry=false
+	retryInterval=1
 )
 public class NoRetryController {
 	

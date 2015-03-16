@@ -29,10 +29,9 @@ import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.framework.core.model.StatefulFSM;
-import org.statefulj.fsm.RetryObserver;
 import org.statefulj.fsm.TooBusyException;
 
-public class FSMHarnessImpl<T, CT> implements FSMHarness, RetryObserver<T> {
+public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FSMHarnessImpl.class);
 	
@@ -105,14 +104,6 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness, RetryObserver<T> {
 		ArrayList<Object> parmList = new ArrayList<Object>(Arrays.asList(parms));
 		Object id = parmList.remove(0);
 		return onEvent(event, id, parmList.toArray());
-	}
-
-	/* (non-Javadoc)
-	 * @see org.statefulj.fsm.RetryObserver#onRetry(java.lang.Object, java.lang.String, java.lang.Object[])
-	 */
-	@Override
-	public T onRetry(T stateful, String event, Object... args) {
-		return stateful;
 	}
 
 	/**

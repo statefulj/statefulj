@@ -33,10 +33,31 @@ public @interface Transition {
 	
 	final String ANY_STATE = "*";
 	
+	/**
+	 * Defines the "from" State.  A value of "*" implies that any State qualifies as a "from" State
+	 * @return the "from" State value
+	 */
 	String from() default ANY_STATE;
 	
-	String event() default "";
+	/**
+	 * Defines the Event
+	 * 
+	 * @return the event
+	 */
+	String event();
 
+	/**
+	 * Defines to the "to" State.  A value of "*" implies that the "to" state is the value of the current State
+	 * 
+	 * @return the "to" State value
+	 */
 	String to() default ANY_STATE;
 	
+	/**
+	 * Defines whether to reload the Stateful Entity before invoking the method.  Set to true to manage
+	 * potential concurrency conflicts
+	 * 
+	 * @return If true, will reload the Stateful Entity before invoking the method
+	 */
+	boolean reload() default false;
 }

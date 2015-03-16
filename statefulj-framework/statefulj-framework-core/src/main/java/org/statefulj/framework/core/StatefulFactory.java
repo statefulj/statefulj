@@ -68,7 +68,6 @@ import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 import org.statefulj.framework.core.fsm.FSM;
-import org.statefulj.framework.core.fsm.RetryObserverImpl;
 import org.statefulj.framework.core.fsm.TransitionImpl;
 import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
@@ -441,14 +440,17 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		List<String> transitionIds = new LinkedList<String>();
 		for(Entry<Transition, Method> entry : anyMapping.entrySet()) {
 			for (String state : states) {
+				Transition t = entry.getKey();
 				String from = state;
-				String to = (entry.getKey().to().equals(Transition.ANY_STATE)) ? state : entry.getKey().to();
+				String to = (t.to().equals(Transition.ANY_STATE)) ? state : entry.getKey().to();
 				String transitionId = referenceFactory.getTransitionId(cnt++);
+				boolean reload = t.reload();
 				registerActionAndTransition(
 						referenceFactory,
 						statefulControllerClass, 
 						from, 
 						to, 
+						reload,
 						entry.getKey(), 
 						entry.getValue(), 
 						isDomainEntity,
@@ -459,12 +461,15 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			}
 		}
 		for(Entry<Transition, Method> entry : transitionMapping.entrySet()) {
+			Transition t = entry.getKey();
+			boolean reload = t.reload();
 			String transitionId = referenceFactory.getTransitionId(cnt++);
 			registerActionAndTransition(
 					referenceFactory,
 					statefulControllerClass, 
 					entry.getKey().from(), 
 					entry.getKey().to(), 
+					reload,
 					entry.getKey(), 
 					entry.getValue(), 
 					isDomainEntity,
@@ -502,30 +507,16 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				stateBeans, 
 				reg);
 
-		// Build out the RetryObserver Bean
-		//
-		String retryObserverId = null;
-		
-		if (scAnnotation.reloadEntityOnRetry()) {
-			retryObserverId = registerRetryObserver(
-				referenceFactory,
-				managedClass, 
-				finderId, 
-				factory.getIdAnnotationType(),
-				reg);
-		}
-
 		// Build out the FSM Bean
 		//
-		int retryAttempts = scAnnotation.retryAttempts();
-		int retryInterval = scAnnotation.retryInterval();
 		String fsmBeanId = registerFSM(
 				referenceFactory,
 				statefulControllerClass, 
+				scAnnotation,
 				persisterId, 
-				retryObserverId,
-				retryAttempts,
-				retryInterval,
+				managedClass, 
+				finderId, 
+				factory.getIdAnnotationType(),
 				reg);
 
 		// Build out the StatefulFSM Bean
@@ -551,83 +542,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 	}
 	
-	private void registerActionAndTransition(
-			ReferenceFactory referenceFactory,
-			Class<?> clazz, 
-			String from, 
-			String to, 
-			Transition transition, 
-			Method method, 
-			boolean isDomainEntity,
-			RuntimeBeanReference controllerRef, 
-			String transitionId, 
-			BeanDefinitionRegistry reg) {
-		
-		// Remap to="Any" to to=from
-		//
-		to = (Transition.ANY_STATE.equals(to)) ? from : to;
-		
-		logger.debug(
-				"Registered: {}({})->{}/{}",
-				from,
-				transition.event(),
-				to,
-				(method == null) ? "noop" : method.getName());
-		
-		// Build the Action Bean
-		//
-		RuntimeBeanReference actionRef = null;
-		if (method != null) {
-			String actionId = referenceFactory.getActionId(method);
-			if (!reg.isBeanNameInUse(actionId)) {
-				
-				// Choose the type of invocationAction based off of 
-				// whether the controller is a DomainEntity
-				//
-				Class<?> methodInvocationAction = (isDomainEntity) ?
-						DomainEntityMethodInvocationAction.class :
-						MethodInvocationAction.class;
-				
-				BeanDefinition actionBean = BeanDefinitionBuilder
-						.genericBeanDefinition(methodInvocationAction)
-						.getBeanDefinition();
-				
-				ConstructorArgumentValues args = actionBean.getConstructorArgumentValues();
-				args.addIndexedArgumentValue(0, method.getName());
-				args.addIndexedArgumentValue(1, method.getParameterTypes());
-				args.addIndexedArgumentValue(2, new RuntimeBeanReference(referenceFactory.getFSMId()));
-				 
-				if (!isDomainEntity) {
-					args.addIndexedArgumentValue(3, controllerRef);
-				}
-				
-				reg.registerBeanDefinition(actionId, actionBean);
-			}
-			actionRef = new RuntimeBeanReference(actionId);
-		}
-		
-		// Build the Transition Bean
-		//
-		BeanDefinition transitionBean = BeanDefinitionBuilder
-				.genericBeanDefinition(TransitionImpl.class)
-				.getBeanDefinition();
-
-		String fromId = referenceFactory.getStateId(from);
-		String toId = referenceFactory.getStateId(to);
-		Pair<String, String> providerEvent = parseEvent(transition.event());
-
-		ConstructorArgumentValues args = transitionBean.getConstructorArgumentValues();
-		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fromId));
-		args.addIndexedArgumentValue(1, new RuntimeBeanReference(toId));
-		args.addIndexedArgumentValue(2, providerEvent.getRight());
-		args.addIndexedArgumentValue(3, actionRef);
-		args.addIndexedArgumentValue(4, 
-				(transition.from().equals(Transition.ANY_STATE) && 
-				 transition.to().equals(Transition.ANY_STATE)));
-		
-		reg.registerBeanDefinition(transitionId, transitionBean);
-	}
-
 	private void mapEventsTransitionsAndStates(
 			Class<?> statefulControllerClass, 
 			Map<String, Map<String, Method>> providerMappings,
@@ -759,6 +673,84 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		return new ImmutablePair<String, String>(matcher.group(2), matcher.group(3));
 	}
 	
+	private void registerActionAndTransition(
+			ReferenceFactory referenceFactory,
+			Class<?> clazz, 
+			String from, 
+			String to, 
+			boolean reload,
+			Transition transition, 
+			Method method, 
+			boolean isDomainEntity,
+			RuntimeBeanReference controllerRef, 
+			String transitionId, 
+			BeanDefinitionRegistry reg) {
+		
+		// Remap to="Any" to to=from
+		//
+		to = (Transition.ANY_STATE.equals(to)) ? from : to;
+		
+		logger.debug(
+				"Registered: {}({})->{}/{}",
+				from,
+				transition.event(),
+				to,
+				(method == null) ? "noop" : method.getName());
+		
+		// Build the Action Bean
+		//
+		RuntimeBeanReference actionRef = null;
+		if (method != null) {
+			String actionId = referenceFactory.getActionId(method);
+			if (!reg.isBeanNameInUse(actionId)) {
+				
+				// Choose the type of invocationAction based off of 
+				// whether the controller is a DomainEntity
+				//
+				Class<?> methodInvocationAction = (isDomainEntity) ?
+						DomainEntityMethodInvocationAction.class :
+						MethodInvocationAction.class;
+				
+				BeanDefinition actionBean = BeanDefinitionBuilder
+						.genericBeanDefinition(methodInvocationAction)
+						.getBeanDefinition();
+				
+				ConstructorArgumentValues args = actionBean.getConstructorArgumentValues();
+				args.addIndexedArgumentValue(0, method.getName());
+				args.addIndexedArgumentValue(1, method.getParameterTypes());
+				args.addIndexedArgumentValue(2, new RuntimeBeanReference(referenceFactory.getFSMId()));
+				 
+				if (!isDomainEntity) {
+					args.addIndexedArgumentValue(3, controllerRef);
+				}
+				
+				reg.registerBeanDefinition(actionId, actionBean);
+			}
+			actionRef = new RuntimeBeanReference(actionId);
+		}
+		
+		// Build the Transition Bean
+		//
+		BeanDefinition transitionBean = BeanDefinitionBuilder
+				.genericBeanDefinition(TransitionImpl.class)
+				.getBeanDefinition();
+
+		String fromId = referenceFactory.getStateId(from);
+		String toId = referenceFactory.getStateId(to);
+		Pair<String, String> providerEvent = parseEvent(transition.event());
+
+		ConstructorArgumentValues args = transitionBean.getConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, new RuntimeBeanReference(fromId));
+		args.addIndexedArgumentValue(1, new RuntimeBeanReference(toId));
+		args.addIndexedArgumentValue(2, providerEvent.getRight());
+		args.addIndexedArgumentValue(3, actionRef);
+		args.addIndexedArgumentValue(4, 
+				(transition.from().equals(Transition.ANY_STATE) && 
+				 transition.to().equals(Transition.ANY_STATE)));
+		args.addIndexedArgumentValue(5, reload);
+		reg.registerBeanDefinition(transitionId, transitionBean);
+	}
+
 	private String registerState(
 			ReferenceFactory referenceFactory,
 			Class<?> statefulControllerClass, 
@@ -781,32 +773,17 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		return stateId;
 	}
 	
-	private String registerRetryObserver(
-			ReferenceFactory referenceFactory,
-			Class<?> statefulClass, 
-			String finderId, 
-			Class<? extends Annotation> idType,
-			BeanDefinitionRegistry reg) {
-		String retryObserverId = referenceFactory.getRetryObserverId();
-		BeanDefinition retryObserverBean = BeanDefinitionBuilder
-				.genericBeanDefinition(RetryObserverImpl.class)
-				.getBeanDefinition();
-		ConstructorArgumentValues args = retryObserverBean.getConstructorArgumentValues();
-		args.addIndexedArgumentValue(0, statefulClass);
-		args.addIndexedArgumentValue(1, new RuntimeBeanReference(finderId));
-		args.addIndexedArgumentValue(2, idType);
-		reg.registerBeanDefinition(retryObserverId, retryObserverBean);
-		return retryObserverId;
-	}
-
 	private String registerFSM(
 			ReferenceFactory referenceFactory,
 			Class<?> statefulControllerClass, 
+			StatefulController scAnnotation,
 			String persisterId, 
-			String retryObserverId,
-			int retryAttempts,
-			int retryInterval,
+			Class<?> managedClass, 
+			String finderId, 
+			Class<? extends Annotation> idAnnotationType,
 			BeanDefinitionRegistry reg) {
+		int retryAttempts = scAnnotation.retryAttempts();
+		int retryInterval = scAnnotation.retryInterval();
 		
 		String fsmBeanId = referenceFactory.getFSMId();
 		BeanDefinition fsmBean = BeanDefinitionBuilder
@@ -817,9 +794,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		args.addIndexedArgumentValue(1, new RuntimeBeanReference(persisterId));
 		args.addIndexedArgumentValue(2, retryAttempts);
 		args.addIndexedArgumentValue(3, retryInterval);
-		if (retryObserverId != null) {
-			args.addIndexedArgumentValue(4, new RuntimeBeanReference(retryObserverId));
-		}
+		args.addIndexedArgumentValue(4, managedClass);
+		args.addIndexedArgumentValue(5, idAnnotationType);
+		args.addIndexedArgumentValue(6, new RuntimeBeanReference(finderId));
 
 		reg.registerBeanDefinition(fsmBeanId, fsmBean);
 		return fsmBeanId;
