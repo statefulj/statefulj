@@ -17,7 +17,6 @@
  */
 package org.statefulj.framework.core.fsm;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.data.annotation.Id;
 import org.statefulj.framework.core.model.Finder;
@@ -26,7 +25,6 @@ import org.statefulj.fsm.RetryException;
 import org.statefulj.fsm.model.State;
 
 import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 /**
  * @author Andrew Hall
@@ -86,49 +84,4 @@ public class ReloadTest {
 		fsm.transition(value, from, event, transition, cw);
 		verify(finder).find(clazz, 1L, event, context);
 	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	@Ignore
-	public void testRetryObserverWithoutContext() {
-//		
-//		Identifiable value1 = new Identifiable(1L);
-//		Identifiable value2 = new Identifiable(1L);
-//
-//		Class<Identifiable> clazz = Identifiable.class;
-//		String event = "pow";
-//		Finder<Identifiable, Object> finder = mock(Finder.class);
-//		
-//		when(finder.find(clazz, 1L, event, null)).thenReturn(value2);
-//
-//		RetryObserver<Identifiable> retryObserver = new RetryObserverImpl<RetryObserverImplTest.Identifiable, Object>(clazz, finder, Id.class);
-//		
-//		Identifiable found = retryObserver.onRetry(value1, event);
-//		
-//		assertNotNull(found);
-//		assertEquals(value2, found);
-	}
-
-	@SuppressWarnings("unchecked")
-	@Test
-	@Ignore
-	public void testRetryObserverWithoutId() {
-//		
-//		Object value1 = new Object();
-//		Object value2 = new Object();
-//
-//		Class<Object> clazz = Object.class;
-//		String event = "pow";
-//		Finder<Object, Object> finder = mock(Finder.class);
-//		
-//		when(finder.find(clazz, event, null)).thenReturn(value2);
-//
-//		RetryObserver<Object> retryObserver = new RetryObserverImpl<Object, Object>(clazz, finder, Id.class);
-//		
-//		Object found = retryObserver.onRetry(value1, event);
-//		
-//		assertNotNull(found);
-//		assertEquals(value2, found);
-	}
-
 }

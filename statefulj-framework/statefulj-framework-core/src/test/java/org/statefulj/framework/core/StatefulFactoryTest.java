@@ -22,7 +22,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.statefulj.framework.core.controllers.NoRetryController;
