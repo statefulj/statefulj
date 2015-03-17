@@ -47,6 +47,7 @@ class StateDocumentImpl implements StateDocument {
 	
 	String managedField;
 	
+	@Override
 	public String getId() {
 		return id;
 	}

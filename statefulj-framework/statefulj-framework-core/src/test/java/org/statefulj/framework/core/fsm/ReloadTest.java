@@ -17,8 +17,6 @@
  */
 package org.statefulj.framework.core.fsm;
 
-import javax.annotation.Resource;
-
 import org.junit.Test;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;

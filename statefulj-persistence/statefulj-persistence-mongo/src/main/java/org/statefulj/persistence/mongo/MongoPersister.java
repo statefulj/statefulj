@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.convert.LazyLoadingProxy;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -359,7 +360,11 @@ public class MongoPersister<T>
 	}
 
 	protected StateDocumentImpl getStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException {
-		return (StateDocumentImpl)getStateField().get(stateful);
+		Object stateDoc = getStateField().get(stateful);
+		if (stateDoc instanceof LazyLoadingProxy) {
+			stateDoc = ((LazyLoadingProxy)stateDoc).getTarget();
+		}
+		return (StateDocumentImpl)stateDoc;
 	}
 	
 	protected StateDocumentImpl createStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException, SecurityException, NoSuchFieldException {

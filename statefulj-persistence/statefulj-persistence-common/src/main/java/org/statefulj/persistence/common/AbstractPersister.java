@@ -92,7 +92,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		State<T> state = null;
 		try {
 			String stateKey = this.getState(stateful);
-			state = (stateKey == null ) ? this.start : this.states.get(stateKey);
+			state = (stateKey == null) ? this.start : this.states.get(stateKey);
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		} catch (SecurityException e) {
