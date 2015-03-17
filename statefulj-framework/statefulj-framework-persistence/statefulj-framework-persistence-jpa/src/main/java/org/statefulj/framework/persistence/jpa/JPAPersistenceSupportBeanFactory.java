@@ -113,8 +113,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
-		args.addIndexedArgumentValue(4, appContext);
-		args.addIndexedArgumentValue(5, new RuntimeBeanReference(platformTransactionManagerId));
+		args.addIndexedArgumentValue(4, new RuntimeBeanReference(platformTransactionManagerId));
 		return fsmHarness;
 	}
 }

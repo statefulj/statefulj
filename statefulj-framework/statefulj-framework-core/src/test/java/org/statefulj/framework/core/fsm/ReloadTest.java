@@ -17,7 +17,11 @@
  */
 package org.statefulj.framework.core.fsm;
 
+import javax.annotation.Resource;
+
 import org.junit.Test;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.annotation.Id;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.fsm.Persister;
@@ -63,6 +67,8 @@ public class ReloadTest {
 		State<Identifiable> from = mock(State.class);
 		State<Identifiable> to = mock(State.class);
 		Persister<Identifiable> persister = mock(Persister.class);
+		ApplicationContext appContext = mock(ApplicationContext.class);
+		when(appContext.getAutowireCapableBeanFactory()).thenReturn(mock(AutowireCapableBeanFactory.class));
 
 		TransitionImpl<Identifiable> transition = new TransitionImpl<Identifiable>(
 				from,
@@ -79,7 +85,8 @@ public class ReloadTest {
 				1, 
 				Identifiable.class, 
 				Id.class, 
-				finder);
+				finder,
+				appContext);
 		
 		fsm.transition(value, from, event, transition, cw);
 		verify(finder).find(clazz, 1L, event, context);

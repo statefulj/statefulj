@@ -22,10 +22,13 @@ import java.lang.reflect.Field;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.framework.core.model.Finder;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.RetryException;
+import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.StateActionPair;
 import org.statefulj.fsm.model.Transition;
@@ -41,6 +44,8 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 	
 	private Class<? extends Annotation> idType;
 	
+	private ApplicationContext appContext;
+	
 	public FSM(
 			String name, 
 			Persister<T> persister, 
@@ -48,11 +53,19 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 			int retryInterval, 
 			Class<T> clazz, 
 			Class<? extends Annotation> idType,
-			Finder<T, CT> finder) {
+			Finder<T, CT> finder,
+			ApplicationContext applicationContext) {
 		super(name, persister, retryAttempts, retryInterval);
 		this.idType = idType;
 		this.clazz = clazz;
 		this.finder = finder;
+		this.appContext = applicationContext;
+	}
+
+	@Override
+	public State<T> onEvent(T stateful, String event, Object... parms)  throws TooBusyException {
+		autowire(stateful);
+		return super.onEvent(stateful, event, parms);
 	}
 
 	@Override
@@ -72,6 +85,7 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 		//
 		if (transition.isReload()) {
 			stateful = reload(stateful, event, args);
+			autowire(stateful);
 		}
 		
 		executeAction(
@@ -83,6 +97,16 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 				args);
 		
 		return pair.getState();
+	}
+	
+	private void autowire(T stateful) {
+		// Autowire instantiated object 
+		// TODO: Make this configurable - if using @Configurable - then this isn't necessary
+		//
+		this.appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
+				stateful,
+			    AutowireCapableBeanFactory.AUTOWIRE_NO, 
+			    false);
 	}
 	
 	private T reload(T stateful, String event, Object... args) {

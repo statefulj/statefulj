@@ -104,7 +104,6 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
-		args.addIndexedArgumentValue(4, appContext);
 		return fsmHarness;
 	}
 

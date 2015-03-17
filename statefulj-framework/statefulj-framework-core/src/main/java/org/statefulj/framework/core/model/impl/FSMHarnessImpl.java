@@ -22,8 +22,6 @@ import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.statefulj.framework.core.fsm.ContextWrapper;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.Factory;
@@ -43,19 +41,15 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 	
 	private Class<T> clazz;
 	
-	private ApplicationContext appContext;
-	
 	public FSMHarnessImpl(
 			StatefulFSM<T> fsm, 
 			Class<T> clazz, 
 			Factory<T, CT> factory,
-			Finder<T, CT> finder,
-			ApplicationContext applicationContext) {
+			Finder<T, CT> finder) {
 		this.fsm = fsm;
 		this.clazz = clazz;
 		this.factory = factory;
 		this.finder = finder;
-		this.appContext = applicationContext;
 	}
 	
 	@Override
@@ -87,14 +81,6 @@ public class FSMHarnessImpl<T, CT> implements FSMHarness {
 				}
 			}
 		}
-		
-		// Autowire instantiated object 
-		// TODO: Make this configurable - if using @Configurable - then this isn't necessary
-		//
-		appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
-				stateful,
-			    AutowireCapableBeanFactory.AUTOWIRE_NO, 
-			    false);
 		
 		return fsm.onEvent(stateful, event, parmList.toArray());
 	}

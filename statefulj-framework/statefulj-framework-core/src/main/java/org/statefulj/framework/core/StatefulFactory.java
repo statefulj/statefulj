@@ -797,6 +797,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		args.addIndexedArgumentValue(4, managedClass);
 		args.addIndexedArgumentValue(5, idAnnotationType);
 		args.addIndexedArgumentValue(6, new RuntimeBeanReference(finderId));
+		args.addIndexedArgumentValue(7, this.appContext);
 
 		reg.registerBeanDefinition(fsmBeanId, fsmBean);
 		return fsmBeanId;

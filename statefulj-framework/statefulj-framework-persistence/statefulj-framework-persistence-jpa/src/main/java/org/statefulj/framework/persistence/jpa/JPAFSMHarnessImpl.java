@@ -17,7 +17,6 @@
  */
 package org.statefulj.framework.persistence.jpa;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
@@ -37,9 +36,8 @@ public class JPAFSMHarnessImpl<T, CT> extends FSMHarnessImpl<T, CT> {
 			Class<T> clazz, 
 			Factory<T, CT> factory,
 			Finder<T, CT> finder,
-			ApplicationContext appContext,
 			PlatformTransactionManager transactionManager) {
-		super(fsm, clazz, factory, finder, appContext);
+		super(fsm, clazz, factory, finder);
 		this.transactionManager = transactionManager;
 	}
 	
