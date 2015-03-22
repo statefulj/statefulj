@@ -22,7 +22,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.context.ApplicationContext;
 
 public interface PersistenceSupportBeanFactory {
 
@@ -46,12 +45,13 @@ public interface PersistenceSupportBeanFactory {
 			String repoBeanId,
 			String stateFieldName,
 			String startStateId, 
-			List<RuntimeBeanReference> stateBeans);
+			List<RuntimeBeanReference> stateBeans,
+			BeanDefinition repoBeanDefinitionFactory);
 
 	BeanDefinition buildFSMHarnessBean(
 			Class<?> statefulClass, 
 			String fsmBeanId,
 			String factoryId,
 			String finderId,
-			ApplicationContext applicationContext);
+			BeanDefinition repoBeanDefinitionFactory);
 }

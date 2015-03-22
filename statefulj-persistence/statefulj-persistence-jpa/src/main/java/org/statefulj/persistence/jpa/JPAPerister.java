@@ -25,7 +25,6 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.EntityManager;
 import javax.persistence.Id;
 import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -36,6 +35,7 @@ import javax.persistence.criteria.Root;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.orm.jpa.EntityManagerFactoryInfo;
 import org.springframework.transaction.annotation.Transactional;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
@@ -49,15 +49,15 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 
 	private static final Logger logger = LoggerFactory.getLogger(JPAPerister.class);
 
-	@PersistenceContext
 	private EntityManager entityManager;
   	
-	public JPAPerister(List<State<T>> states, State<T> start, Class<T> clazz) {
-		this(states, null, start, clazz);
+	public JPAPerister(List<State<T>> states, State<T> start, Class<T> clazz, EntityManagerFactoryInfo entityManagerFactory) {
+		this(states, null, start, clazz, entityManagerFactory.getNativeEntityManagerFactory().createEntityManager());
 	}
 
-	public JPAPerister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz) {
+	public JPAPerister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz, EntityManager entityManager) {
 		super(states, stateFieldName, start, clazz);
+		this.entityManager = entityManager;
 	}
 
 	/**

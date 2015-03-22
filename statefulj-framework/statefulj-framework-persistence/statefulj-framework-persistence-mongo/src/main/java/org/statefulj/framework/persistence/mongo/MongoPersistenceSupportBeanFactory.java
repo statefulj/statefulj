@@ -24,7 +24,6 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.repository.support.MongoRepositoryFactoryBean;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
@@ -74,7 +73,8 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 			String repoBeanId,
 			String stateFieldName,
 			String startStateId,
-			List<RuntimeBeanReference> stateBeans) {
+			List<RuntimeBeanReference> stateBeans,
+			BeanDefinition repoBeanDefinitionFactory) {
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(MongoPersister.class)
 				.getBeanDefinition();
@@ -94,7 +94,7 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 			String fsmBeanId,
 			String factoryId, 
 			String finderId,
-			ApplicationContext appContext) {
+			BeanDefinition repoBeanDefinitionFactory) {
 
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
 				.genericBeanDefinition(FSMHarnessImpl.class)

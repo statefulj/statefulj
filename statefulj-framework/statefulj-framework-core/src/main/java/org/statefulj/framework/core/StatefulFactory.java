@@ -243,7 +243,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Map<String, Class<?>> controllerMapping = new HashMap<String, Class<?>>();
 			Map<Class<?>, String> entityMappings = new HashMap<Class<?>, String>();
 			
-			mapControllerAndEntityClasses(reg, controllerMapping, entityMappings, entityToControllers);
+			mapControllerAndEntityClasses(
+					reg, 
+					controllerMapping, 
+					entityMappings,
+					entityToControllers);
 
 			// Iterate thru all StatefulControllers and build the framework 
 			//
@@ -316,7 +320,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				for(Type type : repoInterface.getGenericInterfaces()) {
 					if (type instanceof ParameterizedType) {
 						ParameterizedType parmType = (ParameterizedType)type;
-						if (Repository.class.isAssignableFrom((Class<?>)parmType.getRawType())) {
+						if (Repository.class.isAssignableFrom((Class<?>)parmType.getRawType()) &&
+						    parmType.getActualTypeArguments() != null &&
+						    parmType.getActualTypeArguments().length > 0) {
 							entityType = (Class<?>)parmType.getActualTypeArguments()[0];
 							break;
 						}
@@ -369,7 +375,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		if (repoBeanId == null) {
 			throw new RuntimeException("Unable to determine Repository for class " + managedClass.getName());
 		}
-		
 		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
 		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
 
@@ -505,6 +510,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				managedClass, 
 				repoBeanId,
 				stateBeans, 
+				repoBean,
 				reg);
 
 		// Build out the FSM Bean
@@ -538,8 +544,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				statefulFSMBeanId, 
 				factoryId, 
 				finderId, 
+				repoBean,
 				reg);
-
 	}
 	
 	private void mapEventsTransitionsAndStates(
@@ -888,7 +894,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			StatefulController statefulContollerAnnotation,
 			Class<?> statefulClass,
 			String repoBeanId,
-			List<RuntimeBeanReference> stateBeans, 
+			List<RuntimeBeanReference> stateBeans,
+			BeanDefinition repoBeanDefinitionFactory,
 			BeanDefinitionRegistry reg) {
 
 		String persisterId = statefulContollerAnnotation.persisterId();
@@ -906,7 +913,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 							repoBeanId,
 							statefulContollerAnnotation.stateField(),
 							startStateId, 
-							stateBeans));
+							stateBeans,
+							repoBeanDefinitionFactory));
 		}
 		
 		return persisterId;
@@ -919,6 +927,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				String fsmBeanId, 
 				String factoryId, 
 				String finderId, 
+				BeanDefinition repoBeanFactory,
 				BeanDefinitionRegistry reg) {
 		String fsmHarnessId = referenceFactory.getFSMHarnessId();
 		reg.registerBeanDefinition(
@@ -928,7 +937,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 						fsmBeanId, 
 						factoryId, 
 						finderId,
-						this.appContext));
+						repoBeanFactory));
 		return fsmHarnessId;
 	}
 	

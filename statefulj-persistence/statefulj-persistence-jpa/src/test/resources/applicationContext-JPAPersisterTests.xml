@@ -32,6 +32,7 @@
 		    	<ref bean="stateC"/>
 		    </util:list>
     	</constructor-arg>
+    	<constructor-arg name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
     <bean id="embeddedJPAPersister" class="org.statefulj.persistence.jpa.JPAPerister">
@@ -44,6 +45,7 @@
 		    	<ref bean="stateC"/>
 		    </util:list>
     	</constructor-arg>
+    	<constructor-arg name="entityManagerFactory" ref="entityManagerFactory"/>
     </bean>
 
 </beans>

@@ -26,9 +26,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConstructorArgumentValues;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.support.JpaRepositoryFactoryBean;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 import org.statefulj.framework.core.model.impl.CrudRepositoryFinderImpl;
 import org.statefulj.framework.core.model.impl.FactoryImpl;
@@ -75,7 +73,9 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 			String repoBeanId,
 			String stateFieldName,
 			String startStateId, 
-			List<RuntimeBeanReference> stateBeans) {
+			List<RuntimeBeanReference> stateBeans,
+			BeanDefinition repoBeanDefinitionFactory) {
+		BeanDefinition entityMgr = (BeanDefinition)repoBeanDefinitionFactory.getPropertyValues().getPropertyValue("entityManager").getValue();
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAPerister.class)
 				.getBeanDefinition();
@@ -84,9 +84,9 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(1, stateFieldName);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(startStateId));
 		args.addIndexedArgumentValue(3, statefulClass);
+		args.addIndexedArgumentValue(4, entityMgr);
 		return persisterBean;
 	}
-
 	
 	@Override
 	public BeanDefinition buildFSMHarnessBean(
@@ -94,16 +94,8 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 			String fsmBeanId,
 			String factoryId, 
 			String finderId,
-			ApplicationContext appContext) {
-
-		String[] beanNames = appContext.getBeanNamesForType(PlatformTransactionManager.class);
-		if (beanNames.length == 0) {
-			throw new RuntimeException("Unable to locate a PlatformTransactionManager");
-		}
-		if (beanNames.length > 1) {
-			throw new RuntimeException("StatefulJ can only support a single PlatformTransactionManager");
-		}
-		String platformTransactionManagerId = beanNames[0];
+			BeanDefinition repoBeanDefinitionFactory) {
+		String tmId = (String)repoBeanDefinitionFactory.getPropertyValues().getPropertyValue("transactionManager").getValue();
 		
 		BeanDefinition fsmHarness = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAFSMHarnessImpl.class)
@@ -113,7 +105,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(1, statefulClass);
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(factoryId));
 		args.addIndexedArgumentValue(3, new RuntimeBeanReference(finderId));
-		args.addIndexedArgumentValue(4, new RuntimeBeanReference(platformTransactionManagerId));
+		args.addIndexedArgumentValue(4, new RuntimeBeanReference(tmId));
 		return fsmHarness;
 	}
 }
