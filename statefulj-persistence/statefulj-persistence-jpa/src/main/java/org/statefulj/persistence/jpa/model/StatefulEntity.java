@@ -43,6 +43,4 @@ public abstract class StatefulEntity {
 	public String getState() {
 		return state;
 	}
-
-
 }
