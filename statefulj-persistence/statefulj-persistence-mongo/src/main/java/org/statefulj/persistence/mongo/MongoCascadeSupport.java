@@ -17,7 +17,12 @@
  */
 package org.statefulj.persistence.mongo;
 
+import org.springframework.data.mongodb.core.mapping.event.AbstractDeleteEvent;
 import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
+import org.springframework.data.mongodb.core.mapping.event.AfterDeleteEvent;
+import org.springframework.data.mongodb.core.mapping.event.AfterLoadEvent;
+import org.springframework.data.mongodb.core.mapping.event.BeforeDeleteEvent;
+import org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent;
 
 import com.mongodb.DBObject;
 
@@ -38,5 +43,15 @@ class MongoCascadeSupport<T> extends AbstractMongoEventListener<Object> {
 	@Override
 	public void onAfterSave(Object source, DBObject dbo) {
 		this.persister.onAfterSave(source, dbo);
+	}
+
+	@Override
+	public void onApplicationEvent(MongoMappingEvent<?> event) {
+		super.onApplicationEvent(event);
+		if (event.getSource() != null) {
+			if (event instanceof AfterDeleteEvent) {
+				this.persister.onAfterDelete(((AfterDeleteEvent<?>) event).getType(), event.getDBObject());
+			}
+		}
 	}
 }

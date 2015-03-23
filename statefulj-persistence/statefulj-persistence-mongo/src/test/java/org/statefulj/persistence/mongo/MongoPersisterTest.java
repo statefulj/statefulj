@@ -21,32 +21,47 @@ import static org.junit.Assert.*;
 
 import javax.annotation.Resource;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
+import org.statefulj.persistence.mongo.model.StateDocument;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-MongoPersisterTests.xml"})
 public class MongoPersisterTest {
 	
 	@Resource
-	Persister<Order> mongoPersister;
+	private Persister<Order> mongoPersister;
 	
 	@Resource
-	OrderRepository orderRepo;
+	private OrderRepository orderRepo;
 	
 	@Resource
-	State<Order> stateA;
+	private State<Order> stateA;
 	
 	@Resource
-	State<Order> stateB;
+	private State<Order> stateB;
 
 	@Resource
-	State<Order> stateC;
+	private State<Order> stateC;
+	
+	@Resource
+	private MongoTemplate mongoTemplate;
+	
+	@Before
+	@After
+	public void dropDB() {
+		MongoUtils.dropDB(mongoTemplate);
+	}
 	
 	@Test
 	public void testValidStateChange() throws StaleStateException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
@@ -107,5 +122,31 @@ public class MongoPersisterTest {
 			assertEquals(stateA.getName(), order.getStateDocument().getState());
 			throw e;
 		}
+	}
+
+	@Test
+	public void testDeleteCascadeSupport() throws StaleStateException {
+		Order order = new Order();
+		order.setAmount(20);
+		
+		order = orderRepo.save(order);
+		
+		String orderId = order.getId();
+		String stateId = order.getStateDocument().getId();
+
+		order = orderRepo.findOne(orderId);
+		
+		assertNotNull(order);
+		
+		StateDocument state = this.mongoTemplate.findById(stateId, StateDocumentImpl.class);
+		
+		assertNotNull(state);
+		
+		orderRepo.delete(order);
+		
+		order = orderRepo.findOne(orderId);
+		assertNull(order);
+		state = this.mongoTemplate.findById(stateId, StateDocumentImpl.class);
+		assertNull(state);
 	}
 }

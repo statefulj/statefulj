@@ -271,52 +271,6 @@ public class MongoPersister<T>
 		registry.registerBeanDefinition(Long.toString((new Random()).nextLong()), mongoCascadeSupportBean);
 	}
 
-	@SuppressWarnings("unchecked")
-	/***
-	 * Cascade the Save to the StateDocument
-	 * 
-	 * @param obj
-	 * @param dbo
-	 */
-	public void onAfterSave(Object stateful, DBObject dbo) {
-		
-		// Is the Class being saved the managed class?
-		//
-		if (stateful.getClass().equals(getClazz())) {
-			try {
-				boolean updateStateful = false;
-				StateDocumentImpl stateDoc = this.getStateDocument((T)stateful);
-				
-				// If the StatefulDocument doesn't have an associated StateDocument, then 
-				// we need to create a new StateDocument - save the StateDocument and save the
-				// Stateful Document again so that they both valid DBRef objects
-				//
-				if (stateDoc == null) {
-					stateDoc = createStateDocument((T)stateful);
-					stateDoc.setUpdated(Calendar.getInstance().getTime());
-					updateStateful = true;
-				}
-				if (!stateDoc.isPersisted()) {
-					stateDoc.setManagedId(this.getId((T)stateful));
-					this.getMongoTemplate().save(stateDoc);
-					stateDoc.setPersisted(true);
-					if (updateStateful) {
-						this.getMongoTemplate().save(stateful);
-					}
-				}
-			} catch (IllegalArgumentException e) {
-				throw new RuntimeException(e);
-			} catch (IllegalAccessException e) {
-				throw new RuntimeException(e);
-			} catch (SecurityException e) {
-				throw new RuntimeException(e);
-			} catch (NoSuchFieldException e) {
-				throw new RuntimeException(e);
-			}
-			
-		}
-	}
-	
 	@Override
 	protected boolean validStateField(Field stateField) {
 		return stateField.getType().equals(StateDocument.class);
@@ -416,6 +370,65 @@ public class MongoPersister<T>
 
 	protected StateDocumentImpl findStateDoc(String id) {
 		return (StateDocumentImpl)getMongoTemplate().findById(id, StateDocumentImpl.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	/***
+	 * Cascade the Save to the StateDocument
+	 * 
+	 * @param obj
+	 * @param dbo
+	 */
+	void onAfterSave(Object stateful, DBObject dbo) {
+		
+		// Is the Class being saved the managed class?
+		//
+		if (stateful.getClass().equals(getClazz())) {
+			try {
+				boolean updateStateful = false;
+				StateDocumentImpl stateDoc = this.getStateDocument((T)stateful);
+				
+				// If the StatefulDocument doesn't have an associated StateDocument, then 
+				// we need to create a new StateDocument - save the StateDocument and save the
+				// Stateful Document again so that they both valid DBRef objects
+				//
+				if (stateDoc == null) {
+					stateDoc = createStateDocument((T)stateful);
+					stateDoc.setUpdated(Calendar.getInstance().getTime());
+					updateStateful = true;
+				}
+				if (!stateDoc.isPersisted()) {
+					stateDoc.setManagedId(this.getId((T)stateful));
+					this.getMongoTemplate().save(stateDoc);
+					stateDoc.setPersisted(true);
+					if (updateStateful) {
+						this.getMongoTemplate().save(stateful);
+					}
+				}
+			} catch (IllegalArgumentException e) {
+				throw new RuntimeException(e);
+			} catch (IllegalAccessException e) {
+				throw new RuntimeException(e);
+			} catch (SecurityException e) {
+				throw new RuntimeException(e);
+			} catch (NoSuchFieldException e) {
+				throw new RuntimeException(e);
+			}
+			
+		}
+	}
+
+	void onAfterDelete(Class<?> stateful, DBObject obj) {
+		if (stateful.equals(getClazz())) {
+			StateDocumentImpl stateDoc;
+			Criteria criteria = new Criteria("managedId").is(obj.get(this.getIdField().getName())).
+					and("managedCollection").is(getMongoTemplate().getCollectionName(getClazz())).
+					and("managedField").is(this.getStateField().getName());
+			stateDoc = this.getMongoTemplate().findOne(new Query(criteria), StateDocumentImpl.class);
+			if (stateDoc != null) {
+				this.getMongoTemplate().remove(stateDoc);
+			}
+		}
 	}
 }
 
