@@ -26,8 +26,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.fsm.Persister;
@@ -135,11 +133,8 @@ public class MongoPersisterTest {
 		String stateId = order.getStateDocument().getId();
 
 		order = orderRepo.findOne(orderId);
-		
 		assertNotNull(order);
-		
 		StateDocument state = this.mongoTemplate.findById(stateId, StateDocumentImpl.class);
-		
 		assertNotNull(state);
 		
 		orderRepo.delete(order);

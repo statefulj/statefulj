@@ -17,11 +17,8 @@
  */
 package org.statefulj.persistence.mongo;
 
-import org.springframework.data.mongodb.core.mapping.event.AbstractDeleteEvent;
 import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
 import org.springframework.data.mongodb.core.mapping.event.AfterDeleteEvent;
-import org.springframework.data.mongodb.core.mapping.event.AfterLoadEvent;
-import org.springframework.data.mongodb.core.mapping.event.BeforeDeleteEvent;
 import org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent;
 
 import com.mongodb.DBObject;
