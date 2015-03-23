@@ -71,10 +71,10 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 	public BeanDefinition buildPersisterBean(
 			Class<?> statefulClass,
 			String repoBeanId,
+			BeanDefinition repoBeanDefinitionFactory,
 			String stateFieldName,
 			String startStateId, 
-			List<RuntimeBeanReference> stateBeans,
-			BeanDefinition repoBeanDefinitionFactory) {
+			List<RuntimeBeanReference> stateBeans) {
 		BeanDefinition entityMgr = (BeanDefinition)repoBeanDefinitionFactory.getPropertyValues().getPropertyValue("entityManager").getValue();
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAPerister.class)

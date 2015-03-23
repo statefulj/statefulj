@@ -71,10 +71,10 @@ public class MongoPersistenceSupportBeanFactory implements PersistenceSupportBea
 	public BeanDefinition buildPersisterBean(
 			Class<?> statefulClass,
 			String repoBeanId,
+			BeanDefinition repoBeanDefinitionFactory,
 			String stateFieldName,
 			String startStateId,
-			List<RuntimeBeanReference> stateBeans,
-			BeanDefinition repoBeanDefinitionFactory) {
+			List<RuntimeBeanReference> stateBeans) {
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(MongoPersister.class)
 				.getBeanDefinition();

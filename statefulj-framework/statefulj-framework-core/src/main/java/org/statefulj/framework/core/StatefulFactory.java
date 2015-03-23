@@ -375,12 +375,12 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		if (repoBeanId == null) {
 			throw new RuntimeException("Unable to determine Repository for class " + managedClass.getName());
 		}
-		BeanDefinition repoBean = reg.getBeanDefinition(repoBeanId);
-		Class<?> repoBeanClass = Class.forName(repoBean.getBeanClassName());
+		BeanDefinition repoBeanDefinitionFactory = reg.getBeanDefinition(repoBeanId);
+		Class<?> repoClassName = Class.forName(repoBeanDefinitionFactory.getBeanClassName());
 
 		// Fetch the PersistenceFactory
 		//
-		PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoBeanClass);
+		PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoClassName);
 		
 		// Map the Events and Transitions for the Controller
 		//
@@ -509,8 +509,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				scAnnotation, 
 				managedClass, 
 				repoBeanId,
+				repoBeanDefinitionFactory,
 				stateBeans, 
-				repoBean,
 				reg);
 
 		// Build out the FSM Bean
@@ -544,7 +544,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				statefulFSMBeanId, 
 				factoryId, 
 				finderId, 
-				repoBean,
+				repoBeanDefinitionFactory,
 				reg);
 	}
 	
@@ -709,32 +709,30 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		if (method != null) {
 			String actionId = referenceFactory.getActionId(method);
 			if (!reg.isBeanNameInUse(actionId)) {
-				
-				// Choose the type of invocationAction based off of 
-				// whether the controller is a DomainEntity
-				//
-				Class<?> methodInvocationAction = (isDomainEntity) ?
-						DomainEntityMethodInvocationAction.class :
-						MethodInvocationAction.class;
-				
-				BeanDefinition actionBean = BeanDefinitionBuilder
-						.genericBeanDefinition(methodInvocationAction)
-						.getBeanDefinition();
-				
-				ConstructorArgumentValues args = actionBean.getConstructorArgumentValues();
-				args.addIndexedArgumentValue(0, method.getName());
-				args.addIndexedArgumentValue(1, method.getParameterTypes());
-				args.addIndexedArgumentValue(2, new RuntimeBeanReference(referenceFactory.getFSMId()));
-				 
-				if (!isDomainEntity) {
-					args.addIndexedArgumentValue(3, controllerRef);
-				}
-				
-				reg.registerBeanDefinition(actionId, actionBean);
+				registerMethodInvocationAction(referenceFactory, method,
+						isDomainEntity, controllerRef, reg, actionId);
 			}
 			actionRef = new RuntimeBeanReference(actionId);
 		}
 		
+		registerTransition(referenceFactory, from, to, reload, transition,
+				transitionId, reg, actionRef);
+	}
+
+	/**
+	 * @param referenceFactory
+	 * @param from
+	 * @param to
+	 * @param reload
+	 * @param transition
+	 * @param transitionId
+	 * @param reg
+	 * @param actionRef
+	 */
+	private void registerTransition(ReferenceFactory referenceFactory,
+			String from, String to, boolean reload, Transition transition,
+			String transitionId, BeanDefinitionRegistry reg,
+			RuntimeBeanReference actionRef) {
 		// Build the Transition Bean
 		//
 		BeanDefinition transitionBean = BeanDefinitionBuilder
@@ -755,6 +753,41 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				 transition.to().equals(Transition.ANY_STATE)));
 		args.addIndexedArgumentValue(5, reload);
 		reg.registerBeanDefinition(transitionId, transitionBean);
+	}
+
+	/**
+	 * @param referenceFactory
+	 * @param method
+	 * @param isDomainEntity
+	 * @param controllerRef
+	 * @param reg
+	 * @param actionId
+	 */
+	private void registerMethodInvocationAction(
+			ReferenceFactory referenceFactory, Method method,
+			boolean isDomainEntity, RuntimeBeanReference controllerRef,
+			BeanDefinitionRegistry reg, String actionId) {
+		// Choose the type of invocationAction based off of 
+		// whether the controller is a DomainEntity
+		//
+		Class<?> methodInvocationAction = (isDomainEntity) ?
+				DomainEntityMethodInvocationAction.class :
+				MethodInvocationAction.class;
+		
+		BeanDefinition actionBean = BeanDefinitionBuilder
+				.genericBeanDefinition(methodInvocationAction)
+				.getBeanDefinition();
+		
+		ConstructorArgumentValues args = actionBean.getConstructorArgumentValues();
+		args.addIndexedArgumentValue(0, method.getName());
+		args.addIndexedArgumentValue(1, method.getParameterTypes());
+		args.addIndexedArgumentValue(2, new RuntimeBeanReference(referenceFactory.getFSMId()));
+		 
+		if (!isDomainEntity) {
+			args.addIndexedArgumentValue(3, controllerRef);
+		}
+		
+		reg.registerBeanDefinition(actionId, actionBean);
 	}
 
 	private String registerState(
@@ -894,8 +927,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			StatefulController statefulContollerAnnotation,
 			Class<?> statefulClass,
 			String repoBeanId,
-			List<RuntimeBeanReference> stateBeans,
 			BeanDefinition repoBeanDefinitionFactory,
+			List<RuntimeBeanReference> stateBeans,
 			BeanDefinitionRegistry reg) {
 
 		String persisterId = statefulContollerAnnotation.persisterId();
@@ -911,10 +944,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					persistenceFactory.buildPersisterBean(
 							statefulClass, 
 							repoBeanId,
+							repoBeanDefinitionFactory,
 							statefulContollerAnnotation.stateField(),
 							startStateId, 
-							stateBeans,
-							repoBeanDefinitionFactory));
+							stateBeans));
 		}
 		
 		return persisterId;

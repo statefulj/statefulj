@@ -60,10 +60,10 @@ public class MockPersistenceSupportBeanFactory implements
 	public BeanDefinition buildPersisterBean(
 			Class<?> statefulClass,
 			String repoBeanId,
+			BeanDefinition repoBeanDefinitionFactory,
 			String stateFieldName,
 			String startStateId, 
-			List<RuntimeBeanReference> stateBeans,
-			BeanDefinition repoBeanDefinitionFactory) {
+			List<RuntimeBeanReference> stateBeans) {
 		return mockDef();
 	}
 
