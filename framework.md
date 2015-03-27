@@ -125,7 +125,10 @@ public class JerseyConfig extends StatefulJResourceConfig {
 
 ### <a name="define-your-stateful-entity"></a> Define your Stateful Entity
 
-A *Stateful Entity* is a Class that is persisted, managed by Spring Data and contains a *State* field.  The State Field defines the current State of the Entity and is managed by *StatefulJ Framework*.  The state field is annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) annotation.  For your convenience, you can inherit from either the [*StatefulEntity* Class (JPA)](/public/javadoc/org/statefulj/persistence/jpa/model/StatefulEntity.html) or [*StatefulDocument* Class (Mongo)](/public/javadoc/org/statefulj/persistence/mongo/model/StatefulDocument.html).  This will automatically define a state field annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) Annotation.
+A *Stateful Entity* is a Class that is persisted, managed by Spring Data and contains a *State* field.  
+The State Field defines the current State of the Entity and is managed by *StatefulJ Framework*.  
+The state field is annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) annotation.  
+For your convenience, you can inherit from either the [*StatefulEntity* Class (JPA)](/public/javadoc/org/statefulj/persistence/jpa/model/StatefulEntity.html) or [*StatefulDocument* Class (Mongo)](/public/javadoc/org/statefulj/persistence/mongo/model/StatefulDocument.html).  This will automatically define a state field annotated with the [@State](/public/javadoc/org/statefulj/persistence/annotations/State.html) Annotation.
 
 #### Stateful Entity (JPA)
 
@@ -239,7 +242,6 @@ Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/fr
 | noops			      | Optional	| An array of NOOP Transitions.  These Transitions will update the State field but will not invoke any Actions |
 | retryAttempts       | Optional	| Specify the number of times StatefulJ should attempt to handle the event.  If retryAttempts is -1, then it will always attempt to handle the event.  Default is 20 retry attempts |
 | retryInterval       | Optional	| The interval, in milliseconds, between each retry attempt.  Default is 250 milliseconds between retries |
-| reloadEntityOnRetry | Optional	| Set whether or not a new version of the Stateful Entity is fetched on a retry.  Defaults to true |
 	 
 ```java
 @StatefulController(
@@ -306,6 +308,7 @@ In the *StatefulJ Framework*, a Transition is a method in the *Stateful Controll
 | from      | &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
 | to		| &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
+| reload	| true|false					| If true, StatefulJ will reload the Entity before invoking the Action method.  Default is false |
 
 When a Transition is invoked, the *StatefulJ Framework* will call the associated method.  
 If the StatefulController is a Controller (vs a Domain Entity), 
