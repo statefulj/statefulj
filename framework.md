@@ -308,7 +308,7 @@ In the *StatefulJ Framework*, a Transition is a method in the *Stateful Controll
 | from      | &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "from" State.  If left blank or the state is "&ast;", then this transition applies to all states |
 | event		| &lt;event&gt;				 	| A String that defines the [Event](#define-your-events) |
 | to		| &lt;state&gt;&nbsp;or&nbsp;&ast;	| The "to" State. If left blank or the state is "&ast;", then there is no change from the current state |
-| reload	| true|false					| If true, StatefulJ will reload the Entity before invoking the Action method.  Default is false |
+| reload	| true&#124;false					| If true, StatefulJ will reload the Entity before invoking the Action method.  Default is false |
 
 When a Transition is invoked, the *StatefulJ Framework* will call the associated method.  
 If the StatefulController is a Controller (vs a Domain Entity), 
