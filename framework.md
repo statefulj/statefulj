@@ -9,13 +9,15 @@ infrastructure, bind with with *Endpoint Providers* and manage all State Persist
 
 ## <a href="#installation"></a> Installation
 
-Installing *StatefulJ Framework* is dependent on the technologies within your stack.  The StatefulJ Frameworks is comprised of *Binders* and *Persisters*.  
+Installing *StatefulJ Framework* is dependent on the technologies within your stack.  The StatefulJ Frameworks is comprised of *Persisters* and optional *Binders* .  
 
-Binders "bind" *Endpoint Providers* to the StatefulJ Framework.  The Binders are responsible for forwarding incoming requests from the Endpoint Providers as events along with the accompanying input.  The StatefulJ Framework supports the following Endpoint Providers:
+StatefulJ provides a set of optional Binders.  Binders "bind" *Endpoint Providers* to the StatefulJ Framework.  The Binders are responsible for forwarding incoming requests from the Endpoint Providers as events along with the accompanying input.  The StatefulJ Framework supports the following Endpoint Providers:
 
 * SpringMVC
 * Jersey
 * Camel
+
+However, Binders aren't required.  You can invoke the StatefulJ framework directly.  For information, consult [Inject the StatefulFSM](#inject-stateful-fsm) 
 
 Persisters interacts within the underlying databases.  StatefulJ supports the following Persisters:
 
