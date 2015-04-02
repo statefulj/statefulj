@@ -1027,13 +1027,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		Class<?> clazz = null;
 		
 		if (bf.getBeanClassName() == null) {
-			clazz = getClassFromFactoryMethod(bf, reg, clazz);
+			clazz = getClassFromFactoryMethod(bf, reg);
 		} else {
 			clazz = getClassFromBeanClassName(bf);
 		}
 		
 		if (clazz == null) {
-			clazz = getClassFromParentBean(bf, reg, clazz);
+			clazz = getClassFromParentBean(bf, reg);
 		}
 		
 		return clazz;
@@ -1056,9 +1056,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	 * @return
 	 * @throws ClassNotFoundException
 	 */
-	private Class<?> getClassFromParentBean(BeanDefinition bf,
-			BeanDefinitionRegistry reg, Class<?> clazz)
+	private Class<?> getClassFromParentBean(BeanDefinition bf, BeanDefinitionRegistry reg)
 			throws ClassNotFoundException {
+		Class<?> clazz = null;
 		String parentBeanName = bf.getParentName();
 		if (parentBeanName != null) {
 			BeanDefinition parent = reg.getBeanDefinition(parentBeanName);
@@ -1076,9 +1076,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	 * @return
 	 * @throws ClassNotFoundException
 	 */
-	private Class<?> getClassFromFactoryMethod(BeanDefinition bf,
-			BeanDefinitionRegistry reg, Class<?> clazz)
+	private Class<?> getClassFromFactoryMethod(BeanDefinition bf, BeanDefinitionRegistry reg)
 			throws ClassNotFoundException {
+		Class<?> clazz = null;
 		String factoryBeanName = bf.getFactoryBeanName();
 		if (factoryBeanName != null) {
 			BeanDefinition factory = reg.getBeanDefinition(factoryBeanName);
