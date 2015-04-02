@@ -282,11 +282,8 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Class<?> clazz = getBeanClass(bf, reg);
 
 			if (clazz == null) {
-				if (bf.isAbstract()) {
-					continue;
-				} else {
-					throw new RuntimeException("Unable to resolve class for bean " + bfName);
-				}
+				logger.debug("Unable to resolve class for bean " + bfName);
+				continue;
 			}
 			
 			// If it's a StatefulController, map controller to the entity and the entity to the controller
