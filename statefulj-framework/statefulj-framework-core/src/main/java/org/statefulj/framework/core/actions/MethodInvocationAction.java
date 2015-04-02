@@ -132,7 +132,7 @@ public class MethodInvocationAction implements Action<Object> {
 			if (retVal instanceof String) {
 				Pair<String, String> pair = this.parseResponse((String)retVal);
 				if ("event".equals(pair.getLeft())) {
-					this.fsm.onEvent(stateful, pair.getRight(), returnValue, parms);
+					this.fsm.onEvent(stateful, pair.getRight(), parms);
 				} else {
 					returnValue.setValue(retVal);
 				}
