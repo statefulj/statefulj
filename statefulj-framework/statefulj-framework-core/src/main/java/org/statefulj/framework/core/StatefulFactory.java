@@ -93,8 +93,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	
 	private final Pattern binder = Pattern.compile("(([^:]*):)?(.*)");
 
-	private Map<Class<?>, PersistenceSupportBeanFactory> persistenceFactories = new HashMap<Class<?>, PersistenceSupportBeanFactory>();
-	private Map<String, EndpointBinder> binders = new HashMap<String, EndpointBinder>();
 	private Map<Class<?>, Set<String>> entityToControllerMappings = new HashMap<Class<?>, Set<String>>();
 	
 	// Resolver that injects the FSM for a given controller.  It is inferred by the ClassType or will use the bean Id specified by the value of the 
@@ -232,11 +230,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 			// Load up all Endpoint Binders
 			//
-			loadEndpointBinders(reflections);
+			Map<String, EndpointBinder> binders = new HashMap<String, EndpointBinder>();
+			loadEndpointBinders(reflections, binders);
 		    
 			// Load up all PersistenceSupportBeanFactories
 			//
-			loadPersistenceSupportBeanFactories(reflections);
+			Map<Class<?>, PersistenceSupportBeanFactory> persistenceFactories = new HashMap<Class<?>, PersistenceSupportBeanFactory>();
+			loadPersistenceSupportBeanFactories(reflections, persistenceFactories);
 			
 			// Map Controllers and Entities
 			//
@@ -252,7 +252,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			// Iterate thru all StatefulControllers and build the framework 
 			//
 			for (Entry<String, Class<?>> entry : controllerToEntityMapping.entrySet()) {
-				buildFramework(entry.getKey(), entry.getValue(), reg, entityToRepositoryMappings);
+				buildFramework(
+						entry.getKey(), 
+						entry.getValue(), 
+						reg, 
+						entityToRepositoryMappings, 
+						binders,
+						persistenceFactories);
 			}
 
 		} catch(Exception e) {
@@ -374,7 +380,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			String statefulControllerBeanId, 
 			Class<?> statefulControllerClass, 
 			BeanDefinitionRegistry reg, 
-			Map<Class<?>, String> entityToRepositoryMappings) throws CannotCompileException, IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
+			Map<Class<?>, String> entityToRepositoryMappings,
+			Map<String, EndpointBinder> binders,
+			Map<Class<?>, PersistenceSupportBeanFactory> persistenceFactories
+			) throws CannotCompileException, IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
 		
 		// Determine the managed class
 		// 
@@ -409,7 +418,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		// Fetch the PersistenceFactory
 		//
-		PersistenceSupportBeanFactory factory = this.persistenceFactories.get(repoClassName);
+		PersistenceSupportBeanFactory factory = persistenceFactories.get(repoClassName);
 		
 		// Map the Events and Transitions for the Controller
 		//
@@ -427,7 +436,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			
 			// Fetch the binder
 			//
-			EndpointBinder binder = this.binders.get(entry.getKey());
+			EndpointBinder binder = binders.get(entry.getKey());
 
 			// Check if we found the binder
 			//
@@ -1105,13 +1114,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	private void loadPersistenceSupportBeanFactories(Reflections reflections)
+	private void loadPersistenceSupportBeanFactories(Reflections reflections, Map<Class<?>, PersistenceSupportBeanFactory> persistenceFactories)
 			throws InstantiationException, IllegalAccessException {
 		Set<Class<? extends PersistenceSupportBeanFactory>> persistenceFactoryTypes = reflections.getSubTypesOf(PersistenceSupportBeanFactory.class);
-		for(Class<?> persistenceFactories : persistenceFactoryTypes) {
-			if (!Modifier.isAbstract(persistenceFactories.getModifiers())) {
-				PersistenceSupportBeanFactory factory = (PersistenceSupportBeanFactory)persistenceFactories.newInstance();
-				this.persistenceFactories.put(factory.getKey(), factory);
+		for(Class<?> persistenceFactoryType : persistenceFactoryTypes) {
+			if (!Modifier.isAbstract(persistenceFactoryType.getModifiers())) {
+				PersistenceSupportBeanFactory factory = (PersistenceSupportBeanFactory)persistenceFactoryType.newInstance();
+				persistenceFactories.put(factory.getKey(), factory);
 			}
 		}
 	}
@@ -1121,7 +1130,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	 * @throws InstantiationException
 	 * @throws IllegalAccessException
 	 */
-	private void loadEndpointBinders(Reflections reflections) throws InstantiationException,
+	private void loadEndpointBinders(Reflections reflections, Map<String, EndpointBinder> binders) throws InstantiationException,
 			IllegalAccessException {
 		Set<Class<? extends EndpointBinder>> endpointBinders = reflections.getSubTypesOf(EndpointBinder.class);
 		for(Class<?> binderClass : endpointBinders) {
