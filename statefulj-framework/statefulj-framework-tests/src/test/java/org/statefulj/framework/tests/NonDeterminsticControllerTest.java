@@ -40,7 +40,7 @@ public class NonDeterminsticControllerTest {
 	@Resource
 	UserRepository userRepo;
 	
-	@FSM("NonDetermisticController")
+	@FSM("nonDetermisticController")
 	StatefulFSM<User> nonDetermisticFSM;
 
 	@Test
