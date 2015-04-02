@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
 
-import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -40,9 +39,6 @@ public class NonDeterminsticControllerTest {
 	
 	@Resource
 	UserRepository userRepo;
-	
-	@Resource
-	JpaTransactionManager transactionManager;
 	
 	@FSM("NonDetermisticController")
 	StatefulFSM<User> nonDetermisticFSM;
