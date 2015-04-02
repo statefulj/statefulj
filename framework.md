@@ -9,9 +9,12 @@ infrastructure, bind with with *Endpoint Providers* and manage all State Persist
 
 ## <a href="#installation"></a> Installation
 
-Installing *StatefulJ Framework* is dependent on the technologies within your stack.  The StatefulJ Frameworks is comprised of *Persisters* and optional *Binders* .  
+Installing *StatefulJ Framework* is dependent on the technologies within your stack.  
+The StatefulJ Frameworks is comprised of *Persisters* and optional *Binders* .  
 
-StatefulJ provides a set of optional Binders.  Binders "bind" *Endpoint Providers* to the StatefulJ Framework.  The Binders are responsible for forwarding incoming requests from the Endpoint Providers as events along with the accompanying input.  The StatefulJ Framework supports the following Endpoint Providers:
+StatefulJ provides a set of optional Binders.  
+Binders "bind" *Endpoint Providers* to the StatefulJ Framework.  
+The Binders are responsible for forwarding incoming requests from the Endpoint Providers as events along with the accompanying input.  The StatefulJ Framework supports the following Endpoint Providers:
 
 * SpringMVC
 * Jersey
@@ -376,7 +379,7 @@ public class Foo {
 	}
 	
 	@Transition(from=UPGRADE_PENDING, event=UPGRADE_APPROVED, to=UPGRADED)
-	private String doNotifyOfUpgrade(String event) {
+	private void doNotifyOfUpgrade(String event) {
 		FooObserver.notifyUpgrade(new UpgradeEvent(this));
 	}
 }
@@ -405,7 +408,7 @@ The returned event can then determine the actual State change.
 		@Transition(from=STATE_A, event=EVENT_B, to=STATE_B),
 		@Transition(from=STATE_A, event=EVENT_C, to=STATE_C)
 	})
-	private String doDeterministic(Foo foo, String event) {
+	private void doDeterministic(Foo foo, String event) {
 		System.out.println("Event = " + event);
 		System.out.println("State = " + foo.getState());
 	}
