@@ -8,7 +8,11 @@
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.0.xsd">
 
  	<bean id="factory" class="org.statefulj.framework.core.StatefulFactory" />
- 	<bean id="abstractBean" abstract="true">
+ 	<bean id="abstractBean1" class="java.lang.Object" abstract="true">
+    </bean>
+ 	<bean id="abstractBean2" parent="abstractBean1" abstract="true">
+    </bean>
+ 	<bean id="nonAbstractBean" parent="abstractBean2">
     </bean>
     
 </beans>

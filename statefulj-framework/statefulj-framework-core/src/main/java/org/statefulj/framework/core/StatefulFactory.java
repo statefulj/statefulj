@@ -277,8 +277,14 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		// Loop thru the bean registry
 		//
 		for(String bfName : reg.getBeanDefinitionNames()) {
-			
+
 			BeanDefinition bf = reg.getBeanDefinition(bfName);
+		
+			if (bf.isAbstract()) {
+				logger.debug("Skipping abstract bean " + bfName);
+				continue;
+			}
+			
 			Class<?> clazz = getBeanClass(bf, reg);
 
 			if (clazz == null) {
@@ -1019,6 +1025,17 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		} else {
 			clazz = Class.forName(bf.getBeanClassName());
 		}
+		
+		if (clazz == null) {
+			String parentBeanName = bf.getParentName();
+			if (parentBeanName != null) {
+				BeanDefinition parent = reg.getBeanDefinition(parentBeanName);
+				if (parent != null) {
+					clazz = this.getBeanClass(parent, reg);
+				}
+			}
+		}
+		
 		return clazz;
 	}
 	
