@@ -95,7 +95,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 	private Map<Class<?>, PersistenceSupportBeanFactory> persistenceFactories = new HashMap<Class<?>, PersistenceSupportBeanFactory>();
 	private Map<String, EndpointBinder> binders = new HashMap<String, EndpointBinder>();
-	private Map<Class<?>, Set<String>> entityToControllers = new HashMap<Class<?>, Set<String>>();
+	private Map<Class<?>, Set<String>> entityToControllerMappings = new HashMap<Class<?>, Set<String>>();
 	
 	// Resolver that injects the FSM for a given controller.  It is inferred by the ClassType or will use the bean Id specified by the value of the 
 	// FSM Annotation
@@ -158,7 +158,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		 */
 		private String deriveControllerId(Field field, Class<?> managedClass) {
 			String controllerId;
-			Set<String> controllers = entityToControllers.get(managedClass);
+			Set<String> controllers = entityToControllerMappings.get(managedClass);
 			
 			if (controllers == null) {
 				throw new RuntimeException("Unable to resolve FSM for field " + field.getName());
@@ -240,19 +240,19 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			
 			// Map Controllers and Entities
 			//
-			Map<String, Class<?>> controllerMapping = new HashMap<String, Class<?>>();
-			Map<Class<?>, String> entityMappings = new HashMap<Class<?>, String>();
+			Map<String, Class<?>> controllerToEntityMapping = new HashMap<String, Class<?>>();
+			Map<Class<?>, String> entityToRepositoryMappings = new HashMap<Class<?>, String>();
 			
 			mapControllerAndEntityClasses(
 					reg, 
-					controllerMapping, 
-					entityMappings,
-					entityToControllers);
+					controllerToEntityMapping, 
+					entityToRepositoryMappings,
+					entityToControllerMappings);
 
 			// Iterate thru all StatefulControllers and build the framework 
 			//
-			for (Entry<String, Class<?>> entry : controllerMapping.entrySet()) {
-				buildFramework(entry.getKey(), entry.getValue(), reg, entityMappings);
+			for (Entry<String, Class<?>> entry : controllerToEntityMapping.entrySet()) {
+				buildFramework(entry.getKey(), entry.getValue(), reg, entityToRepositoryMappings);
 			}
 
 		} catch(Exception e) {
@@ -270,9 +270,9 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	 */
 	private void mapControllerAndEntityClasses(
 			BeanDefinitionRegistry reg,
-			Map<String, Class<?>> controllerMapping,
-			Map<Class<?>, String> entityMapping,
-			Map<Class<?>, Set<String>> entityToControllers) throws ClassNotFoundException {
+			Map<String, Class<?>> controllerToEntityMapping,
+			Map<Class<?>, String> entityToRepositoryMapping,
+			Map<Class<?>, Set<String>> entityToControllerMappings) throws ClassNotFoundException {
 		
 		// Loop thru the bean registry
 		//
@@ -285,7 +285,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				continue;
 			}
 			
-			Class<?> clazz = getBeanClass(bf, reg);
+			Class<?> clazz = getClassFromBeanDefinition(bf, reg);
 
 			if (clazz == null) {
 				logger.debug("Unable to resolve class for bean " + bfName);
@@ -295,64 +295,86 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			// If it's a StatefulController, map controller to the entity and the entity to the controller
 			//
 			if (ReflectionUtils.isAnnotationPresent(clazz, StatefulController.class)) {
-				
-				logger.debug("Found StatefulController, class = \"{}\", beanName = \"{}\"", clazz.getName(), bfName);
-
-				// Ctrl -> Entity
-				//
-				controllerMapping.put(bfName, clazz); 
-				
-				// Entity -> Ctrls
-				//
-				Class<?> managedEntity = ReflectionUtils.getFirstClassAnnotation(clazz, StatefulController.class).clazz();
-				Set<String> controllers = entityToControllers.get(managedEntity);
-				if (controllers == null) {
-					controllers = new HashSet<String>();
-					entityToControllers.put(managedEntity, controllers);
-				}
-				controllers.add(bfName);
+				mapEntityWithController(controllerToEntityMapping, entityToControllerMappings, bfName, clazz);
 			}
-			
 
 			// Else, if the Bean is a Repository, then map the
 			// Entity associated with the Repo to the PersistenceSupport object
 			//
 			else if (RepositoryFactoryBeanSupport.class.isAssignableFrom(clazz)) {
-				
-				// Determine the Entity Class associated with the Repo
-				//
-				String value = (String)bf.getPropertyValues().getPropertyValue("repositoryInterface").getValue();
-				Class<?> repoInterface = Class.forName(value);
-				Class<?> entityType = null;
-				for(Type type : repoInterface.getGenericInterfaces()) {
-					if (type instanceof ParameterizedType) {
-						ParameterizedType parmType = (ParameterizedType)type;
-						if (Repository.class.isAssignableFrom((Class<?>)parmType.getRawType()) &&
-						    parmType.getActualTypeArguments() != null &&
-						    parmType.getActualTypeArguments().length > 0) {
-							entityType = (Class<?>)parmType.getActualTypeArguments()[0];
-							break;
-						}
-					}
-				}
-				
-				if (entityType == null) {
-					throw new RuntimeException("Unable to determine Entity type for class " + repoInterface.getName());
-				}
-				
-				// Map Entity to the RepositoryFactoryBeanSupport bean
-				//
-				logger.debug("Mapped \"{}\" to repo \"{}\", beanId=\"{}\"", entityType.getName(), value, bfName);
-				entityMapping.put(entityType, bfName);
+				mapEntityToRepository(entityToRepositoryMapping, bfName, bf);
 			}
 		}
+	}
+
+	/**
+	 * @param entityToRepositoryMapping
+	 * @param bfName
+	 * @param bf
+	 * @throws ClassNotFoundException
+	 */
+	private void mapEntityToRepository(Map<Class<?>, String> entityToRepositoryMapping,
+			String bfName, BeanDefinition bf) throws ClassNotFoundException {
+		
+		// Determine the Entity Class associated with the Repo
+		//
+		String value = (String)bf.getPropertyValues().getPropertyValue("repositoryInterface").getValue();
+		Class<?> repoInterface = Class.forName(value);
+		Class<?> entityType = null;
+		for(Type type : repoInterface.getGenericInterfaces()) {
+			if (type instanceof ParameterizedType) {
+				ParameterizedType parmType = (ParameterizedType)type;
+				if (Repository.class.isAssignableFrom((Class<?>)parmType.getRawType()) &&
+				    parmType.getActualTypeArguments() != null &&
+				    parmType.getActualTypeArguments().length > 0) {
+					entityType = (Class<?>)parmType.getActualTypeArguments()[0];
+					break;
+				}
+			}
+		}
+		
+		if (entityType == null) {
+			throw new RuntimeException("Unable to determine Entity type for class " + repoInterface.getName());
+		}
+		
+		// Map Entity to the RepositoryFactoryBeanSupport bean
+		//
+		logger.debug("Mapped \"{}\" to repo \"{}\", beanId=\"{}\"", entityType.getName(), value, bfName);
+		
+		entityToRepositoryMapping.put(entityType, bfName);
+	}
+
+	/**
+	 * @param controllerToEntityMapping
+	 * @param entityToControllerMappings
+	 * @param bfName
+	 * @param clazz
+	 */
+	private void mapEntityWithController(Map<String, Class<?>> controllerToEntityMapping,
+			Map<Class<?>, Set<String>> entityToControllerMappings, String bfName,
+			Class<?> clazz) {
+		logger.debug("Found StatefulController, class = \"{}\", beanName = \"{}\"", clazz.getName(), bfName);
+
+		// Ctrl -> Entity
+		//
+		controllerToEntityMapping.put(bfName, clazz); 
+		
+		// Entity -> Ctrls
+		//
+		Class<?> managedEntity = ReflectionUtils.getFirstClassAnnotation(clazz, StatefulController.class).clazz();
+		Set<String> controllers = entityToControllerMappings.get(managedEntity);
+		if (controllers == null) {
+			controllers = new HashSet<String>();
+			entityToControllerMappings.put(managedEntity, controllers);
+		}
+		controllers.add(bfName);
 	}
 	
 	private void buildFramework(
 			String statefulControllerBeanId, 
 			Class<?> statefulControllerClass, 
 			BeanDefinitionRegistry reg, 
-			Map<Class<?>, String> entityMappings) throws CannotCompileException, IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
+			Map<Class<?>, String> entityToRepositoryMappings) throws CannotCompileException, IllegalArgumentException, NotFoundException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
 		
 		// Determine the managed class
 		// 
@@ -377,13 +399,13 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		// Fetch Repo info
 		//
-		String repoBeanId = getRepoId(entityMappings, managedClass);
+		String repoBeanId = getRepoId(entityToRepositoryMappings, managedClass);
 		
 		if (repoBeanId == null) {
 			throw new RuntimeException("Unable to determine Repository for class " + managedClass.getName());
 		}
 		BeanDefinition repoBeanDefinitionFactory = reg.getBeanDefinition(repoBeanId);
-		Class<?> repoClassName = Class.forName(repoBeanDefinitionFactory.getBeanClassName());
+		Class<?> repoClassName = getClassFromBeanClassName(repoBeanDefinitionFactory);
 
 		// Fetch the PersistenceFactory
 		//
@@ -981,18 +1003,18 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		return fsmHarnessId;
 	}
 	
-	private String getRepoId(Map<Class<?>, String> entityMappings, Class<?> clazz) {
+	private String getRepoId(Map<Class<?>, String> entityToRepositoryMappings, Class<?> clazz) {
 		if (clazz != null) {
-			String id = entityMappings.get(clazz);
+			String id = entityToRepositoryMappings.get(clazz);
 			if (id != null) {
 				return id;
 			}
-			id = getRepoId(entityMappings, clazz.getSuperclass());
+			id = getRepoId(entityToRepositoryMappings, clazz.getSuperclass());
 			if (id != null) {
 				return id;
 			}
 			for (Class<?> interfaze : clazz.getInterfaces()) {
-				id = getRepoId(entityMappings, interfaze);
+				id = getRepoId(entityToRepositoryMappings, interfaze);
 				if (id != null) {
 					return id;
 				}
@@ -1001,41 +1023,80 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		return null;
 	}
 	
-	private Class<?> getBeanClass(BeanDefinition bf, BeanDefinitionRegistry reg) throws ClassNotFoundException {
+	private Class<?> getClassFromBeanDefinition(BeanDefinition bf, BeanDefinitionRegistry reg) throws ClassNotFoundException {
 		Class<?> clazz = null;
+		
 		if (bf.getBeanClassName() == null) {
-			String factoryBeanName = bf.getFactoryBeanName();
-			if (factoryBeanName != null) {
-				BeanDefinition factory = reg.getBeanDefinition(factoryBeanName);
-				if (factory != null) {
-					String factoryClassName = factory.getBeanClassName();
-					Class<?> factoryClass = Class.forName(factoryClassName);
-					List<Method> methods = new LinkedList<Method>();
-					methods.addAll(Arrays.asList(factoryClass.getMethods()));
-					methods.addAll(Arrays.asList(factoryClass.getDeclaredMethods()));
-					for (Method method : methods) {
-						method.setAccessible(true);
-						if (method.getName().equals(bf.getFactoryMethodName())) {
-							clazz = method.getReturnType();
-							break;
-						}
-					}
-				}
-			}
+			clazz = getClassFromFactoryMethod(bf, reg, clazz);
 		} else {
-			clazz = Class.forName(bf.getBeanClassName());
+			clazz = getClassFromBeanClassName(bf);
 		}
 		
 		if (clazz == null) {
-			String parentBeanName = bf.getParentName();
-			if (parentBeanName != null) {
-				BeanDefinition parent = reg.getBeanDefinition(parentBeanName);
-				if (parent != null) {
-					clazz = this.getBeanClass(parent, reg);
+			clazz = getClassFromParentBean(bf, reg, clazz);
+		}
+		
+		return clazz;
+	}
+
+	/**
+	 * @param bf
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
+	private Class<?> getClassFromBeanClassName(BeanDefinition bf)
+			throws ClassNotFoundException {
+		return Class.forName(bf.getBeanClassName());
+	}
+
+	/**
+	 * @param bf
+	 * @param reg
+	 * @param clazz
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
+	private Class<?> getClassFromParentBean(BeanDefinition bf,
+			BeanDefinitionRegistry reg, Class<?> clazz)
+			throws ClassNotFoundException {
+		String parentBeanName = bf.getParentName();
+		if (parentBeanName != null) {
+			BeanDefinition parent = reg.getBeanDefinition(parentBeanName);
+			if (parent != null) {
+				clazz = this.getClassFromBeanDefinition(parent, reg);
+			}
+		}
+		return clazz;
+	}
+
+	/**
+	 * @param bf
+	 * @param reg
+	 * @param clazz
+	 * @return
+	 * @throws ClassNotFoundException
+	 */
+	private Class<?> getClassFromFactoryMethod(BeanDefinition bf,
+			BeanDefinitionRegistry reg, Class<?> clazz)
+			throws ClassNotFoundException {
+		String factoryBeanName = bf.getFactoryBeanName();
+		if (factoryBeanName != null) {
+			BeanDefinition factory = reg.getBeanDefinition(factoryBeanName);
+			if (factory != null) {
+				String factoryClassName = factory.getBeanClassName();
+				Class<?> factoryClass = Class.forName(factoryClassName);
+				List<Method> methods = new LinkedList<Method>();
+				methods.addAll(Arrays.asList(factoryClass.getMethods()));
+				methods.addAll(Arrays.asList(factoryClass.getDeclaredMethods()));
+				for (Method method : methods) {
+					method.setAccessible(true);
+					if (method.getName().equals(bf.getFactoryMethodName())) {
+						clazz = method.getReturnType();
+						break;
+					}
 				}
 			}
 		}
-		
 		return clazz;
 	}
 	
