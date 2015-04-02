@@ -19,6 +19,8 @@ package org.statefulj.persistence.mongo;
 
 import static org.junit.Assert.*;
 
+import java.lang.reflect.Field;
+
 import javax.annotation.Resource;
 
 import org.junit.After;
@@ -39,6 +41,9 @@ public class MongoPersisterTest {
 	
 	@Resource
 	private Persister<Order> mongoPersister;
+	
+	@Resource
+	private MongoPersister<JPAIdEntity> jpaIdPersister;
 	
 	@Resource
 	private OrderRepository orderRepo;
@@ -143,5 +148,11 @@ public class MongoPersisterTest {
 		assertNull(order);
 		state = this.mongoTemplate.findById(stateId, StateDocumentImpl.class);
 		assertNull(state);
+	}
+
+	@Test
+	public void testJPAId() throws StaleStateException {
+		Field field = this.jpaIdPersister.findIdField(JPAIdEntity.class);
+		assertNotNull(field);
 	}
 }

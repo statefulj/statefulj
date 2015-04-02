@@ -9,7 +9,7 @@
 	
 		<mongo:db-factory id="mongoDbFactory"
 		                 host="localhost"
-		                 port="37017"
+		                 port="27017"
 		                 dbname="test-db"/>
 		                 
 		<bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">

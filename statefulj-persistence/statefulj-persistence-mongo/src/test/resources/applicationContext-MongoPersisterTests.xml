@@ -34,5 +34,18 @@
     	<constructor-arg name="repoId" value="orderRepository"/>
     </bean>
 
+    <bean id="jpaIdPersister" class="org.statefulj.persistence.mongo.MongoPersister">
+    	<constructor-arg name="clazz" value="org.statefulj.persistence.mongo.JPAIdEntity"/>
+    	<constructor-arg name="start" ref="stateA"/>
+    	<constructor-arg name="states">
+		    <util:list>
+		    	<ref bean="stateA"/>
+		    	<ref bean="stateB"/>
+		    	<ref bean="stateC"/>
+		    </util:list>
+    	</constructor-arg>
+    	<constructor-arg name="repoId" value="jpaIdEntityRepository"/>
+    </bean>
+
 </beans>
     

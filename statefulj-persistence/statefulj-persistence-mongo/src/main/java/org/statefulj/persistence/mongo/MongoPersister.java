@@ -23,6 +23,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Random;
 
+import javax.persistence.EmbeddedId;
+
 import org.bson.types.ObjectId;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -94,7 +96,7 @@ public class MongoPersister<T>
 	 * Instantiate the MongoPersister with a specified template.  The MongoPersister
 	 * will use the stateFieldName to determine the State field.
 	 * 
-	 * @param states List of the States
+	 * @param states List of the StatesC
 	 * @param stateFieldName The name of the State Field
 	 * @param start The Start State
 	 * @param clazz The Managed Entity class
@@ -245,7 +247,14 @@ public class MongoPersister<T>
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		return getReferencedField(this.getClazz(), Id.class);
+		Field idField = getReferencedField(this.getClazz(), Id.class);
+		if (idField == null) {
+			idField = getReferencedField(this.getClazz(), javax.persistence.Id.class);
+			if (idField == null) {
+				idField = getReferencedField(this.getClazz(), EmbeddedId.class);
+			}
+		}
+		return idField;
 	}
 
 	@Override

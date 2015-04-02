@@ -237,7 +237,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			// Load up all PersistenceSupportBeanFactories
 			//
 			loadPersistenceSupportBeanFactories(reflections);
-		    
+			
 			// Map Controllers and Entities
 			//
 			Map<String, Class<?>> controllerMapping = new HashMap<String, Class<?>>();
@@ -282,7 +282,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			Class<?> clazz = getBeanClass(bf, reg);
 
 			if (clazz == null) {
-				throw new RuntimeException("Unable to resolve class for bean " + bfName);
+				if (bf.isAbstract()) {
+					continue;
+				} else {
+					throw new RuntimeException("Unable to resolve class for bean " + bfName);
+				}
 			}
 			
 			// If it's a StatefulController, map controller to the entity and the entity to the controller
@@ -997,17 +1001,22 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	private Class<?> getBeanClass(BeanDefinition bf, BeanDefinitionRegistry reg) throws ClassNotFoundException {
 		Class<?> clazz = null;
 		if (bf.getBeanClassName() == null) {
-			BeanDefinition factory = reg.getBeanDefinition(bf.getFactoryBeanName());
-			String factoryClassName = factory.getBeanClassName();
-			Class<?> factoryClass = Class.forName(factoryClassName);
-			List<Method> methods = new LinkedList<Method>();
-			methods.addAll(Arrays.asList(factoryClass.getMethods()));
-			methods.addAll(Arrays.asList(factoryClass.getDeclaredMethods()));
-			for (Method method : methods) {
-				method.setAccessible(true);
-				if (method.getName().equals(bf.getFactoryMethodName())) {
-					clazz = method.getReturnType();
-					break;
+			String factoryBeanName = bf.getFactoryBeanName();
+			if (factoryBeanName != null) {
+				BeanDefinition factory = reg.getBeanDefinition(factoryBeanName);
+				if (factory != null) {
+					String factoryClassName = factory.getBeanClassName();
+					Class<?> factoryClass = Class.forName(factoryClassName);
+					List<Method> methods = new LinkedList<Method>();
+					methods.addAll(Arrays.asList(factoryClass.getMethods()));
+					methods.addAll(Arrays.asList(factoryClass.getDeclaredMethods()));
+					for (Method method : methods) {
+						method.setAccessible(true);
+						if (method.getName().equals(bf.getFactoryMethodName())) {
+							clazz = method.getReturnType();
+							break;
+						}
+					}
 				}
 			}
 		} else {
