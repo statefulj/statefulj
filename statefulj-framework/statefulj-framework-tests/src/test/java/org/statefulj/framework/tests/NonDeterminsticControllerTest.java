@@ -44,7 +44,7 @@ public class NonDeterminsticControllerTest {
 	StatefulFSM<User> nonDetermisticFSM;
 
 	@Test
-	public void testStateTransitions() throws TooBusyException {
+	public void testNonDeterministicTransitions() throws TooBusyException {
 
 		final User user = userRepo.save(new User());
 
