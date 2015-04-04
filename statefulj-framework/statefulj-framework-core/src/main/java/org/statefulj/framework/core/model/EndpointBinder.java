@@ -24,10 +24,40 @@ import java.util.Map;
 import javassist.CannotCompileException;
 import javassist.NotFoundException;
 
+/**
+ * An EndpointBinder is responsible for generating a Class which "binds" to an Endpoint Provider 
+ * (SpringMVC, Jersey, Camel, etc..).  The EndpointBinders accept incoming input and forwards as an 
+ * event to the {@link org.statefulj.framework.core.model.FSMHarness}
+ * 
+ * @author Andrew Hall
+ *
+ */
 public interface EndpointBinder {
 	
+	/**
+	 * Returns the "key" for this EndpointBinder.  The key is the first part of the tuple in an Event.
+	 * For example, the key for the SpringMVC binder is "springmvc".  
+	 * 
+	 * @return The first part of the tuple in an Event
+	 */
 	String getKey();
 
+	/**
+	 * Invoked by the StatefulController to construct an EndpointBinder Class
+	 * 
+	 * @param beanName The Spring Bean Name for the Endpoint Binder
+	 * @param stateControllerClass The class of the associated {@link org.statefulj.framework.core.annotations.StatefulController}
+	 * @param idType The Class Type of the id field for the associated StatefulEntity
+	 * @param isDomainEntity A flag indicating the StatefulEntity and the {@link org.statefulj.framework.core.annotations.StatefulController} are one in the same
+	 * @param eventMapping Association of Event to the Action Method
+	 * @param refFactory The {@link org.statefulj.framework.core.model.ReferenceFactory} that generates all Spring Bean ids
+	 * @return The generated Class of the EndpointBinder
+	 * @throws CannotCompileException
+	 * @throws NotFoundException
+	 * @throws IllegalArgumentException
+	 * @throws IllegalAccessException
+	 * @throws InvocationTargetException
+	 */
 	Class<?> bindEndpoints(
 			String beanName, 
 			Class<?> stateControllerClass,
