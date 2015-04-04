@@ -24,6 +24,12 @@ import java.util.List;
 import org.statefulj.fsm.FSM;
 import org.statefulj.fsm.RetryException;
 
+/**
+ * DomainEntityMethodInvocationAction is responsible for invoking an Action method on a Domain Entity
+ * 
+ * @author Andrew Hall
+ *
+ */
 public class DomainEntityMethodInvocationAction extends MethodInvocationAction {
 
 	public DomainEntityMethodInvocationAction(

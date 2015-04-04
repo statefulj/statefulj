@@ -28,9 +28,7 @@ import org.springframework.stereotype.Component;
 /**
  * The Transitions define a set of {@link org.statefulj.framework.core.annotations.Transition} annotations
  * This set can be applied to a method indicating that the each {@link org.statefulj.framework.core.annotations.Transition}
- * within the set will invoke the associated method.  Additionally, this set can be applied to the 
- * {@link org.statefulj.framework.core.annotations.StatefulController#value()} field to indicate that the
- * set does not have an associated method.
+ * within the set will invoke the associated method.  
  * 
  * @author Andrew Hall
  *

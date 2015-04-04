@@ -18,8 +18,13 @@
 package org.statefulj.framework.core.fsm;
 
 /**
+ * Wraps the Context of the originating request.  The Context is passed to the 
+ * {@link org.statefulj.framework.core.model.Factory} and {@link org.statefulj.framework.core.model.Finder}
+ * to create/fetch the Stateful Entity
+ * 
  * @author Andrew Hall
  *
+ * @param <CT> The Context Type
  */
 public class ContextWrapper<CT> {
 	

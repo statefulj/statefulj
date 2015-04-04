@@ -107,7 +107,7 @@ public @interface StatefulController {
 	String[] blockingStates() default {};
 
 	/**
-	 * A set of NOOP transitions
+	 * A set of NOOP {@link org.statefulj.framework.core.annotations.Transition}
 	 * 
 	 * @return Array of NOOP Transitions
 	 */
