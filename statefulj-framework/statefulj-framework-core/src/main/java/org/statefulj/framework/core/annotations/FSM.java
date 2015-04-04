@@ -25,6 +25,15 @@ import java.lang.annotation.Target;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * The FSM annotation denotes an injection of the {@link org.statefulj.framework.core.model.StatefulFSM}.  
+ * The StatefulJ framework will determine which StatefulFSM to inject based off the generic type of the StatefulFSM.
+ * To disambiguate between multiple StatefulFSM for a type, provide the bean Id of the Stateful Controller 
+ * using the {@link org.statefulj.framework.core.annotations.FSM#value()} parameter
+ * 
+ * @author Andrew Hall
+ *
+ */
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

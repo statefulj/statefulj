@@ -25,6 +25,17 @@ import java.lang.annotation.Target;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * A Transition is a reaction to an Event directed at a Stateful Entity. 
+ * The Transition can involve a possible change in State and a possible Action.
+ * If you want to map multiple Transitions to a method, encapsulate the Transition annotation
+ * with a {@link org.statefulj.framework.core.annotations.Transitions} annotation.  If you
+ * want to change State without invoking a method, include the Transition within the {@link org.statefulj.framework.core.annotations.StatefulController#noops()}
+ * field
+ * 
+ * @author Andrew Hall
+ *
+ */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
