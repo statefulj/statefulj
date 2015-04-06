@@ -17,10 +17,35 @@
  */
 package org.statefulj.framework.core.model;
 
+/**
+ * Finder is responsible to locating and retrieving the Stateful Entity.  There are two methods which 
+ * can be invoked - one without an Id for the Stateful Entity and one with the Id of the Stateful Entity.
+ * 
+ * @author Andrew Hall
+ *
+ * @param <T> Type of the Stateful Entity
+ * @param <CT> Type of the Request Context
+ */
 public interface Finder<T, CT> {
 
+	/**
+	 * This find method is invoked when no Id can be determined from the input from the EndpointBinder.
+	 * 
+	 * @param clazz The Class of the Stateful Event
+	 * @param event The Event
+	 * @param context The Request Context
+	 * 
+	 * @return The Stateful Entity
+	 */
 	T find(Class<T> clazz, String event, CT context);
 	
+	/**
+	 * @param clazz
+	 * @param id
+	 * @param event
+	 * @param context
+	 * @return
+	 */
 	T find(Class<T> clazz, Object id, String event, CT context);
 	
 }

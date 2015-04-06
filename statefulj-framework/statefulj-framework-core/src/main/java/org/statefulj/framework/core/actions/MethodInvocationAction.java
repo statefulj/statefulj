@@ -65,26 +65,6 @@ public class MethodInvocationAction implements Action<Object> {
 		this.controller = controller;
 	}
 
-	public Object getController() {
-		return controller;
-	}
-
-	public String getMethod() {
-		return method;
-	}
-
-	public Class<?>[] getParameters() {
-		return parameters;
-	}
-
-	public FSM<Object> getFsm() {
-		return fsm;
-	}
-
-	public Pattern getProtocol() {
-		return protocol;
-	}
-
 	@SuppressWarnings("unchecked")
 	public void execute(Object stateful, String event, Object... parms) throws RetryException {
 		try {
@@ -150,15 +130,6 @@ public class MethodInvocationAction implements Action<Object> {
 		}
 	}
 
-	/**
-	 * @param parmList
-	 */
-	private void popOffRetryParms(List<Object> parmList) {
-		if (parmList.size() > 0 && (parmList.get(0) instanceof ContextWrapper<?>)) {
-			parmList.remove(0);			
-		}
-	}
-
 	@Override
 	public String toString() {
 		return this.method;
@@ -198,4 +169,14 @@ public class MethodInvocationAction implements Action<Object> {
 		}
 		return new ImmutablePair<String, String>(matcher.group(2), matcher.group(3));
 	}
+
+	/**
+	 * @param parmList
+	 */
+	private void popOffRetryParms(List<Object> parmList) {
+		if (parmList.size() > 0 && (parmList.get(0) instanceof ContextWrapper<?>)) {
+			parmList.remove(0);			
+		}
+	}
+
 }
