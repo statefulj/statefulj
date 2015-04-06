@@ -35,6 +35,13 @@ import org.statefulj.fsm.RetryException;
 import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.Action;
 
+/**
+ * The MethodInvocationAction is responsible for invoking an Action method on a 
+ * {@link org.statefulj.framework.core.annotations.StatefulController}
+ * 
+ * @author Andrew Hall
+ *
+ */
 public class MethodInvocationAction implements Action<Object> {
 
 	private final Pattern protocol = Pattern.compile("(([^:]*):)?(.*)");
@@ -56,42 +63,6 @@ public class MethodInvocationAction implements Action<Object> {
 		this.parameters = parameters;
 		this.fsm = fsm;	
 		this.controller = controller;
-	}
-
-	public Object getController() {
-		return controller;
-	}
-
-	public void setController(Object controller) {
-		this.controller = controller;
-	}
-
-	public String getMethod() {
-		return method;
-	}
-
-	public void setMethod(String method) {
-		this.method = method;
-	}
-
-	public Class<?>[] getParameters() {
-		return parameters;
-	}
-
-	public void setParameters(Class<?>[] parameters) {
-		this.parameters = parameters;
-	}
-
-	public FSM<Object> getFsm() {
-		return fsm;
-	}
-
-	public void setFsm(FSM<Object> fsm) {
-		this.fsm = fsm;
-	}
-
-	public Pattern getProtocol() {
-		return protocol;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -159,15 +130,6 @@ public class MethodInvocationAction implements Action<Object> {
 		}
 	}
 
-	/**
-	 * @param parmList
-	 */
-	private void popOffRetryParms(List<Object> parmList) {
-		if (parmList.size() > 0 && (parmList.get(0) instanceof ContextWrapper<?>)) {
-			parmList.remove(0);			
-		}
-	}
-
 	@Override
 	public String toString() {
 		return this.method;
@@ -207,4 +169,14 @@ public class MethodInvocationAction implements Action<Object> {
 		}
 		return new ImmutablePair<String, String>(matcher.group(2), matcher.group(3));
 	}
+
+	/**
+	 * @param parmList
+	 */
+	private void popOffRetryParms(List<Object> parmList) {
+		if (parmList.size() > 0 && (parmList.get(0) instanceof ContextWrapper<?>)) {
+			parmList.remove(0);			
+		}
+	}
+
 }

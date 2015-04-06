@@ -25,11 +25,22 @@ import java.lang.annotation.Target;
 
 import org.springframework.stereotype.Component;
 
-@Target({ElementType.METHOD})
+/**
+ * The Transitions define a set of {@link org.statefulj.framework.core.annotations.Transition} annotations
+ * This set can be applied to a method indicating that the each {@link org.statefulj.framework.core.annotations.Transition}
+ * within the set will invoke the associated method.  
+ * 
+ * @author Andrew Hall
+ *
+ */@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Component
 public @interface Transitions {
 	
+	/**
+	 * The set of {@link org.statefulj.framework.core.annotations.Transition}
+	 * @return
+	 */
 	Transition[] value();
 }

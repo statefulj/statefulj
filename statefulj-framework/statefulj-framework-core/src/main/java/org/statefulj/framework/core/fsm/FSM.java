@@ -33,7 +33,15 @@ import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.StateActionPair;
 import org.statefulj.fsm.model.Transition;
 
-
+/**
+ * The Framework FSM.  The Framework FSM is responsible to extending the {@link org.statefulj.fsm.FSM}
+ * to provide ability to autowire and reload Stateful Entities 
+ * 
+ * @author Andrew Hall
+ *
+ * @param <T> The Stateful Entity Type
+ * @param <CT> The Context Type
+ */
 public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FSM.class);

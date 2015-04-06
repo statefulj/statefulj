@@ -26,10 +26,6 @@ import java.lang.annotation.Target;
 import org.springframework.stereotype.Component;
 
 
-@Target({ElementType.TYPE})
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Component
 /**
  * The StatefulController annotation defines a Finite State Machine
  * for the specified managed Entity.  A StatefulController is a Spring Component that will
@@ -38,6 +34,10 @@ import org.springframework.stereotype.Component;
  * @author Andrew Hall
  *
  */
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
 public @interface StatefulController {
 
 	/**
@@ -107,7 +107,7 @@ public @interface StatefulController {
 	String[] blockingStates() default {};
 
 	/**
-	 * A set of NOOP transitions
+	 * A set of NOOP {@link org.statefulj.framework.core.annotations.Transition}
 	 * 
 	 * @return Array of NOOP Transitions
 	 */

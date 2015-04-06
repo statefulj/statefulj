@@ -21,6 +21,14 @@ import org.statefulj.fsm.model.Action;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.impl.DeterministicTransitionImpl;
 
+/**
+ * Extend {@link org.statefulj.fsm.model.impl.DeterministicTransitionImpl} to provide additional
+ * functionality such as "any" transition support and reloading support
+ * 
+ * @author Andrew Hall
+ *
+ * @param <T> The Stateful Entity type
+ */
 public class TransitionImpl<T> extends DeterministicTransitionImpl<T> {
 	
 	private boolean any = false;

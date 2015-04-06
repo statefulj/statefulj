@@ -352,7 +352,7 @@ public class MongoPersister<T>
 		
 		// Is the Class being saved the managed class?
 		//
-		if (stateful.getClass().equals(getClazz())) {
+		if (stateful != null && stateful.getClass().equals(getClazz())) {
 			try {
 				boolean updateStateful = false;
 				StateDocumentImpl stateDoc = this.getStateDocument((T)stateful);
@@ -388,7 +388,7 @@ public class MongoPersister<T>
 	}
 
 	void onAfterDelete(Class<?> stateful, DBObject obj) {
-		if (stateful.equals(getClazz())) {
+		if (stateful != null && stateful.equals(getClazz())) {
 			StateDocumentImpl stateDoc;
 			Criteria criteria = new Criteria("managedId").is(obj.get(this.getIdField().getName())).
 					and("managedCollection").is(this.mongoTemplate.getCollectionName(getClazz())).
