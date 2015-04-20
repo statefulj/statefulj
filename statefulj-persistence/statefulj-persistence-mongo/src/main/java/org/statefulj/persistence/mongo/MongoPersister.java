@@ -18,13 +18,7 @@
 
 package org.statefulj.persistence.mongo;
 
-import java.lang.reflect.Field;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Random;
-
-import javax.persistence.EmbeddedId;
-
+import com.mongodb.DBObject;
 import org.bson.types.ObjectId;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -43,16 +37,19 @@ import org.springframework.data.mongodb.core.convert.LazyLoadingProxy;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-
-import static org.statefulj.common.utils.ReflectionUtils.*;
-
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 import org.statefulj.persistence.common.AbstractPersister;
 import org.statefulj.persistence.mongo.model.StateDocument;
 
-import com.mongodb.DBObject;
+import javax.persistence.EmbeddedId;
+import java.lang.reflect.Field;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Random;
+
+import static org.statefulj.common.utils.ReflectionUtils.getReferencedField;
 
 public class MongoPersister<T> 
 			extends AbstractPersister<T> 
@@ -392,7 +389,7 @@ public class MongoPersister<T>
 		
 		// Is the Class being saved the managed class?
 		//
-		if (stateful.getClass().equals(getClazz())) {
+		if (getClazz().isAssignableFrom(stateful.getClass())) {
 			try {
 				boolean updateStateful = false;
 				StateDocumentImpl stateDoc = this.getStateDocument((T)stateful);
@@ -428,7 +425,7 @@ public class MongoPersister<T>
 	}
 
 	void onAfterDelete(Class<?> stateful, DBObject obj) {
-		if (stateful != null && stateful.equals(getClazz())) {
+		if (stateful != null && getClazz().isAssignableFrom(stateful)) {
 			StateDocumentImpl stateDoc;
 			Criteria criteria = new Criteria("managedId").is(obj.get(this.getIdField().getName())).
 					and("managedCollection").is(getMongoTemplate().getCollectionName(getClazz())).
