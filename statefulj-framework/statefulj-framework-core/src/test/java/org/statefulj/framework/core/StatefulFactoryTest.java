@@ -17,6 +17,9 @@
  */
 package org.statefulj.framework.core;
 
+import org.alternative.AltTestRepositoryFactoryBeanSupport;
+import org.alternative.AltTestUserController;
+import org.alternative.AltTestUserRepository;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -100,6 +103,7 @@ public class StatefulFactoryTest {
 		registry.registerBeanDefinition("noRetryController", noRetryController);
 	
 		ReferenceFactory refFactory = new ReferenceFactoryImpl("noRetryController");
+
 		StatefulFactory factory = new StatefulFactory();
 		
 		factory.postProcessBeanDefinitionRegistry(registry);
@@ -110,4 +114,43 @@ public class StatefulFactoryTest {
 		assertEquals(1, fsm.getConstructorArgumentValues().getArgumentValue(3, Integer.class).getValue());
 	}
  
+	@Test
+	public void testAlternativePackages() throws ClassNotFoundException {
+		BeanDefinitionRegistry registry = new MockBeanDefinitionRegistryImpl();
+		
+		BeanDefinition testUserRepo = BeanDefinitionBuilder
+				.genericBeanDefinition(AltTestRepositoryFactoryBeanSupport.class)
+				.getBeanDefinition();
+		testUserRepo.getPropertyValues().add("repositoryInterface", AltTestUserRepository.class.getName());
+
+		registry.registerBeanDefinition("testUserRepo", testUserRepo);
+	
+		BeanDefinition testUserController = BeanDefinitionBuilder
+				.genericBeanDefinition(AltTestUserController.class)
+				.getBeanDefinition();
+
+		registry.registerBeanDefinition("testUserController", testUserController);
+	
+		ReferenceFactory refFactory = new ReferenceFactoryImpl("testUserController");
+		StatefulFactory factory = new StatefulFactory("org.alternative");
+		
+		factory.postProcessBeanDefinitionRegistry(registry);
+		
+		BeanDefinition testUserControllerMVCProxy = registry.getBeanDefinition(refFactory.getBinderId("test"));
+		
+		assertNotNull(testUserControllerMVCProxy);
+		
+		Class<?> proxyClass = Class.forName(testUserControllerMVCProxy.getBeanClassName());
+		
+		assertNotNull(proxyClass);
+		
+		assertEquals(MockProxy.class, proxyClass);
+		
+		BeanDefinition stateOne = registry.getBeanDefinition(refFactory.getStateId(AltTestUserController.ONE_STATE));
+		
+		assertNotNull(stateOne);
+		
+		BeanDefinition persister = registry.getBeanDefinition(refFactory.getPersisterId());
+		assertNotNull(persister);
+	}
 }

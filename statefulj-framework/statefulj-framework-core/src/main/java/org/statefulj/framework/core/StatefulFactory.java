@@ -89,11 +89,24 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	
 	private ApplicationContext appContext;
 	
+	private static final String DEFAULT_PACKAGE = "org.statefulj";
+	
 	private static final Logger logger = LoggerFactory.getLogger(StatefulFactory.class);
 	
 	private final Pattern binder = Pattern.compile("(([^:]*):)?(.*)");
 
 	private Map<Class<?>, Set<String>> entityToControllerMappings = new HashMap<Class<?>, Set<String>>();
+	
+	
+	private String[] packages;
+	
+	public StatefulFactory() {
+		this(DEFAULT_PACKAGE);
+	}
+	
+	public StatefulFactory(String... packages) {
+		this.packages = packages;
+	}
 	
 	// Resolver that injects the FSM for a given controller.  It is inferred by the ClassType or will use the bean Id specified by the value of the 
 	// FSM Annotation
@@ -226,7 +239,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			
 			// Reflect over StatefulJ
 			//
-			Reflections reflections = new Reflections("org.statefulj");
+			Reflections reflections = new Reflections((Object[])this.packages);
 
 			// Load up all Endpoint Binders
 			//

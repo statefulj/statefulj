@@ -5,6 +5,8 @@
 .settings
 *.externalToolBuilders
 *.versionsBackup
+*.iml
 target/
 .metadata/
 Servers/
+.idea/
