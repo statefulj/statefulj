@@ -426,14 +426,10 @@ public class MongoPersister<T>
 
 	void onAfterDelete(Class<?> stateful, DBObject obj) {
 		if (stateful != null && getClazz().isAssignableFrom(stateful)) {
-			StateDocumentImpl stateDoc;
 			Criteria criteria = new Criteria("managedId").is(obj.get(this.getIdField().getName())).
 					and("managedCollection").is(getMongoTemplate().getCollectionName(getClazz())).
 					and("managedField").is(this.getStateField().getName());
-			stateDoc = this.getMongoTemplate().findOne(new Query(criteria), StateDocumentImpl.class);
-			if (stateDoc != null) {
-				this.getMongoTemplate().remove(stateDoc);
-			}
+			this.getMongoTemplate().remove(new Query(criteria), StateDocumentImpl.class);
 		}
 	}
 }
