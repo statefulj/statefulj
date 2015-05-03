@@ -32,11 +32,11 @@ public class StatefulFSMImpl<T> implements StatefulFSM<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(StatefulFSMImpl.class);
 	
-	private FSM<T> fsm;
+	private FSM<T> fsm = null;
 	
-	private Factory<T, ?> factory;
+	private Factory<T, ?> factory = null;
 	
-	private Class<T> clazz;
+	private Class<T> clazz = null;
 	
 	public StatefulFSMImpl(
 			FSM<T> fsm, 

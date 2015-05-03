@@ -43,6 +43,7 @@ import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.tests.dao.UserRepository;
+import org.statefulj.framework.tests.model.MemoryObject;
 import org.statefulj.framework.tests.model.User;
 
 import static org.statefulj.framework.tests.utils.ReflectionUtils.*;
@@ -68,14 +69,17 @@ public class StatefulControllerTest {
 	@Resource(name="userController.fsmHarness")
 	FSMHarness userFSMHarness;
 	
-	@Resource(name="concurrencyController.fsmHarness")
-	FSMHarness concurrencyFSMHarness;
-	
 	@FSM("userController")
 	StatefulFSM<User> userFSM;
 	
+	@FSM("concurrencyController")
+	StatefulFSM<User> concurrencyFSM;
+	
 	@FSM("overloadedMethodController")
 	StatefulFSM<User> overloadFSM;
+	
+	@FSM
+	StatefulFSM<MemoryObject> memoryFSM;
 	
 	// TODO : Need to test for annotated parameters
 	
@@ -265,33 +269,74 @@ public class StatefulControllerTest {
 	}
 
 	@Test
-	public void testConcurrency() throws TooBusyException, StaleStateException, InterruptedException, InstantiationException {
-
-		final User user = userRepo.save(new User());
+	public void testConcurrency() throws TooBusyException, InterruptedException, InstantiationException {
+		User user = userRepo.save(new User());
+		final Long id = user.getId();
 		
 		// Spawn another Thread
 		//
 		final Object monitor = new Object();
-		Thread t = new Thread(new Runnable() {
+		final Thread t = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
 				synchronized(monitor) {
-					try {
-						concurrencyFSMHarness.onEvent("two", new Object[]{user.getId(), null, monitor});
-					} catch(Exception e) {
-						throw new RuntimeException(e);
-					} finally {
-						monitor.notify();
-					}
+					TransactionTemplate tt = new TransactionTemplate(transactionManager);
+					tt.execute(new TransactionCallback<Object>() {
+
+						@Override
+						public Object doInTransaction(TransactionStatus status) {
+							try {
+								User user = userRepo.findOne(id);
+								concurrencyFSM.onEvent(user, "two", monitor);
+							} catch(Exception e) {
+								throw new RuntimeException(e);
+							} finally {
+								monitor.notify();
+							}
+							return null;
+						}
+						
+					});
 				}
 			}
 		});
 		synchronized(monitor) {
-			t.start();
-			concurrencyFSMHarness.onEvent("one", new Object[]{user.getId(), null, monitor});
+			TransactionTemplate tt = new TransactionTemplate(transactionManager);
+			tt.execute(new TransactionCallback<Object>() {
+
+				@Override
+				public Object doInTransaction(TransactionStatus status) {
+					t.start();
+					User user = userRepo.findOne(id);
+					try {
+						concurrencyFSM.onEvent(user, "one", monitor);
+					} catch (TooBusyException e) {
+						throw new RuntimeException(e);
+					}
+					return null;
+				}
+				
+			});
 		}
-		User user2 = userRepo.findOne(user.getId());
+		User user2 = userRepo.findOne(id);
 		assertEquals(User.THREE_STATE, user2.getState());
+	}
+	
+	@Test
+	public void testInMemoryController() throws TooBusyException {
+		MemoryObject memObject = new MemoryObject();
+		
+		memObject = (MemoryObject)this.memoryFSM.onEvent(memObject, "one");
+		
+		assertNotNull(memObject);
+		assertEquals(MemoryObject.TWO_STATE, memObject.getState());
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void testFailedReloadForInMemoryController() throws TooBusyException {
+		MemoryObject memObject = new MemoryObject();
+		
+		this.memoryFSM.onEvent(memObject, "fail");
 	}
 }

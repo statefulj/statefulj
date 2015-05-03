@@ -382,7 +382,7 @@ public class FSMTest {
 		Foo2 stateful = new Foo2();
 		
 		State<Foo2> stateA = new StateImpl<Foo2>("stateA");
-		State<Foo2> stateB = new StateImpl<Foo2>("stateA");
+		State<Foo2> stateB = new StateImpl<Foo2>("stateB");
 		
 		List<State<Foo2>> states = new LinkedList<State<Foo2>>();
 		states.add(stateA);

@@ -73,6 +73,7 @@ import org.statefulj.framework.core.model.EndpointBinder;
 import org.statefulj.framework.core.model.PersistenceSupportBeanFactory;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.StatefulFSM;
+import org.statefulj.framework.core.model.impl.MemoryPersistenceSupportBeanFactoryImpl;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
 import org.statefulj.framework.core.model.impl.StatefulFSMImpl;
 import org.statefulj.fsm.model.impl.StateImpl;
@@ -97,6 +98,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 	private Map<Class<?>, Set<String>> entityToControllerMappings = new HashMap<Class<?>, Set<String>>();
 	
+	private MemoryPersistenceSupportBeanFactoryImpl memoryPersistenceFactory = new MemoryPersistenceSupportBeanFactoryImpl();
 	
 	private String[] packages;
 	
@@ -260,7 +262,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					reg, 
 					controllerToEntityMapping, 
 					entityToRepositoryMappings,
-					entityToControllerMappings);
+					this.entityToControllerMappings);
 
 			// Iterate thru all StatefulControllers and build the framework 
 			//
@@ -422,16 +424,22 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		// Fetch Repo info
 		//
 		String repoBeanId = getRepoId(entityToRepositoryMappings, managedClass);
+
+		// Get the Persistence Factory
+		//
+		PersistenceSupportBeanFactory factory = null;
+		BeanDefinition repoBeanDefinitionFactory = null;
 		
 		if (repoBeanId == null) {
-			throw new RuntimeException("Unable to determine Repository for class " + managedClass.getName());
-		}
-		BeanDefinition repoBeanDefinitionFactory = reg.getBeanDefinition(repoBeanId);
-		Class<?> repoClassName = getClassFromBeanClassName(repoBeanDefinitionFactory);
+			factory = this.memoryPersistenceFactory;
+		} else {
+			repoBeanDefinitionFactory = reg.getBeanDefinition(repoBeanId);
+			Class<?> repoClassName = getClassFromBeanClassName(repoBeanDefinitionFactory);
 
-		// Fetch the PersistenceFactory
-		//
-		PersistenceSupportBeanFactory factory = persistenceFactories.get(repoClassName);
+			// Fetch the PersistenceFactory
+			//
+			factory = persistenceFactories.get(repoClassName);
+		}
 		
 		// Map the Events and Transitions for the Controller
 		//
@@ -443,34 +451,40 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				states,
 				blockingStates);
 		
+		// Do we have binders?
+		//
+		boolean hasBinders = (providersMappings.size() > 0);
+		
 		// Iterate thru the providers - building and registering each Binder
 		//
-		for(Entry<String, Map<String, Method>> entry : providersMappings.entrySet()) {
-			
-			// Fetch the binder
-			//
-			EndpointBinder binder = binders.get(entry.getKey());
+		if (hasBinders) {
+			for(Entry<String, Map<String, Method>> entry : providersMappings.entrySet()) {
+				
+				// Fetch the binder
+				//
+				EndpointBinder binder = binders.get(entry.getKey());
 
-			// Check if we found the binder
-			//
-			if (binder == null) {
-				logger.error("Unable to locate binder: {}", entry.getKey());
-				throw new RuntimeException("Unable to locate binder: " + entry.getKey());
+				// Check if we found the binder
+				//
+				if (binder == null) {
+					logger.error("Unable to locate binder: {}", entry.getKey());
+					throw new RuntimeException("Unable to locate binder: " + entry.getKey());
+				}
+				
+				// Build out the Binder Class
+				//
+				Class<?> binderClass = binder.bindEndpoints(
+						statefulControllerBeanId, 
+						statefulControllerClass, 
+						factory.getIdType(),
+						isDomainEntity,
+						entry.getValue(), 
+						referenceFactory);
+
+				// Add the new Binder Class to the Bean Registry
+				//
+				registerBinderBean(entry.getKey(), referenceFactory, binderClass, reg);
 			}
-			
-			// Build out the Binder Class
-			//
-			Class<?> binderClass = binder.bindEndpoints(
-					statefulControllerBeanId, 
-					statefulControllerClass, 
-					factory.getIdType(),
-					isDomainEntity,
-					entry.getValue(), 
-					referenceFactory);
-
-			// Add the new Binder Class to the Bean Registry
-			//
-			registerBinderBean(entry.getKey(), referenceFactory, binderClass, reg);
 		}
 		
 		// -- Build the FSM infrastructure --
@@ -543,14 +557,17 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				scAnnotation, 
 				reg);
 
-		// Build out the Managed Entity Finder Bean
+		// Build out the Managed Entity Finder Bean if we have endpoint binders
 		//
-		String finderId = registerFinderBean(
-				referenceFactory, 
-				factory,
-				scAnnotation, 
-				repoBeanId,
-				reg);
+		String finderId = null;
+		if (hasBinders) {
+			finderId = registerFinderBean(
+					referenceFactory, 
+					factory,
+					scAnnotation, 
+					repoBeanId,
+					reg);
+		}
 
 		// Build out the Managed Entity State Persister Bean
 		//
@@ -588,15 +605,17 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		// Build out the FSMHarness Bean
 		//
-		registerFSMHarness(
-				referenceFactory,
-				factory, 
-				managedClass, 
-				statefulFSMBeanId, 
-				factoryId, 
-				finderId, 
-				repoBeanDefinitionFactory,
-				reg);
+		if (hasBinders) {
+			registerFSMHarness(
+					referenceFactory,
+					factory, 
+					managedClass, 
+					statefulFSMBeanId, 
+					factoryId, 
+					finderId, 
+					repoBeanDefinitionFactory,
+					reg);
+		}
 	}
 	
 	private void mapEventsTransitionsAndStates(
@@ -886,8 +905,11 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		args.addIndexedArgumentValue(3, retryInterval);
 		args.addIndexedArgumentValue(4, managedClass);
 		args.addIndexedArgumentValue(5, idAnnotationType);
-		args.addIndexedArgumentValue(6, new RuntimeBeanReference(finderId));
-		args.addIndexedArgumentValue(7, this.appContext);
+		args.addIndexedArgumentValue(6, this.appContext);
+		
+		if (finderId != null) {
+			args.addIndexedArgumentValue(7, new RuntimeBeanReference(finderId));
+		}
 
 		reg.registerBeanDefinition(fsmBeanId, fsmBean);
 		return fsmBeanId;
@@ -1133,7 +1155,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		for(Class<?> persistenceFactoryType : persistenceFactoryTypes) {
 			if (!Modifier.isAbstract(persistenceFactoryType.getModifiers())) {
 				PersistenceSupportBeanFactory factory = (PersistenceSupportBeanFactory)persistenceFactoryType.newInstance();
-				persistenceFactories.put(factory.getKey(), factory);
+				Class<?> key = factory.getKey();
+				if (key != null) {
+					persistenceFactories.put(key, factory);
+				}
 			}
 		}
 	}

@@ -83,8 +83,8 @@ public class ReloadTest {
 				1, 
 				Identifiable.class, 
 				Id.class, 
-				finder,
-				appContext);
+				appContext,
+				finder);
 		
 		fsm.transition(value, from, event, transition, cw);
 		verify(finder).find(clazz, 1L, event, context);

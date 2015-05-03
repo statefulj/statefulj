@@ -27,6 +27,8 @@ import static org.junit.Assert.*;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.statefulj.framework.core.controllers.FailedMemoryController;
+import org.statefulj.framework.core.controllers.MemoryController;
 import org.statefulj.framework.core.controllers.NoRetryController;
 import org.statefulj.framework.core.controllers.UserController;
 import org.statefulj.framework.core.dao.UserRepository;
@@ -35,6 +37,7 @@ import org.statefulj.framework.core.mocks.MockProxy;
 import org.statefulj.framework.core.mocks.MockRepositoryFactoryBeanSupport;
 import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
+import org.statefulj.persistence.memory.MemoryPersisterImpl;
 
 public class StatefulFactoryTest {
 	
@@ -152,5 +155,47 @@ public class StatefulFactoryTest {
 		
 		BeanDefinition persister = registry.getBeanDefinition(refFactory.getPersisterId());
 		assertNotNull(persister);
+	}
+
+	@Test
+	public void testMemoryPersistor() throws ClassNotFoundException {
+		BeanDefinitionRegistry registry = new MockBeanDefinitionRegistryImpl();
+		
+		BeanDefinition memoryController = BeanDefinitionBuilder
+				.genericBeanDefinition(MemoryController.class)
+				.getBeanDefinition();
+
+		registry.registerBeanDefinition("memoryController", memoryController);
+	
+		ReferenceFactory refFactory = new ReferenceFactoryImpl("memoryController");
+		StatefulFactory factory = new StatefulFactory();
+		
+		factory.postProcessBeanDefinitionRegistry(registry);
+		
+		BeanDefinition fsm = registry.getBeanDefinition(refFactory.getFSMId());
+		assertNotNull(fsm);
+
+		BeanDefinition persister = registry.getBeanDefinition(refFactory.getPersisterId());
+		assertNotNull(persister);
+		assertEquals(MemoryPersisterImpl.class.getName(), persister.getBeanClassName());
+
+		BeanDefinition harness = registry.getBeanDefinition(refFactory.getFSMHarnessId());
+		assertNull(harness);
+	}
+
+	@Test(expected=RuntimeException.class)
+	public void testMemoryFailurePersistor() throws ClassNotFoundException {
+		BeanDefinitionRegistry registry = new MockBeanDefinitionRegistryImpl();
+		
+		BeanDefinition failedMemoryController = BeanDefinitionBuilder
+				.genericBeanDefinition(FailedMemoryController.class)
+				.getBeanDefinition();
+
+		registry.registerBeanDefinition("failedMemoryController", failedMemoryController);
+	
+		StatefulFactory factory = new StatefulFactory();
+		
+		factory.postProcessBeanDefinitionRegistry(registry);
+		
 	}
 }

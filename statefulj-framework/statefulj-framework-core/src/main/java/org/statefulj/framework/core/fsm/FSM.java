@@ -46,11 +46,11 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(FSM.class);
 
-	private Finder<T, CT> finder;
+	private Finder<T, CT> finder = null;
 
-	private Class<T> clazz;
+	private Class<T> clazz = null;
 	
-	private Class<? extends Annotation> idType;
+	private Class<? extends Annotation> idType = null;
 	
 	private ApplicationContext appContext;
 	
@@ -61,12 +61,23 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 			int retryInterval, 
 			Class<T> clazz, 
 			Class<? extends Annotation> idType,
-			Finder<T, CT> finder,
+			ApplicationContext applicationContext,
+			Finder<T, CT> finder) {
+		this(name, persister, retryAttempts, retryInterval, clazz, idType, applicationContext);
+		this.finder = finder;
+	}
+
+	public FSM(
+			String name, 
+			Persister<T> persister, 
+			int retryAttempts, 
+			int retryInterval, 
+			Class<T> clazz, 
+			Class<? extends Annotation> idType,
 			ApplicationContext applicationContext) {
 		super(name, persister, retryAttempts, retryInterval);
 		this.idType = idType;
 		this.clazz = clazz;
-		this.finder = finder;
 		this.appContext = applicationContext;
 	}
 
@@ -118,6 +129,13 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 	}
 	
 	private T reload(T stateful, String event, Object... args) {
+		
+		if (this.finder == null) {
+			throw new RuntimeException(
+					"Reloading is not supported without a valid Finder.  " +
+					"Ensure that there is a Repository for " + 
+					this.clazz.getName() + " or provide a finderId in the StateController annotation");
+		}
 		
 		T retVal = null;
 		
