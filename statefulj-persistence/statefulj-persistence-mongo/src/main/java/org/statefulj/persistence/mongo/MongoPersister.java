@@ -18,13 +18,7 @@
 
 package org.statefulj.persistence.mongo;
 
-import java.lang.reflect.Field;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Random;
-
-import javax.persistence.EmbeddedId;
-
+import com.mongodb.DBObject;
 import org.bson.types.ObjectId;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -36,8 +30,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -45,22 +37,24 @@ import org.springframework.data.mongodb.core.convert.LazyLoadingProxy;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-
-import static org.statefulj.common.utils.ReflectionUtils.*;
-
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 import org.statefulj.persistence.common.AbstractPersister;
 import org.statefulj.persistence.mongo.model.StateDocument;
 
-import com.mongodb.DBObject;
+import javax.persistence.EmbeddedId;
+import java.lang.reflect.Field;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Random;
+
+import static org.statefulj.common.utils.ReflectionUtils.getReferencedField;
 
 public class MongoPersister<T> 
 			extends AbstractPersister<T> 
 			implements 
 				Persister<T>, 
-				ApplicationListener<ContextRefreshedEvent>,
 				BeanDefinitionRegistryPostProcessor, 
 				ApplicationContextAware {
 	
@@ -96,7 +90,7 @@ public class MongoPersister<T>
 	 * Instantiate the MongoPersister with a specified template.  The MongoPersister
 	 * will use the stateFieldName to determine the State field.
 	 * 
-	 * @param states List of the StatesC
+	 * @param states List of the States
 	 * @param stateFieldName The name of the State Field
 	 * @param start The Start State
 	 * @param clazz The Managed Entity class
@@ -196,14 +190,50 @@ public class MongoPersister<T>
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.springframework.context.ApplicationListener#onApplicationEvent(org.springframework.context.ApplicationEvent)
+	/**
+	 * @param stateful
+	 * @param current
+	 * @param next
+	 * @param stateDoc
+	 * @throws IllegalAccessException
+	 * @throws StaleStateException
 	 */
-	@Override
-	public void onApplicationEvent(ContextRefreshedEvent event) {
-		this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
-	}
+	private void updateStateInDB(T stateful, State<T> current, State<T> next,
+			StateDocumentImpl stateDoc) throws IllegalAccessException,
+			StaleStateException {
+		// Entity is in the database - perform qualified update based off 
+		// the current State value
+		//
+		Query query = buildQuery(stateDoc, current);
+		Update update = buildUpdate(current, next);
 
+		// Update state in DB
+		//
+		StateDocumentImpl updatedDoc = updateStateDoc(query, update); 
+		if (updatedDoc != null) {
+			
+			// Success, update in memory
+			//
+			setStateDocument(stateful, updatedDoc);
+			
+		} else {
+			
+			// If we aren't able to update - it's most likely that we are out of sync.
+			// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
+			// This will cause the event to be reprocessed by the FSM
+			//
+			updatedDoc = findStateDoc(stateDoc.getId());
+			
+			if (updatedDoc != null) {
+				String currentState = stateDoc.getState();
+				setStateDocument(stateful, updatedDoc);
+				throwStaleState(currentState, updatedDoc.getState());
+			} else {
+				throw new RuntimeException("Unable to find StateDocument with id=" + stateDoc.getId());
+			}
+		}
+	}
+	
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 	}
@@ -302,7 +332,7 @@ public class MongoPersister<T>
 		stateDoc.setPersisted(false);
 		stateDoc.setId(new ObjectId().toHexString());
 		stateDoc.setState(getStart().getName());
-		stateDoc.setManagedCollection(this.mongoTemplate.getCollectionName(stateful.getClass()));
+		stateDoc.setManagedCollection(getMongoTemplate().getCollectionName(stateful.getClass()));
 		stateDoc.setManagedField(this.getStateField().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
@@ -333,12 +363,19 @@ public class MongoPersister<T>
 		throw new StaleStateException(err);
 	}
 
+	protected MongoTemplate getMongoTemplate() {
+		if (this.mongoTemplate == null) {
+			this.mongoTemplate = (MongoTemplate)appContext.getBean(this.templateId);
+		}
+		return this.mongoTemplate;
+	}
+  	
 	protected StateDocumentImpl updateStateDoc(Query query, Update update) {
-		return (StateDocumentImpl)this.mongoTemplate.findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
+		return (StateDocumentImpl)getMongoTemplate().findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
 	}
 
 	protected StateDocumentImpl findStateDoc(String id) {
-		return (StateDocumentImpl)this.mongoTemplate.findById(id, StateDocumentImpl.class);
+		return (StateDocumentImpl)getMongoTemplate().findById(id, StateDocumentImpl.class);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -352,7 +389,7 @@ public class MongoPersister<T>
 		
 		// Is the Class being saved the managed class?
 		//
-		if (stateful != null && stateful.getClass().equals(getClazz())) {
+		if (getClazz().isAssignableFrom(stateful.getClass())) {
 			try {
 				boolean updateStateful = false;
 				StateDocumentImpl stateDoc = this.getStateDocument((T)stateful);
@@ -368,10 +405,10 @@ public class MongoPersister<T>
 				}
 				if (!stateDoc.isPersisted()) {
 					stateDoc.setManagedId(this.getId((T)stateful));
-					this.mongoTemplate.save(stateDoc);
+					this.getMongoTemplate().save(stateDoc);
 					stateDoc.setPersisted(true);
 					if (updateStateful) {
-						this.mongoTemplate.save(stateful);
+						this.getMongoTemplate().save(stateful);
 					}
 				}
 			} catch (IllegalArgumentException e) {
@@ -388,59 +425,11 @@ public class MongoPersister<T>
 	}
 
 	void onAfterDelete(Class<?> stateful, DBObject obj) {
-		if (stateful != null && stateful.equals(getClazz())) {
-			StateDocumentImpl stateDoc;
+		if (stateful != null && getClazz().isAssignableFrom(stateful)) {
 			Criteria criteria = new Criteria("managedId").is(obj.get(this.getIdField().getName())).
-					and("managedCollection").is(this.mongoTemplate.getCollectionName(getClazz())).
+					and("managedCollection").is(getMongoTemplate().getCollectionName(getClazz())).
 					and("managedField").is(this.getStateField().getName());
-			stateDoc = this.mongoTemplate.findOne(new Query(criteria), StateDocumentImpl.class);
-			if (stateDoc != null) {
-				this.mongoTemplate.remove(stateDoc);
-			}
-		}
-	}
-
-	/**
-	 * @param stateful
-	 * @param current
-	 * @param next
-	 * @param stateDoc
-	 * @throws IllegalAccessException
-	 * @throws StaleStateException
-	 */
-	private void updateStateInDB(T stateful, State<T> current, State<T> next,
-			StateDocumentImpl stateDoc) throws IllegalAccessException,
-			StaleStateException {
-		// Entity is in the database - perform qualified update based off 
-		// the current State value
-		//
-		Query query = buildQuery(stateDoc, current);
-		Update update = buildUpdate(current, next);
-
-		// Update state in DB
-		//
-		StateDocumentImpl updatedDoc = updateStateDoc(query, update); 
-		if (updatedDoc != null) {
-			
-			// Success, update in memory
-			//
-			setStateDocument(stateful, updatedDoc);
-			
-		} else {
-			
-			// If we aren't able to update - it's most likely that we are out of sync.
-			// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
-			// This will cause the event to be reprocessed by the FSM
-			//
-			updatedDoc = findStateDoc(stateDoc.getId());
-			
-			if (updatedDoc != null) {
-				String currentState = stateDoc.getState();
-				setStateDocument(stateful, updatedDoc);
-				throwStaleState(currentState, updatedDoc.getState());
-			} else {
-				throw new RuntimeException("Unable to find StateDocument with id=" + stateDoc.getId());
-			}
+			this.getMongoTemplate().remove(new Query(criteria), StateDocumentImpl.class);
 		}
 	}
 }
