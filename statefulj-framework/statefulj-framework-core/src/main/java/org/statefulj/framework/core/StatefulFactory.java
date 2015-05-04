@@ -430,7 +430,10 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		PersistenceSupportBeanFactory factory = null;
 		BeanDefinition repoBeanDefinitionFactory = null;
 		
+		// If we don't have a repo mapped to this entity, fall back to memory persister
+		//
 		if (repoBeanId == null) {
+			logger.warn("Unable to find Spring Data Repository for {}, using an in-memory persister", managedClass.getName());
 			factory = this.memoryPersistenceFactory;
 		} else {
 			repoBeanDefinitionFactory = reg.getBeanDefinition(repoBeanId);
@@ -557,7 +560,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				scAnnotation, 
 				reg);
 
-		// Build out the Managed Entity Finder Bean if we have endpoint binders
+		// Build out the Managed Entity Finder Bean if we have endpoint binders; otherwise, it's not needed
 		//
 		String finderId = null;
 		if (hasBinders) {
@@ -603,7 +606,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				transitionIds,
 				reg);
 
-		// Build out the FSMHarness Bean
+		// Build out the FSMHarness Bean if we have binders; otherwise, it's not needed
 		//
 		if (hasBinders) {
 			registerFSMHarness(
@@ -958,7 +961,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		if (StringUtils.isEmpty(factoryId)) {
 			if (persistenceFactory == null) {
-				throw new RuntimeException("PersistenceFactory is undefined and no factory bean was specified in the StatefulController Annotation");
+				throw new RuntimeException("PersistenceFactory is undefined and no factory bean was specified in the StatefulController Annotation for "  + statefulContollerAnnotation.clazz());
 			}
 			factoryId = referenceFactory.getFactoryId();
 			reg.registerBeanDefinition(
@@ -980,7 +983,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		if (StringUtils.isEmpty(finderId)) {
 			if (persistenceFactory == null) {
-				throw new RuntimeException("PersistenceFactory is undefined and no finder bean was specified in the StatefulController Annotation");
+				throw new RuntimeException("PersistenceFactory is undefined and no finder bean was specified in the StatefulController Annotation for " + statefulContollerAnnotation.clazz());
 			}
 			if (StringUtils.isEmpty(repoBeanId)) {
 				throw new RuntimeException("No Repository is defined for " + statefulContollerAnnotation.clazz());
@@ -1008,7 +1011,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		
 		if (StringUtils.isEmpty(persisterId)) {
 			if (persistenceFactory == null) {
-				throw new RuntimeException("PersistenceFactory is undefined and no persister bean was specified in the StatefulController Annotation");
+				throw new RuntimeException("PersistenceFactory is undefined and no persister bean was specified in the StatefulController Annotation for " + statefulContollerAnnotation.clazz());
 			}
 			String startStateId = referenceFactory.getStateId(statefulContollerAnnotation.startState());
 			persisterId = referenceFactory.getPersisterId();

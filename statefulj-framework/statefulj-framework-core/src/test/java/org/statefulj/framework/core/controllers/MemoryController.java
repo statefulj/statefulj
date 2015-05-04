@@ -25,12 +25,7 @@ import org.statefulj.framework.core.model.User;
 
 @StatefulController(
 	clazz=User.class, 
-	startState=MemoryController.ONE_STATE,
-	blockingStates={MemoryController.FIVE_STATE},
-	noops={
-		@Transition(event="four", to=MemoryController.FOUR_STATE),
-		@Transition(event="five", to=MemoryController.FIVE_STATE)
-	}
+	startState=MemoryController.ONE_STATE
 )
 public class MemoryController {
 	
@@ -38,9 +33,6 @@ public class MemoryController {
 	//
 	public static final String ONE_STATE = "one";
 	public static final String TWO_STATE = "two";
-	public static final String THREE_STATE = "three";
-	public static final String FOUR_STATE = "four";
-	public static final String FIVE_STATE = "five";
 	
 	@FSM
 	StatefulFSM<User> fsm;
@@ -50,13 +42,4 @@ public class MemoryController {
 		return user;
 	}
 
-	@Transition(from=TWO_STATE, event="two", to=THREE_STATE)
-	public User twoToThree(User user, String event) {
-		return user;
-	}
-
-	@Transition(event="any")
-	public User any(User user, String event) {
-		return user;
-	}
 }
