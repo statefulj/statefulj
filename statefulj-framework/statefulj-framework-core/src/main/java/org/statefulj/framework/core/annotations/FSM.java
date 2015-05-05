@@ -43,7 +43,7 @@ public @interface FSM {
 	/**
 	 * The Id of the Stateful Controller. If not specified, it will determine the FSM based off the Generic Type
 	 * 
-	 * @return
+	 * @return The name of the FSM
 	 */
 	public String value() default "";
 	

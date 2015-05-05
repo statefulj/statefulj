@@ -40,7 +40,8 @@ public @interface Transitions {
 	
 	/**
 	 * The set of {@link org.statefulj.framework.core.annotations.Transition}
-	 * @return
+	 * 
+	 * @return The set of Transitions
 	 */
 	Transition[] value();
 }

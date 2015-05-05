@@ -35,6 +35,9 @@ public class StateImpl<T> implements State<T> {
 	}
 
 	public StateImpl(String name) {
+		if (name == null || name.trim().equals("")) {
+			throw new RuntimeException("Name must be a non-empty value");
+		}
 		this.name = name;
 	}
 

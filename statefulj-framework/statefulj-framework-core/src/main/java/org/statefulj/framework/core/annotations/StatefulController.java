@@ -92,7 +92,7 @@ public @interface StatefulController {
 	/**
 	 * The bean Id of the Persister for this Entity. 
 	 * The Persister is responsible for updating the State field for the Stateful Entity. 
-	 * The Persister must implement the {@link org.statefulj.framework.core.model.Persister} Interface. If not specified, the StatefulJ Framework will use the default Persister Implementation.
+	 * The Persister must implement the {@link org.statefulj.fsm.Persister} Interface. If not specified, the StatefulJ Framework will use the default Persister Implementation.
 	 * 
 	 * @return Id of the Persister Bean
 	 */

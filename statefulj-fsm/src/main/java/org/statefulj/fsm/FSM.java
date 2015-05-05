@@ -45,26 +45,42 @@ public class FSM<T> {
 	private String name = "FSM";
 	
 	/**
+	 * FSM Constructor with the name of the FSM
 	 * 
-	 * @param name
+	 * @param name Name associated with the FSM
 	 */
 	public FSM(String name) {
 		this.name = name;
 	}
 	
 	/**
+	 * FSM Constructor with the Persister responsible for setting the State on the Entity
 	 * 
-	 * @param persister
+	 * @param persister Persister responsible for setting the State on the Entity
 	 */ 
 	public FSM(Persister<T> persister) {
 		this.persister = persister;
 	}
 	
+	/**
+	 * FSM Constructor with the name of the FSM and Persister responsible for setting the State on the Entity
+	 * 
+	 * @param name Name associated with the FSM
+	 * @param persister Persister responsible for setting the State on the Entity
+	 */
 	public FSM(String name, Persister<T> persister) {
 		this.name = name;
 		this.persister = persister;
 	}
 	
+	/**
+	 * FSM Constructor 
+	 * 
+	 * @param name Name associated with the FSM
+	 * @param persister Persister responsible for setting the State on the Entity
+	 * @param retryAttempts Number of Retry Attempts.  A value of -1 indicates unlimited Attempts
+	 * @param retryInterval Time between Retry Attempts in milliseconds
+	 */
 	public FSM(String name, Persister<T> persister, int retryAttempts, int retryInterval) {
 		this.name = name;
 		this.persister = persister;
@@ -73,24 +89,14 @@ public class FSM<T> {
 	}
 	
 	/**
-	 * 
-	 * @param persister
-	 * @param retries
-	 */
-	public FSM(Persister<T> persister, int retries) {
-		this.persister = persister;
-		this.retryAttempts = retries;
-	}
-
-	/**
 	 * Process event.  Will handle all retry attempts.  If attempts exceed maximum retries,
 	 * it will throw a TooBusyException.  
 	 * 
-	 * @param stateful
-	 * @param event
-	 * @param args
-	 * @return
-	 * @throws TooBusyException
+	 * @param stateful The Stateful Eneity
+	 * @param event The Event
+	 * @param args Optional parameters to pass into the Action
+	 * @return The current State
+	 * @throws TooBusyException Exception indicating that we've exceeded the number of RetryAttempts
 	 */
 	public State<T> onEvent(T stateful, String event, Object ... args) throws TooBusyException {
 		

@@ -102,10 +102,22 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 	
 	private String[] packages;
 	
+	/**
+	 * The default constructor will build the StatefulJ Framework using the binders and persisters from the
+	 * "org.stateful" package
+	 * 
+	 */
 	public StatefulFactory() {
 		this(DEFAULT_PACKAGE);
 	}
 	
+	/**
+	 * Will build the StatefulJ Framework using the binders and persisters from the packages specified
+	 * in the parameter list.  This constructor will not scan the "org.stateful" packages unless 
+	 * explicitly provided in the parameter list
+	 * 
+	 * @param packages This list of packages to scan for the binders and persisters
+	 */
 	public StatefulFactory(String... packages) {
 		this.packages = packages;
 	}

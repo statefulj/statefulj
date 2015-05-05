@@ -17,7 +17,22 @@
  */
 package org.statefulj.fsm.model;
 
+/**
+ * A Transition is a "reaction" to an Event based off the {@link org.statefulj.fsm.model.State} of the Stateful Entity.
+ * It is comprised of an optional next State value and an optional {@link org.statefulj.fsm.model.Action}
+ * 
+ * @author Andrew Hall
+ *
+ * @param <T> The class of the Stateful Entity
+ */
 public interface Transition<T> {
 
+	/**
+	 * Return the {@link org.statefulj.fsm.model.StateActionPair} 
+	 * 
+	 * @param stateful the Stateful Entity
+	 * 
+	 * @return the {@link org.statefulj.fsm.model.StateActionPair} 
+	 */
 	StateActionPair<T> getStateActionPair(T stateful);
 }

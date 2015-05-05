@@ -51,9 +51,9 @@ public interface EndpointBinder {
 	 * @param isDomainEntity A flag indicating the StatefulEntity and the {@link org.statefulj.framework.core.annotations.StatefulController} are one in the same
 	 * @param eventMapping Association of Event to the Action Method
 	 * @param refFactory The {@link org.statefulj.framework.core.model.ReferenceFactory} that generates all Spring Bean ids
-	 * @return The generated Class of the EndpointBinder
-	 * @throws CannotCompileException
-	 * @throws NotFoundException
+	 * @return The generated Class of the EndpointBinder 
+	 * @throws CannotCompileException 
+	 * @throws NotFoundException 
 	 * @throws IllegalArgumentException
 	 * @throws IllegalAccessException
 	 * @throws InvocationTargetException

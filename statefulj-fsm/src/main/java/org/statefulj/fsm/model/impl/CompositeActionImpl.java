@@ -22,6 +22,14 @@ import java.util.List;
 import org.statefulj.fsm.RetryException;
 import org.statefulj.fsm.model.Action;
 
+/**
+ * A "composite" Action which is composed of a set of {@link org.statefulj.fsm.model.Action}.  When invoked,
+ * it will iterate and invoke all the composition Actions.
+ * 
+ * @author Andrew Hall
+ *
+ * @param <T> The class of the Stateful Entity
+ */
 public class CompositeActionImpl<T> implements Action<T> {
 
 	List<Action<T>> actions;

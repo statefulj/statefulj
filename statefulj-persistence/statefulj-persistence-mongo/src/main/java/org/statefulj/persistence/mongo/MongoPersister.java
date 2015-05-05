@@ -155,11 +155,12 @@ public class MongoPersister<T>
 	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.  
 	 * If not, it will throw a StateStateException
 	 * 
-	 * @param stateful
-	 * @param current
-	 * @param next
-	 * @throws StaleStateException 
+	 * @param stateful Stateful Entity
+	 * @param current Expected current State
+	 * @param next The value of the next State
+	 * @throws StaleStateException thrown if the value of the State does not equal to the provided current State
 	 */
+	@Override
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
 			

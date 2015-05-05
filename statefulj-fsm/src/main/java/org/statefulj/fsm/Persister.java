@@ -29,23 +29,23 @@ import org.statefulj.fsm.model.State;
 public interface Persister<T> {
 	
 	/**
-	 * Returns the current state.  This will not call into the 
-	 * underlying database
-	 * 
-	 * @param id of the Object
-	 * @return current State
+	 * Returns the current state.  This will not call into the  underlying database
+	 *
+	 * @param stateful Stateful Entity
+	 * @return current State of the Stateful Entity
 	 */
-	State<T> getCurrent(T obj);
+	State<T> getCurrent(T stateful);
 
 	/**
 	 * Set the current state to the next state.  Will serialize access to the persistence
 	 * and ensure that expected current state is indeed the current state.  If not, will throw
 	 * a StaleStateException
 	 * 
-	 * @param id of the Object
-	 * @param current
-	 * @param next
-	 * @throws StaleStateException
+	 * @param stateful StatefulEntity
+	 * @param current Expected current State of the Stateful Entity
+	 * @param next The value of the updated State
+	 * @throws StaleStateException thrown if the state value of the Stateful Entity is not equal to the passed in current
+	 * value
 	 */
-	void setCurrent(T obj, State<T> current, State<T> next) throws StaleStateException;
+	void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException;
 }
