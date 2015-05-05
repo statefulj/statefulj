@@ -130,13 +130,6 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		if (this.stateFieldName != null && !this.stateFieldName.equals("")) {
 			try {
 				field = stateful.getClass().getDeclaredField(this.stateFieldName);
-				if (field == null) {
-					try {
-						field = stateful.getClass().getField(this.stateFieldName);
-					} catch (Exception e) {
-						// Ignore
-					}
-				}
 			} catch (Exception e) {
 				// ignore
 			}
@@ -146,9 +139,6 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		//
 		else {
 			field = ReflectionUtils.getFirstAnnotatedField(stateful.getClass(), org.statefulj.persistence.annotations.State.class);
-			if (field != null) {
-				this.stateFieldName = field.getName();
-			}
 		}
 		
 		if (field == null) {
