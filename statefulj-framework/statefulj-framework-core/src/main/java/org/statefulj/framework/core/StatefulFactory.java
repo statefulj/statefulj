@@ -575,7 +575,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 		// Build out the Managed Entity Finder Bean if we have endpoint binders; otherwise, it's not needed
 		//
 		String finderId = null;
-		if (hasBinders) {
+		if (hasFinder(scAnnotation, repoBeanId)) {
 			finderId = registerFinderBean(
 					referenceFactory, 
 					factory,
@@ -632,7 +632,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 					reg);
 		}
 	}
-	
+
 	private void mapEventsTransitionsAndStates(
 			Class<?> statefulControllerClass, 
 			Map<String, Map<String, Method>> providerMappings,
@@ -1193,4 +1193,14 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			}
 		}
 	}	
+
+	/**
+	 * @param scAnnotation
+	 * @param repoBeanId
+	 * @return
+	 */
+	private boolean hasFinder(StatefulController scAnnotation, String repoBeanId) {
+		return !"".equals(scAnnotation.finderId()) || (repoBeanId != null && !repoBeanId.trim().equals(""));
+	}
+	
 }
