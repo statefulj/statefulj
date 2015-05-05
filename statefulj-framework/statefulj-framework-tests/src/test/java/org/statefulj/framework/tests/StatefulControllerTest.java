@@ -81,8 +81,6 @@ public class StatefulControllerTest {
 	@FSM
 	StatefulFSM<MemoryObject> memoryFSM;
 	
-	// TODO : Need to test for annotated parameters
-	
 	@Test
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
 		
