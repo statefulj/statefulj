@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>org.statefulj.framework</groupId>
 		<artifactId>statefulj-framework</artifactId>
-		<version>1.0.5</version>
+		<version>1.0.6-SNAPSHOT</version>
 	</parent>
 
 	<dependencyManagement>
