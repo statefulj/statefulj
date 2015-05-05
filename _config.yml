@@ -22,7 +22,7 @@ author:
 paginate:         5
 
 # Custom vars
-version:          1.0.5
+version:          1.0.5.1
 
 github:
   repo:           https://github.com/statefulj
