@@ -100,7 +100,7 @@ public class ReflectionUtils {
 		return annotatedClass;
 	}
 
-	public static <T extends Annotation> T  getFirstClassAnnotation(
+	public static <T extends Annotation> T getFirstClassAnnotation(
 			Class<?> clazz,
 			Class<T> annotationClass) {
 		
