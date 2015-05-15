@@ -115,12 +115,14 @@ public class FSM<T> {
 				if (transition != null) {
 					current = transition(stateful, current, event, transition, args);
 				} else {
-					logger.debug("{}({})::{}({})->{}/noop", 
-							this.name, 
-							stateful.getClass().getSimpleName(),
-							current.getName(), 
-							event,
-							current.getName());
+
+                    if (logger.isDebugEnabled())
+                        logger.debug("{}({})::{}({})->{}/noop",
+                                this.name,
+                                stateful.getClass().getSimpleName(),
+                                current.getName(),
+                                event,
+                                current.getName());
 					
 					// If blocking, force a transition to the current state as
 					// it's possible that another thread has moved out of the blocking state.
@@ -212,14 +214,15 @@ public class FSM<T> {
 			String from, 
 			String to, 
 			Object... args) throws RetryException {
-		
-		logger.debug("{}({})::{}({})->{}/{}", 
-				this.name,
-				stateful.getClass().getSimpleName(),
-				from, 
-				event, 
-				to, 
-				(action == null) ? "noop" : action.toString());
+
+        if (logger.isDebugEnabled())
+            logger.debug("{}({})::{}({})->{}/{}",
+                    this.name,
+                    stateful.getClass().getSimpleName(),
+                    from,
+                    event,
+                    to,
+                    (action == null) ? "noop" : action.toString());
 		
 		if (action != null) {
 			action.execute(stateful, event, args);
