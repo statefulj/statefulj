@@ -129,9 +129,13 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		//
 		if (this.stateFieldName != null && !this.stateFieldName.equals("")) {
 			try {
-				field = stateful.getClass().getDeclaredField(stateFieldName);
+				field = stateful.getClass().getDeclaredField(this.stateFieldName);
 			} catch (Exception e) {
-				// ignore
+				try {
+					field = stateful.getClass().getField(this.stateFieldName);
+				} catch (Exception ee) {
+					// Ignore
+				}
 			}
 		}
 		
