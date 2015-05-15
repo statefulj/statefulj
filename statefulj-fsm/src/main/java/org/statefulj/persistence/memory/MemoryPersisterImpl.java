@@ -80,7 +80,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	public void setStates(final Collection<State<T>> states) {
 		//Clear the map
 		//
-		states.clear();
+		this.states.clear();
 
 		//Add new states
 		//
