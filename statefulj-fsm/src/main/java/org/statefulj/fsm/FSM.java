@@ -92,7 +92,7 @@ public class FSM<T> {
 	 * Process event.  Will handle all retry attempts.  If attempts exceed maximum retries,
 	 * it will throw a TooBusyException.  
 	 * 
-	 * @param stateful The Stateful Eneity
+	 * @param stateful The Stateful Entity
 	 * @param event The Event
 	 * @param args Optional parameters to pass into the Action
 	 * @return The current State
