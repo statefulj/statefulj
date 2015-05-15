@@ -61,7 +61,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		this.setCurrent(stateful, start);
 	}
 	
-	public Collection<State<T>> getStates() {
+	public synchronized Collection<State<T>> getStates() {
 		return states.values();
 	}
 
@@ -77,7 +77,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		return states.remove(name);
 	}
 
-	public void setStates(final Collection<State<T>> states) {
+	public synchronized void setStates(final Collection<State<T>> states) {
 		//Clear the map
 		//
 		this.states.clear();
