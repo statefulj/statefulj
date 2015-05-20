@@ -17,6 +17,9 @@
  */
 package org.statefulj.framework.binders.common.utils;
 
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.cloneAnnotation;
+import static org.statefulj.framework.binders.common.utils.JavassistUtils.getAnnotationsAttribute;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,6 +29,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 
+import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.annotations.Transition;
 import org.statefulj.framework.core.annotations.Transitions;
 
@@ -209,4 +213,14 @@ public class JavassistUtils {
 		return memberVal;
 	}
 
+	public static void copyTypeAnnotations(Class<?> fromClass, CtClass toClass) throws IllegalArgumentException, IllegalAccessException, InvocationTargetException {
+		for(java.lang.annotation.Annotation annotation :  fromClass.getAnnotations()) {
+			if (!StatefulController.class.isAssignableFrom(annotation.annotationType())) {
+				ClassFile ccFile = toClass.getClassFile();
+				AnnotationsAttribute attr = getAnnotationsAttribute(ccFile);
+				Annotation clone = cloneAnnotation(ccFile.getConstPool(), annotation);
+				attr.addAnnotation(clone);
+			}
+		}
+	}
 }

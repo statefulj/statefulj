@@ -30,6 +30,7 @@ import javassist.CtField;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
+import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
@@ -52,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import static org.statefulj.framework.binders.common.utils.JavassistUtils.*;
 
 import org.statefulj.framework.binders.common.AbstractRestfulBinder;
+import org.statefulj.framework.core.annotations.StatefulController;
 import org.statefulj.framework.core.model.ReferenceFactory;
 
 // TODO : Handle when an action doesn't have either the User or Event parameter
@@ -103,6 +105,10 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 		// Add the member variable referencing the StatefulController
 		//
 		addControllerReference(proxyClass, statefulControllerClass, beanName, cp);
+		
+		// Copy over all the Class level Annotations
+		//
+		copyTypeAnnotations(statefulControllerClass, proxyClass);
 		
 		// Copy Proxy methods that bypass the FSM
 		//
@@ -260,5 +266,4 @@ public class SpringMVCBinder extends AbstractRestfulBinder {
 	private String getControllerVar() {
 		return CONTROLLER_VAR;
 	}
-
 }

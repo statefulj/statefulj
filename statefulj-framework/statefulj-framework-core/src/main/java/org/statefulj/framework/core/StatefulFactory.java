@@ -742,7 +742,14 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 				eventMapping = new HashMap<String, Method>();
 				providerMappings.put(provider, eventMapping);
 			}
-			eventMapping.put(providerEvent.getRight(), method);
+			
+			// Add to the event mapping if this the first occurrence of an event, or the method
+			// has more parameters than the existing mapping
+			//
+			Method existing = eventMapping.get(providerEvent.getRight());
+			if (existing == null || method.getParameterTypes().length > existing.getParameterTypes().length) {
+				eventMapping.put(providerEvent.getRight(), method);
+			}
 		}
 
 		if (!transition.from().equals(Transition.ANY_STATE)) {
