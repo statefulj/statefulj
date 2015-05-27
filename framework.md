@@ -5,7 +5,7 @@ title: StatefulJ Framework
 
 The *StatefulJ Framework* leverages [*StatefulJ FSM*](/fsm), [*StatefulJ Persistence*](/persistence/) and [Spring Data](http://projects.spring.io/spring-data/) to seamlessly integrate
 StatefulJ into your Application.  Using Annotations to define your State Model, StatefulJ will auto generate the FSM 
-infrastructure, bind with with *Endpoint Providers* and manage all State Persistence.
+infrastructure, bind with the optional *Endpoint Providers* and manage all State Persistence.
 
 ## <a href="#installation"></a> Installation
 
@@ -237,7 +237,7 @@ Class with the [@StatefulController Annotation](/public/javadoc/org/statefulj/fr
 | field     	      |   Type    	| Description |
 |-----      	      |-----    	|----     |
 | clazz			      | Required 	| The Entity class managed by the StatefulController |
-| startState	      | Required	|  The Starting State value.  If there is a transition from this State, the framework will pass in a new instance of the Managed Entity.  It is the responsibility of the StatefulController to persist the new instance. |
+| startState	      | Required	| The Starting State.  When the StatefulJ framework is invoked without a Stateful Entity, then the framework will create a new instance of the Stateful Entity via the Factory bean. The StatefulJ Framework will set the state of the newly created Stateful Entity to the startState value. |
 | value     	      | Optional	| The value may indicate a suggestion for a logical component name, to be turned into a Spring bean in case of an autodetected component. |
 | stateField	      | Optional	| The name of the managed State field.  If blank, the Entity will be inspected for a field annotated with [State Annotation](/public/javadoc/org/statefulj/persistence/annotations/State.html) |
 | factoryId		      | Optional	| The bean Id of the Factory for this Entity.  The Factory Class must implement the [Factory Interface](/public/javadoc/org/statefulj/framework/core/model/Factory.html).  If not specified, the *StatefulJ Framework* will use the default Factory Implementation. |
