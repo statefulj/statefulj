@@ -42,13 +42,19 @@ public @interface StatefulController {
 
 	/**
 	 * The value may indicate a suggestion for a logical component name,
-	 * to be turned into a Spring bean in case of an autodetected component.
+	 * to be turned into a Spring bean in case of an auto-detected component.
 	 * @return the suggested component name, if any
 	 */
 	String value() default "";
 	
 	/**
-	 * The Starting State.  If there is a transition from this State, the framework
+	 * The Starting State.  When the StatefulJ framework is invoked without
+	 * a Stateful Entity, then the framework will create a new instance of the 
+	 * Stateful Entity via the {@link org.statefulj.framework.core.model.Factory} bean.
+	 * The StatefulJ Framework will set the state of the newly created Stateful Entity to 
+	 * the startState value.
+	 * 
+	 * If there is a transition from this State, the framework
 	 * will pass in a new instance of the Managed Entity.  It is the responsibility of
 	 * the StatefulController to persist the new instance.
 	 * 
