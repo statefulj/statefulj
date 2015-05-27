@@ -155,16 +155,10 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
         // If a state field name was provided, retrieve by name
         //
         if (this.stateFieldName != null && !this.stateFieldName.equals("")) {
-            try {
-                field = stateful.getClass().getDeclaredField(this.stateFieldName);
-            } catch (Exception e) {
-                try {
-                    field = stateful.getClass().getField(this.stateFieldName);
-                } catch (Exception ee) {
-                    // Ignore
-                }
-            }
+			field =
+				ReflectionUtils.getField(stateful.getClass(), this.stateFieldName);
         }
+
 
         // Else, fetch the field by Annotation
         //
