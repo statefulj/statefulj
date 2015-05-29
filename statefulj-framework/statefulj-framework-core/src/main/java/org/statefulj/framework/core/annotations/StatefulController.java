@@ -54,10 +54,6 @@ public @interface StatefulController {
 	 * The StatefulJ Framework will set the state of the newly created Stateful Entity to 
 	 * the startState value.
 	 * 
-	 * If there is a transition from this State, the framework
-	 * will pass in a new instance of the Managed Entity.  It is the responsibility of
-	 * the StatefulController to persist the new instance.
-	 * 
 	 * @return Starting State
 	 */
 	String startState();

@@ -184,7 +184,7 @@ public class ReflectionUtils {
      * @param fieldName name of the field we are looking for
      * @return Field which was found, or null if nothing was found
      */
-	public static Field getField(final Class clazz, final String fieldName) {
+	public static Field getField(final Class<?> clazz, final String fieldName) {
         //Define return type
         //
         Field
@@ -192,7 +192,7 @@ public class ReflectionUtils {
 
         //For each class in the hierarchy starting with the current class, try to find the declared field
         //
-        for (Class current = clazz; current != null && field == null; current = current.getSuperclass()) {
+        for (Class<?> current = clazz; current != null && field == null; current = current.getSuperclass()) {
             try {
                 //Attempt to get the field, if exception is thrown continue to the next class
                 //
