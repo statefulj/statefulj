@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Andrew Hall
  *
  */
-@Target({ElementType.FIELD})
+@Target({ElementType.PARAMETER, ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Autowired
