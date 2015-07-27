@@ -33,6 +33,7 @@
 		    </util:list>
     	</constructor-arg>
     	<constructor-arg name="entityManagerFactory" ref="entityManagerFactory"/>
+    	<constructor-arg name="transactionManager" ref="transactionManager"/>
     </bean>
 
     <bean id="embeddedJPAPersister" class="org.statefulj.persistence.jpa.JPAPerister">
@@ -46,6 +47,7 @@
 		    </util:list>
     	</constructor-arg>
     	<constructor-arg name="entityManagerFactory" ref="entityManagerFactory"/>
+    	<constructor-arg name="transactionManager" ref="transactionManager"/>
     </bean>
 
 </beans>

@@ -36,7 +36,10 @@ import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.orm.jpa.EntityManagerFactoryInfo;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.support.TransactionCallback;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
@@ -44,19 +47,21 @@ import org.statefulj.persistence.common.AbstractPersister;
 
 import static org.statefulj.common.utils.ReflectionUtils.*;
 
-@Transactional
 public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(JPAPerister.class);
 
 	private EntityManager entityManager;
   	
-	public JPAPerister(List<State<T>> states, State<T> start, Class<T> clazz, EntityManagerFactoryInfo entityManagerFactory) {
-		this(states, null, start, clazz, entityManagerFactory.getNativeEntityManagerFactory().createEntityManager());
+	private PlatformTransactionManager transactionManager;
+
+	public JPAPerister(List<State<T>> states, State<T> start, Class<T> clazz, EntityManagerFactoryInfo entityManagerFactory, PlatformTransactionManager transactionManager) {
+		this(states, null, start, clazz, entityManagerFactory.getNativeEntityManagerFactory().createEntityManager(), transactionManager);
 	}
 
-	public JPAPerister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz, EntityManager entityManager) {
+	public JPAPerister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz, EntityManager entityManager, PlatformTransactionManager transactionManager) {
 		super(states, stateFieldName, start, clazz);
+		this.transactionManager = transactionManager;
 		this.entityManager = entityManager;
 	}
 
@@ -144,10 +149,18 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 			// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
 			// This will cause the event to be reprocessed by the FSM
 			//
-			Query query = buildQuery(id, stateful);
+			final Query query = buildQuery(id, stateful);
 			String state = getStart().getName();
 			try {
-				state = (String)query.getSingleResult();
+				TransactionTemplate tt = new TransactionTemplate(transactionManager);
+				state =  tt.execute(new TransactionCallback<String>() {
+
+					@Override
+					public String doInTransaction(TransactionStatus status) {
+						return (String) query.getSingleResult();
+					}
+					
+				});
 			} catch(NoResultException nre) {
 				// This is the first time setting the state, ignore
 				//
