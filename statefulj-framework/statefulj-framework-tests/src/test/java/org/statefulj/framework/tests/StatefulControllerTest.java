@@ -1,19 +1,19 @@
 /***
- * 
+ *
  * Copyright 2014 Andrew Hall
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 package org.statefulj.framework.tests;
 
@@ -42,6 +42,8 @@ import org.statefulj.framework.core.model.ReferenceFactory;
 import org.statefulj.framework.core.model.FSMHarness;
 import org.statefulj.framework.core.model.StatefulFSM;
 import org.statefulj.framework.core.model.impl.ReferenceFactoryImpl;
+import org.statefulj.framework.tests.clients.FSMClient1;
+import org.statefulj.framework.tests.clients.FSMClient2;
 import org.statefulj.framework.tests.dao.UserRepository;
 import org.statefulj.framework.tests.model.MemoryObject;
 import org.statefulj.framework.tests.model.User;
@@ -56,38 +58,55 @@ import org.statefulj.fsm.model.State;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration({"/applicationContext-StatefulControllerTests.xml"})
 public class StatefulControllerTest {
-	
+
 	@Resource
 	ApplicationContext appContext;
-	
+
 	@Resource
 	UserRepository userRepo;
-	
+
 	@Resource
 	JpaTransactionManager transactionManager;
-	
+
 	@Resource(name="userController.fsmHarness")
 	FSMHarness userFSMHarness;
-	
+
 	@FSM("userController")
 	StatefulFSM<User> userFSM;
-	
+
 	@FSM("concurrencyController")
 	StatefulFSM<User> concurrencyFSM;
-	
+
 	@FSM("overloadedMethodController")
 	StatefulFSM<User> overloadFSM;
-	
+
 	@FSM
 	StatefulFSM<MemoryObject> memoryFSM;
-	
+
+	@Resource
+	FSMClient1 fsmClient1;
+
+	@Resource
+	FSMClient2 fsmClient2;
+
+	@Test
+	public void testConstructorInjectionWithDisambiquation() {
+		assertNotNull(fsmClient1.userStatefulFSM);
+	}
+
+	@Test
+	public void testConstructorInjection() {
+		assertNotNull(fsmClient2.userStatefulFSM);
+		assertNotNull(fsmClient2.memoryObjectStatefulFSM);
+	}
+
 	@Test
 	public void testStateTransitions() throws NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, TooBusyException {
-		
+
 		assertNotNull(userFSM);
 
 		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
-		
+
 		// Make sure proxy is constructed
 		//
 		Object mvcBinder = this.appContext.getBean(refFactory.getBinderId("springmvc"));
@@ -95,7 +114,7 @@ public class StatefulControllerTest {
 		Object camelBinder = this.appContext.getBean(refFactory.getBinderId("camel"));
 		assertNotNull(mvcBinder);
 		assertNotNull(camelBinder);
-		
+
 		// Verify new User scenario
 		//
 		HttpServletRequest context = mock(HttpServletRequest.class);
@@ -104,15 +123,15 @@ public class StatefulControllerTest {
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
 		assertEquals(User.TWO_STATE, user.getState());
-		
+
 		// Verify "any" scenario
 		//
 		user = invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
-		
+
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
 		assertEquals(User.TWO_STATE, user.getState());
-		
+
 		// Verify transition from TWO_STATE to THREE_STATE
 		//
 		user = invoke(mvcBinder, "$_post_id_second", User.class, user.getId(), context);
@@ -123,15 +142,15 @@ public class StatefulControllerTest {
 		// Verify "any" scenario
 		//
 		user = invoke(mvcBinder, "$_get_id_any", User.class, user.getId(), context);
-		
+
 		assertNotNull(user);
 		assertTrue(user.getId() > 0);
 		assertEquals(User.THREE_STATE, user.getState());
-		
+
 		// Verify "any" scenario
 		//
 		Object nulObj = invoke(mvcBinder, "$_get_id_four", User.class, user.getId(), context);
-		
+
 		assertNull(nulObj);
 		user = userRepo.findOne(user.getId());
 		assertEquals(User.FOUR_STATE, user.getState());
@@ -141,14 +160,14 @@ public class StatefulControllerTest {
 		assertEquals(User.FIVE_STATE, user.getState());
 
 		assertEquals(
-				mvcBinder.getClass().getMethod("$_handleError", Exception.class), 
+				mvcBinder.getClass().getMethod("$_handleError", Exception.class),
 				ReflectionUtils.getFirstAnnotatedMethod(
-						mvcBinder.getClass(), 
+						mvcBinder.getClass(),
 						ExceptionHandler.class));
-		
+
 		String retVal = invoke(mvcBinder, "$_handleError", String.class, new Exception());
 		assertEquals("called", retVal);
-		
+
 		invoke(camelBinder, "$_camelone", user.getId());
 		invoke(camelBinder, "$_six", user.getId());
 		user = userRepo.findOne(user.getId());
@@ -157,11 +176,11 @@ public class StatefulControllerTest {
 		User retUser = invoke(jerseyBinder, "$_get_id_one", User.class, user.getId(), context);
 		assertNotNull(retUser);
 	}
-	
+
 	@Test
 	public void testOverloadedMethod() throws TooBusyException {
 		assertNotNull(overloadFSM);
-		
+
 		User user = new User();
 		String response = (String)overloadFSM.onEvent(user, "one");
 		assertEquals("method1", response);
@@ -176,7 +195,7 @@ public class StatefulControllerTest {
 	@SuppressWarnings("unchecked")
 	@Test(expected=TooBusyException.class)
 	public void testBlockedState() throws TooBusyException, StaleStateException {
-		
+
 		assertNotNull(userFSM);
 
 		ReferenceFactory refFactory = new ReferenceFactoryImpl("userController");
@@ -185,11 +204,11 @@ public class StatefulControllerTest {
 		//
 		User user = new User();
 		user = userRepo.save(user);
-		
+
 		State<User> stateSix = (State<User>)this.appContext.getBean(refFactory.getStateId(User.SIX_STATE));
 		Persister<User> persister = (Persister<User>)this.appContext.getBean(refFactory.getPersisterId());
 		persister.setCurrent(user, persister.getCurrent(user), stateSix);
-		
+
 		assertEquals(stateSix, persister.getCurrent(user));
 
 		// Now kick off an event, it should block and then eventually throw a TooBusyException
@@ -208,7 +227,7 @@ public class StatefulControllerTest {
 		// Create a User and force it to SIX_STATE
 		//
 		final User user = userRepo.save(new User());
-		
+
 		TransactionTemplate tt = new TransactionTemplate(transactionManager);
 		tt.execute(new TransactionCallback<Object>() {
 
@@ -224,7 +243,7 @@ public class StatefulControllerTest {
 					// Spawn another Thread
 					//
 					new Thread(new Runnable() {
-						
+
 						@Override
 						public void run() {
 							try {
@@ -242,7 +261,7 @@ public class StatefulControllerTest {
 											throw new RuntimeException(e);
 										}
 									}
-									
+
 								});
 							} catch (InterruptedException e) {
 								e.printStackTrace();
@@ -258,11 +277,11 @@ public class StatefulControllerTest {
 					throw new RuntimeException(e);
 				}
 			}
-			
+
 		});
-		
+
 		User dbUser = userRepo.findOne(user.getId());
-		
+
 		assertEquals(User.SEVEN_STATE, dbUser.getState());
 	}
 
@@ -270,12 +289,12 @@ public class StatefulControllerTest {
 	public void testConcurrency() throws TooBusyException, InterruptedException, InstantiationException {
 		User user = userRepo.save(new User());
 		final Long id = user.getId();
-		
+
 		// Spawn another Thread
 		//
 		final Object monitor = new Object();
 		final Thread t = new Thread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				synchronized(monitor) {
@@ -294,7 +313,7 @@ public class StatefulControllerTest {
 							}
 							return null;
 						}
-						
+
 					});
 				}
 			}
@@ -314,19 +333,19 @@ public class StatefulControllerTest {
 					}
 					return null;
 				}
-				
+
 			});
 		}
 		User user2 = userRepo.findOne(id);
 		assertEquals(User.THREE_STATE, user2.getState());
 	}
-	
+
 	@Test
 	public void testInMemoryController() throws TooBusyException {
 		MemoryObject memObject = new MemoryObject();
-		
+
 		memObject = (MemoryObject)this.memoryFSM.onEvent(memObject, "one");
-		
+
 		assertNotNull(memObject);
 		assertEquals(MemoryObject.TWO_STATE, memObject.getState());
 	}
@@ -334,7 +353,7 @@ public class StatefulControllerTest {
 	@Test(expected=RuntimeException.class)
 	public void testFailedReloadForInMemoryController() throws TooBusyException {
 		MemoryObject memObject = new MemoryObject();
-		
+
 		this.memoryFSM.onEvent(memObject, "fail");
 	}
 }
