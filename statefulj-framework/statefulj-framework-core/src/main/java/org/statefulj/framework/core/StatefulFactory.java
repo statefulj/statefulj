@@ -138,33 +138,33 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			String controllerId = null;
 			Type genericFieldType = null;
 			String fieldName = null;
+			org.statefulj.framework.core.annotations.FSM fsmAnnotation = null;
 
-			// If this field is annotated with StatefulFSM, determine the bean Id
+			// If this is a StatefulFSM, parse out the Annotation and Type information
 			//
 			if (field != null) {
 				if (isStatefulFSM(field)) {
-					// Is the Annotation parameterized with the StatefulController class?
-					//
-					controllerId = getControllerIdFromParameterizedValue(field);
+					fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
 					genericFieldType = field.getGenericType();
 					fieldName = field.getName();
 					isStatefulFSM = true;
 				}
 			} else if (methodParameter != null) {
 				if (isStatefulFSM(methodParameter)) {
-					// Is the Annotation parameterized with the StatefulController class?
-					//
-					controllerId = getControllerIdFromParameterizedValue(methodParameter);
+					fsmAnnotation = methodParameter.getParameterAnnotation(org.statefulj.framework.core.annotations.FSM.class);
 					genericFieldType = methodParameter.getGenericParameterType();
 					fieldName = methodParameter.getParameterName();
 					isStatefulFSM = true;
 				}
 			}
 
-			// Not parameterized, derive from the generic field type
+			// If this is a StatefulFSM field, then resolve bean reference
 			//
 			if (isStatefulFSM) {
 
+				// Determine the controllerId - either explicit or derviced
+				//
+				controllerId = getControllerId(fsmAnnotation);
 				if (StringUtils.isEmpty(controllerId)) {
 
 					// Get the Managed Class
@@ -182,24 +182,6 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 
 			return (suggested != null) ? suggested : super.getSuggestedValue(descriptor);
-		}
-
-		/**
-		 * @param field
-		 * @return
-		 */
-		private String getControllerIdFromParameterizedValue(Field field) {
-			org.statefulj.framework.core.annotations.FSM fsmAnnotation = field.getAnnotation(org.statefulj.framework.core.annotations.FSM.class);
-			return getControllerId(fsmAnnotation);
-		}
-
-		/**
-		 * @param methodParameter
-		 * @return
-		 */
-		private String getControllerIdFromParameterizedValue(MethodParameter methodParameter) {
-			org.statefulj.framework.core.annotations.FSM fsmAnnotation = methodParameter.getParameterAnnotation(org.statefulj.framework.core.annotations.FSM.class);
-			return getControllerId(fsmAnnotation);
 		}
 
 		private String getControllerId(org.statefulj.framework.core.annotations.FSM fsmAnnotation) {
