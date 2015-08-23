@@ -4,7 +4,7 @@
 
 	<parent>
 		<groupId>org.statefulj</groupId>
-		<version>1.0.11-SNAPSHOT</version>
+		<version>1.0.11</version>
 		<artifactId>statefulj</artifactId>
 	</parent>
 
