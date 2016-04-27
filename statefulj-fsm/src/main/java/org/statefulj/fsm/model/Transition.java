@@ -36,7 +36,8 @@ public interface Transition<T> {
 	 *
 	 * @return the {@link org.statefulj.fsm.model.StateActionPair}
 	 *
-	 * @throws {@link org.statefulj.fsm.RetryException}
+	 * @throws RetryException is thrown if there is an error determining the next State and Action and the FSM should
+	 *         reprocess the event
 	 */
 	StateActionPair<T> getStateActionPair(T stateful) throws RetryException;
 }
