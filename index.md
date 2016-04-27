@@ -1,7 +1,7 @@
 ---
 layout: page
 title: Introduction
-weight: 1
+weight: 0
 ---
 
 ## What is StatefulJ?
