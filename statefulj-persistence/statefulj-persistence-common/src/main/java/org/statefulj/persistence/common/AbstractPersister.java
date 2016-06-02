@@ -1,26 +1,28 @@
 /***
- * 
+ *
  * Copyright 2014 Andrew Hall
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package org.statefulj.persistence.common;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,38 +33,38 @@ import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
 
 public abstract class AbstractPersister<T> implements Persister<T> {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPersister.class);
-	
+
 	private Field idField;
 	private Field stateField;
 	private State<T> start;
 	private Class<T> clazz;
 	private HashMap<String, State<T>> states = new HashMap<String, State<T>>();
-	
+
 	public AbstractPersister(
-			List<State<T>> states, 
-			String stateFieldName, 
-			State<T> start, 
+			List<State<T>> states,
+			String stateFieldName,
+			State<T> start,
 			Class<T> clazz) {
-		
+
 		this.clazz = clazz;
-		
+
 		// Find the Id and State<T> field of the Entity
 		//
 		this.idField = findIdField(clazz);
-		
+
 		if (this.idField == null) {
 			throw new RuntimeException("No Id field defined");
 		}
 		this.idField.setAccessible(true);
-		
+
 		this.stateField = findStateField(stateFieldName, clazz);
 
 		if (this.stateField == null) {
 			throw new RuntimeException("No State field defined");
 		}
-		
+
 		if (!validStateField(this.stateField)) {
 			throw new RuntimeException(
 					String.format(
@@ -77,7 +79,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		// Start state - returned when no state is set
 		//
 		this.start = start;
-		
+
 		// Index States into a HashMap
 		//
 		for(State<T> state : states) {
@@ -105,9 +107,9 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	}
 
 	/**
-	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.  
+	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.
 	 * If not, it will throw a StateStateException
-	 * 
+	 *
 	 * @param stateful Stateful Entity
 	 * @param current Expected current State
 	 * @param next The value of the next State
@@ -116,9 +118,18 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	@Override
 	public abstract void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException;
 
-	protected abstract boolean validStateField(Field stateField); 
-	
-	protected abstract Field findIdField(Class<?> clazz); 
+	@Override
+	public void setStates(Collection<State<T>> states) {
+		this.states.clear();
+
+		for(State<T> state : states) {
+			this.states.put(state.getName(), state);
+		}
+	}
+
+	protected abstract boolean validStateField(Field stateField);
+
+	protected abstract Field findIdField(Class<?> clazz);
 
 	protected Field findStateField(String stateFieldName, Class<?> clazz) {
 		Field stateField = null;
@@ -136,8 +147,8 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		}
 		return stateField;
 	}
-	
-	protected abstract Class<?> getStateFieldType(); 
+
+	protected abstract Class<?> getStateFieldType();
 
 	protected Field getIdField() {
 		return idField;
@@ -175,18 +186,14 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		return states;
 	}
 
-	protected void setStates(HashMap<String, State<T>> states) {
-		this.states = states;
-	}
-
 	protected Object getId(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		return this.idField.get(obj);
 	}
-	
+
 	protected String getState(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		return (String)this.stateField.get(obj);
 	}
-	
+
 	protected void setState(T obj, String state) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
 		state = (state == null) ? this.start.getName() : state;
 		this.stateField.set(obj, state);

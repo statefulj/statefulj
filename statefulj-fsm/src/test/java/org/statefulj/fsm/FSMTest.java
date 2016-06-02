@@ -25,9 +25,6 @@ import java.util.List;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.junit.Test;
-import org.statefulj.fsm.FSM;
-import org.statefulj.fsm.RetryException;
-import org.statefulj.fsm.TooBusyException;
 import org.statefulj.fsm.model.Action;
 import org.statefulj.fsm.model.State;
 import org.statefulj.fsm.model.StateActionPair;

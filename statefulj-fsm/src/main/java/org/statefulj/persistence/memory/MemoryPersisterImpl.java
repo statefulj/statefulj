@@ -1,19 +1,19 @@
 /***
- * 
+ *
  * Copyright 2014 Andrew Hall
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 package org.statefulj.persistence.memory;
 
@@ -29,13 +29,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Thread safe, in memory Persister.  
- * 
+ * Thread safe, in memory Persister.
+ *
  * @author Andrew Hall
  *
  */
 public class MemoryPersisterImpl<T> implements Persister<T> {
-	
+
 	private final Map<String, State<T>> states = new HashMap<String, State<T>>();
 	private State<T> start;
 	private String stateFieldName;
@@ -45,22 +45,22 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		setStart(start);
 		setStates(states);
 	}
-	
+
 	public MemoryPersisterImpl(List<State<T>> states, State<T> start, String stateFieldName) {
 		this(states, start);
 		this.stateFieldName = stateFieldName;
 	}
-	
+
 	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> start) {
 		this(states, start);
 		this.setCurrent(stateful, start);
 	}
-	
+
 	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> start, String stateFieldName) {
 		this(states, start, stateFieldName);
 		this.setCurrent(stateful, start);
 	}
-	
+
 	public synchronized Collection<State<T>> getStates() {
 		return states.values();
 	}
@@ -77,6 +77,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		return states.remove(name);
 	}
 
+	@Override
 	public synchronized void setStates(final Collection<State<T>> states) {
 		//Clear the map
 		//
@@ -84,7 +85,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 
 		//Add new states
 		//
-		for(final State<T> state : states) {
+		for(State state : states) {
 			this.states.put(state.getName(), state);
 		}
 	}
@@ -105,6 +106,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		this.stateFieldName = stateFieldName;
 	}
 
+	@Override
 	public State<T> getCurrent(T stateful) {
 		try {
 			String key = (String)getStateField(stateful).get(stateful);
@@ -114,7 +116,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	public void setCurrent(T stateful, State<T> current) {
 		synchronized(stateful) {
 			try {
@@ -124,14 +126,15 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 			}
 		}
 	}
-	
+
 	/*
-	 * Serialize all update of state.  Ensure that the current state is the same State that 
+	 * Serialize all update of state.  Ensure that the current state is the same State that
 	 * was evaluated. If not, throw an exception
-	 * 
+	 *
 	 * (non-Javadoc)
 	 * @see org.fsm.Persister#setCurrent(org.fsm.model.State, org.fsm.model.State)
 	 */
+	@Override
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		synchronized(stateful) {
 			if (this.getCurrent(stateful).equals(current)) {
