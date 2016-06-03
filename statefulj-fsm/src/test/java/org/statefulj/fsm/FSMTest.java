@@ -130,7 +130,7 @@ public class FSMTest {
 		//
 		stateA.addTransition(eventA, new Transition<Foo>() {
 
-			public StateActionPair<Foo> getStateActionPair(Foo stateful) {
+			public StateActionPair<Foo> getStateActionPair(Foo stateful, String event, Object... args) {
 				State<Foo> next = null;
 				if (eventCnt.intValue() < 2) {
 					next = stateA;
@@ -391,7 +391,7 @@ public class FSMTest {
 		stateA.addTransition(eventA, new Transition<Foo>() {
 
 			@Override
-			public StateActionPair<Foo> getStateActionPair(Foo stateful) throws RetryException {
+			public StateActionPair<Foo> getStateActionPair(Foo stateful, String event, Object... args) throws RetryException {
 				throw new RetryException();
 			}
 

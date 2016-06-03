@@ -209,19 +209,32 @@ public class FSM<T> {
 
 				private StateBuilder stateBuilder;
 				private String event;
-				private String toState;
+				private String toStateKey;
+				private State<T> toState;
 				private Action<T> action;
 
 				private TransitionBuilder(String event, StateBuilder stateBuilder) {
-					this(event, null, null);
+					this.event = event;
 					this.stateBuilder = stateBuilder;
+					this.toStateKey = null;
+					this.action = null;
 				}
 
-				private TransitionBuilder(String event, String toState) {
-					this(event, toState, null);
+				private TransitionBuilder(String event, String toStateKey) {
+					this(event, toStateKey, null);
 				}
 
-				private TransitionBuilder(String event, String toState, Action<T> action) {
+				private TransitionBuilder(String event, String toStateKey, Action<T> action) {
+					if (event == null || event.trim().equals("")) {
+						throw new RuntimeException("You must provide an Event");
+					}
+					this.event = event;
+					this.toStateKey = toStateKey;
+					this.toState = null;
+					this.action = action;
+				}
+
+				private TransitionBuilder(String event, State<T> toState, Action<T> action) {
 					if (event == null || event.trim().equals("")) {
 						throw new RuntimeException("You must provide an Event");
 					}
@@ -230,12 +243,7 @@ public class FSM<T> {
 					this.action = action;
 				}
 
-				public TransitionBuilder toState(String toState) {
-					this.toState = toState;
-					return this;
-				}
-
-				public TransitionBuilder addAction(Action<T> action) {
+				public TransitionBuilder<T> addAction(Action<T> action) {
 					this.action = action;
 					return this;
 				}
@@ -245,7 +253,8 @@ public class FSM<T> {
 				}
 
 				public Transition<T> build(State from, Map<String, State<T>> states) {
-					return new DeterministicTransitionImpl<T>(from, states.get(this.toState), this.event, this.action);
+					State<T> to = (this.toStateKey != null) ? states.get(this.toStateKey) : this.toState;
+					return new DeterministicTransitionImpl<T>(from, to, this.event, this.action);
 				}
 
 			}
@@ -255,11 +264,9 @@ public class FSM<T> {
 			private List<TransitionBuilder<T>> transistionBuilders = new LinkedList<TransitionBuilder<T>>();
 			private boolean isEndState = false;
 			private boolean isBlocking = false;
-			private StateImpl<T> state;
+			private State<T> state;
 
 			private FSMBuilder<T> fsmBuilder;
-
-			private String name;
 
 			private StateBuilder(FSMBuilder fsmBuilder, String stateName) {
 				if (stateName == null || stateName.trim().equals("")) {
@@ -269,33 +276,42 @@ public class FSM<T> {
 				this.stateName = stateName;
 			}
 
-			public StateBuilder setEndState(boolean isEndState) {
+			public StateBuilder<T> setEndState(boolean isEndState) {
 				this.isEndState = isEndState;
 				return this;
 			}
 
-			public StateBuilder setBlockingState(boolean isBlocking) {
+			public StateBuilder<T> setBlockingState(boolean isBlocking) {
 				this.isBlocking = isBlocking;
 				return this;
 			}
 
-			public StateBuilder addTransition(String event, String toState) {
+			public StateBuilder<T> addTransition(String event, String toState) {
 				this.transistionBuilders.add(new TransitionBuilder<T>(event, toState));
 				return this;
 			}
 
-			public StateBuilder addTransition(String event, String toState, Action<T> action) {
+			public StateBuilder<T> addTransition(String event, State<T> toState, Action<T> action) {
 				this.transistionBuilders.add(new TransitionBuilder<T>(event, toState, action));
 				return this;
 			}
 
-			public StateBuilder addTransition(String event, Transition<T> transition) {
+			public StateBuilder<T> addTransition(String event, Action<T> action) {
+				return this.addTransition(event, this.stateName, action);
+			}
+
+			public StateBuilder<T> addTransition(String event, String toState, Action<T> action) {
+				this.transistionBuilders.add(new TransitionBuilder<T>(event, toState, action));
+				return this;
+			}
+
+			public StateBuilder<T> addTransition(String event, Transition<T> transition) {
 				this.transistions.put(event, transition);
 				return this;
 			}
 
-			public TransitionBuilder buildTransition(String event) {
-				TransitionBuilder transitionBuilder = new TransitionBuilder<T>(event, this);
+			public TransitionBuilder<T> buildTransition(String event) {
+				TransitionBuilder<T> transitionBuilder = new TransitionBuilder<T>(event, this);
 				this.transistionBuilders.add(transitionBuilder);
 				return transitionBuilder;
 			}
@@ -324,11 +340,11 @@ public class FSM<T> {
 		private String name = "FSM";
 
 		private HashMap<String, State<T>> states = new HashMap<String, State<T>>();
-		private List<StateBuilder> stateBuilders = new LinkedList<StateBuilder>();
+		private List<StateBuilder<T>> stateBuilders = new LinkedList<StateBuilder<T>>();
 		private String startState;
 
-		public static FSMBuilder newBuilder() {
-			return new FSMBuilder();
+		public static <T> FSMBuilder<T> newBuilder(Class<T> clazz) {
+			return new FSMBuilder<T>();
 		}
 
 		public FSMBuilder<T> addPersister(Persister<T> persister) {
@@ -361,13 +377,13 @@ public class FSM<T> {
 			return this;
 		}
 
-		public StateBuilder buildState(String name) {
+		public StateBuilder<T> buildState(String name) {
 			return this.buildState(name, false);
 		}
 
-		public StateBuilder buildState(String name, boolean isStartState) {
+		public StateBuilder<T> buildState(String name, boolean isStartState) {
 			this.startState = (this.startState == null || isStartState) ? name : this.startState;
-			StateBuilder stateBuilder = new StateBuilder(this, name);
+			StateBuilder<T> stateBuilder = new StateBuilder<T>(this, name);
 			this.stateBuilders.add(stateBuilder);
 			return stateBuilder;
 		}
@@ -405,7 +421,7 @@ public class FSM<T> {
 	}
 
 	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> transition, Object... args) throws RetryException {
-		StateActionPair<T> pair = transition.getStateActionPair(stateful);
+		StateActionPair<T> pair = transition.getStateActionPair(stateful, event, args);
 		setCurrent(stateful, current, pair.getState());
 		executeAction(
 				pair.getAction(),

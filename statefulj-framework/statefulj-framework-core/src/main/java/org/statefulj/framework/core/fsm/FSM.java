@@ -91,7 +91,7 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> t, Object... args) throws RetryException {
 
 		TransitionImpl<T> transition = (TransitionImpl<T>)t;
-		StateActionPair<T> pair = transition.getStateActionPair(stateful);
+		StateActionPair<T> pair = transition.getStateActionPair(stateful, event, args);
 
 		// If this transition is applicable to every state and doesn't cause a State change, don't bother
 		// with setting the current state

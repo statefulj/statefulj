@@ -3,6 +3,10 @@ package org.statefulj.fsm;
 import org.junit.Before;
 import org.junit.Test;
 import org.statefulj.fsm.model.Action;
+import org.statefulj.fsm.model.StateActionPair;
+import org.statefulj.fsm.model.Transition;
+import org.statefulj.fsm.model.impl.StateActionPairImpl;
+import org.statefulj.fsm.model.impl.StateImpl;
 import org.statefulj.persistence.annotations.State;
 
 import static org.junit.Assert.*;
@@ -24,7 +28,14 @@ public class FSMBuilderTest {
 
     @Before
     public void setUp() {
-        FSM.FSMBuilder fsmBuilder = FSM.FSMBuilder.newBuilder();
+        Action action = new Action() {
+                    @Override
+                    public void execute(Object stateful, String event, Object... args) throws RetryException {
+                        ((FooState)stateful).msg = "Action Happened";
+                    }
+                };
+
+        FSM.FSMBuilder<FooState> fsmBuilder = FSM.FSMBuilder.newBuilder(FooState.class);
 
         fsmBuilder.
                 buildState("FOO")
@@ -38,15 +49,10 @@ public class FSMBuilderTest {
                     .addTransition("to-baz", "BAZ")
                 .done()
                 .buildState("BAZ")
+                    .setEndState(true)
                     .addTransition("noop", "BAZ")
                     .addTransition("to-bar", "BAR")
-                    .addTransition("to-foo", "FOO",
-                            new Action() {
-                                @Override
-                                public void execute(Object stateful, String event, Object... args) throws RetryException {
-                                    ((FooState)stateful).msg = "Action Happened";
-                                }
-                            })
+                    .addTransition("to-foo", "FOO", action)
                 .done();
 
         this.fooStateFSM = fsmBuilder.build();
@@ -77,6 +83,7 @@ public class FSMBuilderTest {
         FooState fooState = new FooState();
         this.fooStateFSM.onEvent(fooState, "to-baz");
         assertEquals("BAZ", this.fooStateFSM.getCurrentState(fooState).getName());
+        assertEquals(true, this.fooStateFSM.getCurrentState(fooState).isEndState());
     }
 
     @Test
@@ -97,12 +104,57 @@ public class FSMBuilderTest {
     }
 
     @Test
-    public void testToBarToBazToFoo() throws TooBusyException {
+    public void testAddingState() throws TooBusyException {
+        this.fooStateFSM =  FSM.FSMBuilder
+                .newBuilder(FooState.class)
+                .addState(new StateImpl<FooState>("FOO"))
+                .build();
+
         FooState fooState = new FooState();
-        this.fooStateFSM.onEvent(fooState, "to-bar");
-        this.fooStateFSM.onEvent(fooState, "to-baz");
-        this.fooStateFSM.onEvent(fooState, "to-foo");
         assertEquals("FOO", this.fooStateFSM.getCurrentState(fooState).getName());
-        assertEquals("Action Happened", fooState.msg);
+    }
+
+    @Test
+    public void testBlockingState() throws TooBusyException {
+        this.fooStateFSM =  FSM.FSMBuilder
+                .newBuilder(FooState.class)
+                .buildState("FOO")
+                    .setBlockingState(true)
+                .done()
+                .build();
+
+        FooState fooState = new FooState();
+        assertEquals("FOO", this.fooStateFSM.getCurrentState(fooState).getName());
+        assertEquals(true, this.fooStateFSM.getCurrentState(fooState).isBlocking());
+    }
+
+    @Test
+    public void testAddingTransition() throws TooBusyException {
+        this.fooStateFSM = FSM.FSMBuilder
+                .newBuilder(FooState.class)
+                .buildState("FOO")
+                    .addTransition(
+                            "test",
+                            new Transition<FooState>() {
+
+                                @Override
+                                public StateActionPair<FooState> getStateActionPair(FooState stateful, String event, Object... args) throws RetryException {
+                                    return new StateActionPairImpl<FooState>(
+                                            fooStateFSM.getCurrentState(stateful),
+                                            new Action<FooState>() {
+                                                @Override
+                                                public void execute(FooState stateful, String event, Object... args) throws RetryException {
+                                                    stateful.msg = "Action called";
+                                                }
+                                            });
+                                }
+                            })
+                .done()
+                .build();
+
+
+        FooState fooState = new FooState();
+        this.fooStateFSM.onEvent(fooState, "test");
+        assertEquals("Action called", fooState.msg);
     }
 }

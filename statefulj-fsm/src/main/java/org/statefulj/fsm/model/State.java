@@ -50,7 +50,7 @@ public interface State<T> {
 	boolean isEndState();
 
 	/**
-	 * Whether this is a Blocking State.  If Blocking, event will not processed unless there is an explicit Transition for the
+	 * Whether this is a Blocking State.  If Blocking, event will not process unless there is an explicit Transition for the
 	 * event.  If blocked, the FSM will retry the event until the FSM transitions out of the blocked State
 	 *
 	 * @return if true, then State is a "blocking" state

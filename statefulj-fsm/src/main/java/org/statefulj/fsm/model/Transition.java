@@ -35,9 +35,11 @@ public interface Transition<T> {
 	 * @param stateful the Stateful Entity
 	 *
 	 * @return the {@link org.statefulj.fsm.model.StateActionPair}
+	 * @param event The ocurring Event
+	 * @param args Optional parameters to pass into the Action
 	 *
 	 * @throws RetryException is thrown if there is an error determining the next State and Action and the FSM should
 	 *         reprocess the event
 	 */
-	StateActionPair<T> getStateActionPair(T stateful) throws RetryException;
+	StateActionPair<T> getStateActionPair(T stateful, String event, Object ... args) throws RetryException;
 }
