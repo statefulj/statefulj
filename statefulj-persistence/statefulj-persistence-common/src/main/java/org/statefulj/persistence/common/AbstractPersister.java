@@ -22,7 +22,6 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,14 +37,14 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 
 	private Field idField;
 	private Field stateField;
-	private State<T> start;
+	private State<T> startState;
 	private Class<T> clazz;
 	private HashMap<String, State<T>> states = new HashMap<String, State<T>>();
 
 	public AbstractPersister(
 			List<State<T>> states,
 			String stateFieldName,
-			State<T> start,
+			State<T> startState,
 			Class<T> clazz) {
 
 		this.clazz = clazz;
@@ -78,7 +77,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 
 		// Start state - returned when no state is set
 		//
-		this.start = start;
+		this.startState = startState;
 
 		// Index States into a HashMap
 		//
@@ -92,7 +91,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		State<T> state = null;
 		try {
 			String stateKey = this.getState(stateful);
-			state = (stateKey == null) ? this.start : this.states.get(stateKey);
+			state = (stateKey == null) ? this.startState : this.states.get(stateKey);
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
 		} catch (SecurityException e) {
@@ -102,7 +101,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
-		state = (state == null) ? this.start : state;
+		state = (state == null) ? this.startState : state;
 		return state;
 	}
 
@@ -125,6 +124,11 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		for(State<T> state : states) {
 			this.states.put(state.getName(), state);
 		}
+	}
+
+	@Override
+	public void setStartState(State<T> startState) {
+		this.startState = startState;
 	}
 
 	protected abstract boolean validStateField(Field stateField);
@@ -166,12 +170,8 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		this.stateField = stateField;
 	}
 
-	protected State<T> getStart() {
-		return start;
-	}
-
-	protected void setStart(State<T> start) {
-		this.start = start;
+	protected State<T> getStartState() {
+		return startState;
 	}
 
 	protected Class<T> getClazz() {
@@ -195,7 +195,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 	}
 
 	protected void setState(T obj, String state) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
-		state = (state == null) ? this.start.getName() : state;
+		state = (state == null) ? this.startState.getName() : state;
 		this.stateField.set(obj, state);
 	}
 

@@ -37,28 +37,30 @@ import java.util.Map;
 public class MemoryPersisterImpl<T> implements Persister<T> {
 
 	private final Map<String, State<T>> states = new HashMap<String, State<T>>();
-	private State<T> start;
+	private State<T> startState;
 	private String stateFieldName;
     private volatile Field stateField;
 
-	public MemoryPersisterImpl(final Collection<State<T>> states, final State<T> start) {
-		setStart(start);
+	public MemoryPersisterImpl() {}
+
+	public MemoryPersisterImpl(final Collection<State<T>> states, final State<T> startState) {
+		setStartState(startState);
 		setStates(states);
 	}
 
-	public MemoryPersisterImpl(List<State<T>> states, State<T> start, String stateFieldName) {
-		this(states, start);
+	public MemoryPersisterImpl(List<State<T>> states, State<T> startState, String stateFieldName) {
+		this(states, startState);
 		this.stateFieldName = stateFieldName;
 	}
 
-	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> start) {
-		this(states, start);
-		this.setCurrent(stateful, start);
+	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> startState) {
+		this(states, startState);
+		this.setCurrent(stateful, startState);
 	}
 
-	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> start, String stateFieldName) {
-		this(states, start, stateFieldName);
-		this.setCurrent(stateful, start);
+	public MemoryPersisterImpl(T stateful, List<State<T>> states, State<T> startState, String stateFieldName) {
+		this(states, startState, stateFieldName);
+		this.setCurrent(stateful, startState);
 	}
 
 	public synchronized Collection<State<T>> getStates() {
@@ -90,12 +92,13 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		}
 	}
 
-	public State<T> getStart() {
-		return start;
+	public State<T> getStartState() {
+		return startState;
 	}
 
-	public void setStart(final State<T> start) {
-		this.start = start;
+	@Override
+	public void setStartState(final State<T> startState) {
+		this.startState = startState;
 	}
 
 	public String getStateFieldName() {
@@ -111,7 +114,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 		try {
 			String key = (String)getStateField(stateful).get(stateful);
 			State<T> state = (key != null) ? states.get(key) : null;
-			return (state != null) ? state : this.start;
+			return (state != null) ? state : this.startState;
 		} catch(Exception e) {
 			throw new RuntimeException(e);
 		}

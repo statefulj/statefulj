@@ -1,19 +1,19 @@
 /***
- * 
+ *
  * Copyright 2014 Andrew Hall
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package org.statefulj.persistence.mongo;
@@ -51,19 +51,19 @@ import java.util.Random;
 
 import static org.statefulj.common.utils.ReflectionUtils.getReferencedField;
 
-public class MongoPersister<T> 
-			extends AbstractPersister<T> 
-			implements 
-				Persister<T>, 
-				BeanDefinitionRegistryPostProcessor, 
+public class MongoPersister<T>
+			extends AbstractPersister<T>
+			implements
+				Persister<T>,
+				BeanDefinitionRegistryPostProcessor,
 				ApplicationContextAware {
-	
+
 	final static FindAndModifyOptions RETURN_NEW = FindAndModifyOptions.options().returnNew(true);
-	
-	private ApplicationContext appContext; 
-	
+
+	private ApplicationContext appContext;
+
 	private String repoId;
-	
+
 	private MongoTemplate mongoTemplate;
 
 	private String templateId;
@@ -71,77 +71,77 @@ public class MongoPersister<T>
 	/**
 	 * Instantiate the MongoPersister with a specified template.  The State field
 	 * on the Entity will be determined by inspection of Entity for the @State annotation
-	 * 
+	 *
 	 * @param states List of the States
-	 * @param start The Start State
+	 * @param startState The Start State
 	 * @param clazz The Managed Entity class
 	 * @param mongoTemplate MongoTemplate to use to persist the Managed Entity
 	 */
 	public MongoPersister(
-			List<State<T>> states, 
-			State<T> start, 
-			Class<T> clazz, 
+			List<State<T>> states,
+			State<T> startState,
+			Class<T> clazz,
 			MongoTemplate mongoTemplate) {
-		super(states, null, start, clazz);
+		super(states, null, startState, clazz);
 		this.mongoTemplate = mongoTemplate;
 	}
 
 	/**
 	 * Instantiate the MongoPersister with a specified template.  The MongoPersister
 	 * will use the stateFieldName to determine the State field.
-	 * 
+	 *
 	 * @param states List of the States
 	 * @param stateFieldName The name of the State Field
-	 * @param start The Start State
+	 * @param startState The Start State
 	 * @param clazz The Managed Entity class
 	 * @param mongoTemplate MongoTemplate to use to persist the Managed Entity
 	 */
 	public MongoPersister(
-			List<State<T>> states, 
-			String stateFieldName, 
-			State<T> start, 
-			Class<T> clazz, 
+			List<State<T>> states,
+			String stateFieldName,
+			State<T> startState,
+			Class<T> clazz,
 			MongoTemplate mongoTemplate) {
-		super(states, stateFieldName, start, clazz);
+		super(states, stateFieldName, startState, clazz);
 		this.mongoTemplate = mongoTemplate;
 	}
 
 	/**
 	 * Instantiate the MongoPersister with the id of the MongoRepository bean for
-	 * the Managed Entity.  The State field on the Entity will be 
+	 * the Managed Entity.  The State field on the Entity will be
 	 * determined by inspection of Entity for the @State annotation
-	 * 
+	 *
 	 * @param states List of the States
-	 * @param start The Start State
+	 * @param startState The Start State
 	 * @param clazz The Managed Entity class
 	 * @param repoId Bean Id of the Managed Entity's MongoRepository
 	 */
 	public MongoPersister(
-			List<State<T>> states, 
-			State<T> start, 
-			Class<T> clazz, 
+			List<State<T>> states,
+			State<T> startState,
+			Class<T> clazz,
 			String repoId) {
-		this(states, null, start,clazz, repoId);
+		this(states, null, startState,clazz, repoId);
 	}
 
 	/**
 	 * Instantiate the MongoPersister with the id of the MongoRepository bean for
-	 * the Managed Entity.  The MongoPersister will use the stateFieldName to 
+	 * the Managed Entity.  The MongoPersister will use the stateFieldName to
 	 * determine the State field.
-	 * 
+	 *
 	 * @param states List of States
 	 * @param stateFieldName The name of the State Field
-	 * @param start The Start State
+	 * @param startState The Start State
 	 * @param clazz The Managed Entity class
 	 * @param repoId Bean Id of the Managed Entity's MongoRepository
 	 */
 	public MongoPersister(
-			List<State<T>> states, 
-			String stateFieldName, 
-			State<T> start, 
-			Class<T> clazz, 
+			List<State<T>> states,
+			String stateFieldName,
+			State<T> startState,
+			Class<T> clazz,
 			String repoId) {
-		super(states, stateFieldName, start, clazz);
+		super(states, stateFieldName, startState, clazz);
 		this.repoId = repoId;
 	}
 
@@ -152,9 +152,9 @@ public class MongoPersister<T>
 	}
 
 	/**
-	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.  
+	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.
 	 * If not, it will throw a StateStateException
-	 * 
+	 *
 	 * @param stateful Stateful Entity
 	 * @param current Expected current State
 	 * @param next The value of the next State
@@ -163,8 +163,8 @@ public class MongoPersister<T>
 	@Override
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
-			
-			// Has this Entity been persisted to Mongo? 
+
+			// Has this Entity been persisted to Mongo?
 			//
 			StateDocumentImpl stateDoc = this.getStateDocument(stateful);
 			if (stateDoc != null && stateDoc.isPersisted()) {
@@ -173,7 +173,7 @@ public class MongoPersister<T>
 				//
 				updateStateInDB(stateful, current, next, stateDoc);
 			} else {
-				
+
 				// The Entity hasn't been persisted to Mongo - so it exists only
 				// this Application memory.  So, serialize the qualified update to prevent
 				// concurrency conflicts
@@ -202,7 +202,7 @@ public class MongoPersister<T>
 	private void updateStateInDB(T stateful, State<T> current, State<T> next,
 			StateDocumentImpl stateDoc) throws IllegalAccessException,
 			StaleStateException {
-		// Entity is in the database - perform qualified update based off 
+		// Entity is in the database - perform qualified update based off
 		// the current State value
 		//
 		Query query = buildQuery(stateDoc, current);
@@ -210,21 +210,21 @@ public class MongoPersister<T>
 
 		// Update state in DB
 		//
-		StateDocumentImpl updatedDoc = updateStateDoc(query, update); 
+		StateDocumentImpl updatedDoc = updateStateDoc(query, update);
 		if (updatedDoc != null) {
-			
+
 			// Success, update in memory
 			//
 			setStateDocument(stateful, updatedDoc);
-			
+
 		} else {
-			
+
 			// If we aren't able to update - it's most likely that we are out of sync.
 			// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
 			// This will cause the event to be reprocessed by the FSM
 			//
 			updatedDoc = findStateDoc(stateDoc.getId());
-			
+
 			if (updatedDoc != null) {
 				String currentState = stateDoc.getState();
 				setStateDocument(stateful, updatedDoc);
@@ -234,7 +234,7 @@ public class MongoPersister<T>
 			}
 		}
 	}
-	
+
 	@Override
 	public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
 	}
@@ -242,9 +242,9 @@ public class MongoPersister<T>
 	@Override
 	public void postProcessBeanDefinitionRegistry(
 			BeanDefinitionRegistry registry) throws BeansException {
-		
+
 		if (this.mongoTemplate == null) {
-			
+
 			if (this.repoId != null) {
 
 				// Fetch the MongoTemplate Bean Id
@@ -252,14 +252,14 @@ public class MongoPersister<T>
 				BeanDefinition repo = registry.getBeanDefinition(this.repoId);
 				this.templateId = ((BeanReference)repo.getPropertyValues().get("mongoOperations")).getBeanName();
 			}
-			
+
 			// Check to make sure we have a reference to the MongoTemplate
 			//
 			if (this.templateId == null) {
 				throw new RuntimeException("Unable to obtain a reference to a MongoTemplate");
 			}
 		}
-		
+
 
 		// Add in CascadeSupport
 		//
@@ -304,12 +304,12 @@ public class MongoPersister<T>
 		update.set("updated", Calendar.getInstance().getTime());
 		return update;
 	}
-	
+
 	protected String getState(T stateful) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		StateDocumentImpl stateDoc = this.getStateDocument(stateful);
-		return (stateDoc != null) ? stateDoc.getState() : getStart().getName();
+		return (stateDoc != null) ? stateDoc.getState() : getStartState().getName();
 	}
-	
+
 	protected void setState(T stateful, String state) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
 		StateDocumentImpl stateDoc = this.getStateDocument(stateful);
 		if (stateDoc == null) {
@@ -327,22 +327,22 @@ public class MongoPersister<T>
 		}
 		return (StateDocumentImpl)stateDoc;
 	}
-	
+
 	protected StateDocumentImpl createStateDocument(T stateful) throws IllegalArgumentException, IllegalAccessException, SecurityException, NoSuchFieldException {
 		StateDocumentImpl stateDoc = new StateDocumentImpl();
 		stateDoc.setPersisted(false);
 		stateDoc.setId(new ObjectId().toHexString());
-		stateDoc.setState(getStart().getName());
+		stateDoc.setState(getStartState().getName());
 		stateDoc.setManagedCollection(getMongoTemplate().getCollectionName(stateful.getClass()));
 		stateDoc.setManagedField(this.getStateField().getName());
 		setStateDocument(stateful, stateDoc);
 		return stateDoc;
 	}
-	
+
 	protected void setStateDocument(T stateful, StateDocument stateDoc) throws IllegalArgumentException, IllegalAccessException {
 		getStateField().set(stateful, stateDoc);
 	}
-	
+
 	protected void updateInMemory(T stateful, StateDocumentImpl stateDoc, String current, String next) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException, StaleStateException {
 		synchronized(stateful) {
 			if (stateDoc == null) {
@@ -370,7 +370,7 @@ public class MongoPersister<T>
 		}
 		return this.mongoTemplate;
 	}
-  	
+
 	protected StateDocumentImpl updateStateDoc(Query query, Update update) {
 		return (StateDocumentImpl)getMongoTemplate().findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
 	}
@@ -382,20 +382,20 @@ public class MongoPersister<T>
 	@SuppressWarnings("unchecked")
 	/***
 	 * Cascade the Save to the StateDocument
-	 * 
+	 *
 	 * @param obj
 	 * @param dbo
 	 */
 	void onAfterSave(Object stateful, DBObject dbo) {
-		
+
 		// Is the Class being saved the managed class?
 		//
 		if (getClazz().isAssignableFrom(stateful.getClass())) {
 			try {
 				boolean updateStateful = false;
 				StateDocumentImpl stateDoc = this.getStateDocument((T)stateful);
-				
-				// If the StatefulDocument doesn't have an associated StateDocument, then 
+
+				// If the StatefulDocument doesn't have an associated StateDocument, then
 				// we need to create a new StateDocument - save the StateDocument and save the
 				// Stateful Document again so that they both valid DBRef objects
 				//
@@ -421,7 +421,7 @@ public class MongoPersister<T>
 			} catch (NoSuchFieldException e) {
 				throw new RuntimeException(e);
 			}
-			
+
 		}
 	}
 

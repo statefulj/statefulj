@@ -53,7 +53,15 @@ public interface Persister<T> {
 	 */
 	void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException;
 
-
+	/**
+	 * Set the Collection of States to be managed by the Persister
+	 * @param states Collection of States
+	 */
 	void setStates(Collection<State<T>> states);
 
+	/**
+	 * Set the Start State
+	 * @param startState Start State
+	 */
+	void setStartState(State<T> startState);
 }
