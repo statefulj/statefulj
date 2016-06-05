@@ -8,3 +8,4 @@ target/
 .metadata/
 _site
 Servers/
+.idea/
