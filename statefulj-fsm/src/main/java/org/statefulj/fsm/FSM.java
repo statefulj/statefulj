@@ -124,7 +124,7 @@ public class FSM<T> {
 					current = this.transition(stateful, current, event, transition, args);
 				} else {
 
-                    if (logger.isDebugEnabled())
+					if (logger.isDebugEnabled())
                         logger.debug("{}({})::{}({})->{}/noop",
                                 this.name,
                                 stateful.getClass().getSimpleName(),
@@ -212,7 +212,7 @@ public class FSM<T> {
 
 		/**
 		 * Fluid State Builder
-		 * 
+		 *
 		 * @author Andrew Hall
 		 *
 		 * @param <T> Type of the Stateful Entity
@@ -221,7 +221,7 @@ public class FSM<T> {
 
 			/**
 			 * Fluid Transition Builder
-			 * 
+			 *
 			 * @author Andrew Hall
 			 *
 			 * @param <T> Type of the Stateful Entity
@@ -276,7 +276,7 @@ public class FSM<T> {
 
 				/**
 				 * Set the "To" State to the specified State.  If both the "To" State is
-				 * set using the name of the State and the State object, the State object 
+				 * set using the name of the State and the State object, the State object
 				 * will take precedence
 				 * @param toState To State object
 				 * @return TransitionBuilder
@@ -525,7 +525,7 @@ public class FSM<T> {
 		 * Add a specified State and state whether or not it's the Start State for the FSM.
 		 * If no State is explicitly set as the Start State, then the first State added will
 		 * be the Start State
-		 * 
+		 *
 		 * @param state State to add
 		 * @param isStartState Whether or not the State is specified as the Start State
 		 * @return FSMBuilder
@@ -550,7 +550,7 @@ public class FSM<T> {
 		 * Begin building a State for the FSM and state whether or not it's the Start State for the FSM.
 		 * If no State is explicitly set as the Start State, then the first State added will
 		 * be the Start State
-		 * 
+		 *
 		 * @param name Name of the State
 		 * @param isStartState Whether or not the State is specified as the Start State
 		 * @return StateBuilder
@@ -607,7 +607,7 @@ public class FSM<T> {
 				current.getName(),
 				pair.getState().getName(),
 				args);
-		return pair.getState();
+		return getCurrentState(stateful); // Refetch as the action may have changed the state
 	}
 
 	protected void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
