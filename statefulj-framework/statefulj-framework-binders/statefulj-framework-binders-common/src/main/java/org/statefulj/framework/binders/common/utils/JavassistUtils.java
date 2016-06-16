@@ -17,9 +17,6 @@
  */
 package org.statefulj.framework.binders.common.utils;
 
-import static org.statefulj.framework.binders.common.utils.JavassistUtils.cloneAnnotation;
-import static org.statefulj.framework.binders.common.utils.JavassistUtils.getAnnotationsAttribute;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;

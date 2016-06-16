@@ -1,19 +1,19 @@
 /***
- * 
+ *
  * Copyright 2014 Andrew Hall
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 
 package org.statefulj.persistence.jpa;
@@ -36,7 +36,10 @@ import javax.persistence.criteria.Root;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.orm.jpa.EntityManagerFactoryInfo;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.support.TransactionCallback;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
@@ -44,26 +47,28 @@ import org.statefulj.persistence.common.AbstractPersister;
 
 import static org.statefulj.common.utils.ReflectionUtils.*;
 
-@Transactional
 public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(JPAPerister.class);
 
 	private EntityManager entityManager;
-  	
-	public JPAPerister(List<State<T>> states, State<T> start, Class<T> clazz, EntityManagerFactoryInfo entityManagerFactory) {
-		this(states, null, start, clazz, entityManagerFactory.getNativeEntityManagerFactory().createEntityManager());
+
+	private PlatformTransactionManager transactionManager;
+
+	public JPAPerister(List<State<T>> states, State<T> startState, Class<T> clazz, EntityManagerFactoryInfo entityManagerFactory, PlatformTransactionManager transactionManager) {
+		this(states, null, startState, clazz, entityManagerFactory.getNativeEntityManagerFactory().createEntityManager(), transactionManager);
 	}
 
-	public JPAPerister(List<State<T>> states, String stateFieldName, State<T> start, Class<T> clazz, EntityManager entityManager) {
-		super(states, stateFieldName, start, clazz);
+	public JPAPerister(List<State<T>> states, String stateFieldName, State<T> startState, Class<T> clazz, EntityManager entityManager, PlatformTransactionManager transactionManager) {
+		super(states, stateFieldName, startState, clazz);
+		this.transactionManager = transactionManager;
 		this.entityManager = entityManager;
 	}
 
 	/**
-	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.  
+	 * Set the current State.  This method will ensure that the state in the db matches the expected current state.
 	 * If not, it will throw a StateStateException
-	 * 
+	 *
 	 * @param stateful Stateful Entity
 	 * @param current Expected current State
 	 * @param next The value of the next State
@@ -72,8 +77,8 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 	@Override
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 		try {
-			
-			// Has this Entity been persisted to the database? 
+
+			// Has this Entity been persisted to the database?
 			//
 			Object id = getId(stateful);
 			if (id != null && entityManager.contains(stateful)) {
@@ -110,7 +115,7 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 		//
 		synchronized(stateful) {
 			String state = this.getState(stateful);
-			state = (state == null) ? getStart().getName() : state;
+			state = (state == null) ? getStartState().getName() : state;
 			if (state.equals(current.getName())) {
 				setState(stateful, next.getName());
 			} else {
@@ -131,85 +136,93 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 	private void updateStateInDB(T stateful, State<T> current, State<T> next,
 			Object id) throws NoSuchFieldException, IllegalAccessException,
 			StaleStateException {
-		// Entity is in the database - perform qualified update based off 
+		// Entity is in the database - perform qualified update based off
 		// the current State value
 		//
 		Query update = buildUpdate(id, stateful, current, next, getIdField(), getStateField());
-		
+
 		// Successful update?
 		//
 		if (update.executeUpdate() == 0) {
-			
+
 			// If we aren't able to update - it's most likely that we are out of sync.
 			// So, fetch the latest value and update the Stateful object.  Then throw a RetryException
 			// This will cause the event to be reprocessed by the FSM
 			//
-			Query query = buildQuery(id, stateful);
-			String state = getStart().getName();
+			final Query query = buildQuery(id, stateful);
+			String state = getStartState().getName();
 			try {
-				state = (String)query.getSingleResult();
+				TransactionTemplate tt = new TransactionTemplate(transactionManager);
+				state =  tt.execute(new TransactionCallback<String>() {
+
+					@Override
+					public String doInTransaction(TransactionStatus status) {
+						return (String) query.getSingleResult();
+					}
+
+				});
 			} catch(NoResultException nre) {
 				// This is the first time setting the state, ignore
 				//
 			}
-			
+
 			logger.warn("Stale State, expected={}, actual={}", current.getName(), state);
-			
+
 			setState(stateful, state);
 			throwStaleState(current, next);
 		}
 	}
-	
+
 	protected Query buildUpdate(
-			Object id, 
-			T stateful, 
-			State<T> current, 
-			State<T> next, 
-			Field idField, 
+			Object id,
+			T stateful,
+			State<T> current,
+			State<T> next,
+			Field idField,
 			Field stateField) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
 
 		CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
-		
+
 		// update <class>
 		//
 		CriteriaUpdate<T> cu = cb.createCriteriaUpdate(this.getClazz());
 		Root<T> t = cu.from(this.getClazz());
-		
+
 		Path<?> idPath = t.get(this.getIdField().getName());
 		Path<String> statePath = t.get(this.getStateField().getName());
-		
+
 		// set state=<next_state>
 		//
 		cu.set(statePath, next.getName());
-		
+
 		// where id=<id> and state=<current_state>
 		//
-		Predicate statePredicate = (current.equals(getStart())) ?
+		Predicate statePredicate = (current.equals(getStartState())) ?
 				cb.or(
 					cb.equal(
-						statePath, 
+						statePath,
 						current.getName()
 					),
 					cb.equal(
-						statePath, 
+						statePath,
 						cb.nullLiteral(String.class)
 					)
 				) :
 				cb.equal(
-					statePath, 
+					statePath,
 					current.getName()
 				);
-				
+
 		cu.where(
 			cb.and(
 				cb.equal(
-					idPath, 
+					idPath,
 					this.getId(stateful)
 				),
 				statePredicate
 			)
 		);
-		
+
 		Query query = entityManager.createQuery(cu);
 		if (logger.isDebugEnabled()) {
 			logger.debug(query.unwrap(org.hibernate.Query.class).getQueryString());
@@ -238,16 +251,16 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 	}
 
 	private Query buildQuery(Object id, T stateful) throws SecurityException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
-		
+
 		CriteriaBuilder cb = this.entityManager.getCriteriaBuilder();
 		CriteriaQuery<String> cq = cb.createQuery(String.class);
-		
+
 		Root<T> t = cq.from(this.getClazz());
 		Path<?> idPath = t.get(this.getIdField().getName());
 		Path<String> statePath = t.get(this.getStateField().getName());
-		
+
 		cq.select(statePath);
-		
+
 		cq.where(cb.equal(idPath, this.getId(stateful)));
 
 		Query query = entityManager.createQuery(cq);

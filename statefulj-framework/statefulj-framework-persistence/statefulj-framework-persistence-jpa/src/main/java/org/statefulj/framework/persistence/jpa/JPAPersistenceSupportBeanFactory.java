@@ -76,6 +76,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 			String startStateId, 
 			List<RuntimeBeanReference> stateBeans) {
 		BeanDefinition entityMgr = (BeanDefinition)repoBeanDefinitionFactory.getPropertyValues().getPropertyValue("entityManager").getValue();
+		String tmId = (String)repoBeanDefinitionFactory.getPropertyValues().getPropertyValue("transactionManager").getValue();
 		BeanDefinition persisterBean = BeanDefinitionBuilder
 				.genericBeanDefinition(JPAPerister.class)
 				.getBeanDefinition();
@@ -85,6 +86,7 @@ public class JPAPersistenceSupportBeanFactory implements PersistenceSupportBeanF
 		args.addIndexedArgumentValue(2, new RuntimeBeanReference(startStateId));
 		args.addIndexedArgumentValue(3, statefulClass);
 		args.addIndexedArgumentValue(4, entityMgr);
+		args.addIndexedArgumentValue(5, new RuntimeBeanReference(tmId));
 		return persisterBean;
 	}
 	

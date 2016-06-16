@@ -1,19 +1,19 @@
 /***
- * 
+ *
  * Copyright 2014 Andrew Hall
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  */
 package org.statefulj.framework.core.fsm;
 
@@ -35,31 +35,31 @@ import org.statefulj.fsm.model.Transition;
 
 /**
  * The Framework FSM.  The Framework FSM is responsible to extending the {@link org.statefulj.fsm.FSM}
- * to provide ability to autowire and reload Stateful Entities 
- * 
+ * to provide ability to autowire and reload Stateful Entities
+ *
  * @author Andrew Hall
  *
  * @param <T> The Stateful Entity Type
  * @param <CT> The Context Type
  */
 public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(FSM.class);
 
 	private Finder<T, CT> finder = null;
 
 	private Class<T> clazz = null;
-	
+
 	private Class<? extends Annotation> idType = null;
-	
+
 	private ApplicationContext appContext;
-	
+
 	public FSM(
-			String name, 
-			Persister<T> persister, 
-			int retryAttempts, 
-			int retryInterval, 
-			Class<T> clazz, 
+			String name,
+			Persister<T> persister,
+			int retryAttempts,
+			int retryInterval,
+			Class<T> clazz,
 			Class<? extends Annotation> idType,
 			ApplicationContext applicationContext,
 			Finder<T, CT> finder) {
@@ -68,11 +68,11 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 	}
 
 	public FSM(
-			String name, 
-			Persister<T> persister, 
-			int retryAttempts, 
-			int retryInterval, 
-			Class<T> clazz, 
+			String name,
+			Persister<T> persister,
+			int retryAttempts,
+			int retryInterval,
+			Class<T> clazz,
 			Class<? extends Annotation> idType,
 			ApplicationContext applicationContext) {
 		super(name, persister, retryAttempts, retryInterval);
@@ -89,68 +89,68 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 
 	@Override
 	protected State<T> transition(T stateful, State<T> current, String event, Transition<T> t, Object... args) throws RetryException {
-		
+
 		TransitionImpl<T> transition = (TransitionImpl<T>)t;
-		StateActionPair<T> pair = transition.getStateActionPair(stateful);
-		
+		StateActionPair<T> pair = transition.getStateActionPair(stateful, event, args);
+
 		// If this transition is applicable to every state and doesn't cause a State change, don't bother
 		// with setting the current state
 		//
 		if (!transition.isAny()) {
 			setCurrent(stateful, current, pair.getState());
 		}
-		
+
 		// Reloading MUST happen after we successful set the current state
 		//
 		if (transition.isReload()) {
 			stateful = reload(stateful, event, args);
 			autowire(stateful);
 		}
-		
+
 		executeAction(
-				pair.getAction(), 
-				stateful, 
+				pair.getAction(),
+				stateful,
 				event,
 				current.getName(),
 				pair.getState().getName(),
 				args);
-		
+
 		return pair.getState();
 	}
-	
+
 	private void autowire(T stateful) {
-		// Autowire instantiated object 
+		// Autowire instantiated object
 		// TODO: Make this configurable - if using @Configurable - then this isn't necessary
 		//
 		this.appContext.getAutowireCapableBeanFactory().autowireBeanProperties(
 				stateful,
-			    AutowireCapableBeanFactory.AUTOWIRE_NO, 
+			    AutowireCapableBeanFactory.AUTOWIRE_NO,
 			    false);
 	}
-	
+
 	private T reload(T stateful, String event, Object... args) {
-		
+
 		if (this.finder == null) {
 			throw new RuntimeException(
 					"Reloading is not supported without a valid Finder.  " +
-					"Ensure that there is a Repository for " + 
+					"Ensure that there is a Repository for " +
 					this.clazz.getName() + " or provide a finderId in the StateController annotation");
 		}
-		
+
 		T retVal = null;
-		
+
 		// Pull out the Context if available
 		//
 		CT context = getContext(args);
-		
+
 		// Fetch the ID value from the StatefulEntity
 		//
 		Object id = getId(stateful);
-		
+
 		// Get a fresh copy of the StatefulEntity
 		//
 		retVal = findStatefulEntity(event, context, id);
-		
+
 		// If we fetched a fresh instance, return it.  Otherwise,
 		// return the current StatefulEntity.  Never pass back a null value
 		//
@@ -174,7 +174,6 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 	}
 
 	/**
-	 * @param context
 	 * @param args
 	 * @return
 	 */
@@ -190,7 +189,6 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 
 	/**
 	 * @param stateful
-	 * @param id
 	 * @return
 	 */
 	private Object getId(T stateful) {
