@@ -8,13 +8,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
-import org.statefulj.persistence.jpa.Order;
-import org.statefulj.persistence.jpa.embedded.EmbeddedOrder;
 import org.statefulj.persistence.jpa.model.StatefulEntity;
 import org.statefulj.persistence.jpa.utils.UnitTestUtils;
 
 import javax.annotation.Resource;
-
 import java.lang.reflect.Field;
 
 import static org.junit.Assert.assertEquals;
@@ -53,8 +50,7 @@ public class LazyEntityJpaPersisterTest {
         parentOrder.setOrder(order);
         parentOrder = lazyOrderRepo.save(parentOrder);
 
-        State<LazyOrder> currentState = lazyJpaPersister.getCurrent(order);
-        assertEquals(stateA, currentState);
+        assertEquals(stateA, lazyJpaPersister.getCurrent(order));
 
         long parentOrderId = parentOrder.getId();
 
@@ -130,7 +126,7 @@ public class LazyEntityJpaPersisterTest {
 
         assertEquals(stateA, lazyJpaPersister.getCurrent(lazyChildOrder));
 
-        lazyJpaPersister.setCurrent(order, stateB, stateC);
+        lazyJpaPersister.setCurrent(lazyChildOrder, stateB, stateC);
         UnitTestUtils.commitTransaction(transactionManager);
     }
 }
