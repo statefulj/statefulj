@@ -162,7 +162,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 			//
 			if (isStatefulFSM) {
 
-				// Determine the controllerId - either explicit or derviced
+				// Determine the controllerId - either explicit or derived
 				//
 				controllerId = getControllerId(fsmAnnotation);
 				if (StringUtils.isEmpty(controllerId)) {
