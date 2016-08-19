@@ -42,12 +42,12 @@ public class FieldAccessor<T, V> {
         }
     }
 
-    public void setValue(T stateful, String state) {
+    public void setValue(T stateful, V value) {
         try {
             if (this.setMethod != null) {
-                this.setMethod.invoke(stateful, state);
+                this.setMethod.invoke(stateful, value);
             } else {
-                this.field.set(stateful, state);
+                this.field.set(stateful, value);
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);

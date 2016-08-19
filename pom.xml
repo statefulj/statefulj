@@ -5,7 +5,7 @@
 
 	<groupId>org.statefulj</groupId>
 	<artifactId>statefulj</artifactId>
-	<version>2.1</version>
+	<version>3.0</version>
 	<packaging>pom</packaging>
 
 	<name>StatefulJ</name>
