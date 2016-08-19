@@ -26,17 +26,19 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.statefulj.common.utils.FieldAccessor;
 import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
+import org.statefulj.persistence.StateFieldAccessor;
 
-public abstract class AbstractPersister<T> implements Persister<T> {
+public abstract class AbstractPersister<T, ID> implements Persister<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPersister.class);
 
-	private Field idField;
-	private Field stateField;
+	private FieldAccessor<T, ID> idFieldAccessor;
+	private StateFieldAccessor<T> stateFieldAccessor;
 	private State<T> startState;
 	private Class<T> clazz;
 	private HashMap<String, State<T>> states = new HashMap<String, State<T>>();
@@ -49,31 +51,33 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 
 		this.clazz = clazz;
 
-		// Find the Id and State<T> field of the Entity
+		// Find the Id field of the Entity
 		//
-		this.idField = findIdField(clazz);
+		Field idField = findIdField(clazz);
 
-		if (this.idField == null) {
+		if (idField == null) {
 			throw new RuntimeException("No Id field defined");
 		}
-		this.idField.setAccessible(true);
 
-		this.stateField = findStateField(stateFieldName, clazz);
+		this.idFieldAccessor = buildIdFieldAccessor(idField, clazz);
 
-		if (this.stateField == null) {
+		// Find the State field of the Entity
+		//
+		Field stateField = findStateField(stateFieldName, clazz);
+
+		if (stateField == null) {
 			throw new RuntimeException("No State field defined");
 		}
 
-		if (!validStateField(this.stateField)) {
+		if (!validStateField(stateField)) {
 			throw new RuntimeException(
 					String.format(
 							"State field, %s, of class %s, is not of type %s",
-							this.stateField.getName(),
+							stateField.getName(),
 							clazz,
 							getStateFieldType()));
 		}
-
-		this.stateField.setAccessible(true);
+		this.stateFieldAccessor = buildStateFieldAccessor(stateField, clazz);
 
 		// Start state - returned when no state is set
 		//
@@ -88,7 +92,7 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 
 	@Override
 	public State<T> getCurrent(T stateful) {
-		State<T> state = null;
+		State<T> state;
 		try {
 			String stateKey = this.getState(stateful);
 			state = (stateKey == null) ? this.startState : this.states.get(stateKey);
@@ -131,6 +135,14 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		this.startState = startState;
 	}
 
+	public Field getIdField() {
+		return this.idFieldAccessor.getField();
+	}
+
+	public Field getStateField() {
+		return this.stateFieldAccessor.getField();
+	}
+
 	protected abstract boolean validStateField(Field stateField);
 
 	protected abstract Field findIdField(Class<?> clazz);
@@ -152,23 +164,15 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		return stateField;
 	}
 
+	protected FieldAccessor<T, ID> buildIdFieldAccessor(Field idField, Class<T> clazz) {
+		return new FieldAccessor<T, ID>(clazz, idField);
+	}
+
+	protected StateFieldAccessor<T> buildStateFieldAccessor(Field stateField, Class<T> clazz) {
+		return new StateFieldAccessor<T>(clazz, stateField);
+	}
+
 	protected abstract Class<?> getStateFieldType();
-
-	protected Field getIdField() {
-		return idField;
-	}
-
-	protected void setIdField(Field idField) {
-		this.idField = idField;
-	}
-
-	protected Field getStateField() {
-		return stateField;
-	}
-
-	protected void setStateField(Field stateField) {
-		this.stateField = stateField;
-	}
 
 	protected State<T> getStartState() {
 		return startState;
@@ -178,25 +182,17 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 		return clazz;
 	}
 
-	protected void setClazz(Class<T> clazz) {
-		this.clazz = clazz;
-	}
-
-	protected HashMap<String, State<T>> getStates() {
-		return states;
-	}
-
 	protected Object getId(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		return this.idField.get(obj);
+		return this.idFieldAccessor.getValue(obj);
 	}
 
 	protected String getState(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-		return (String)this.stateField.get(obj);
+		return this.stateFieldAccessor.getValue(obj);
 	}
 
 	protected void setState(T obj, String state) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
 		state = (state == null) ? this.startState.getName() : state;
-		this.stateField.set(obj, state);
+		this.stateFieldAccessor.setValue(obj, state);
 	}
 
 	protected void throwStaleState(State<T> current, State<T> next) throws StaleStateException {
@@ -205,5 +201,13 @@ public abstract class AbstractPersister<T> implements Persister<T> {
 				current.getName(),
 				next.getName());
 		throw new StaleStateException(err);
+	}
+
+	protected StateFieldAccessor<T> getStateFieldAccessor() {
+		return stateFieldAccessor;
+	}
+
+	protected FieldAccessor<T, ID> getIdFieldAccessor() {
+		return idFieldAccessor;
 	}
 }

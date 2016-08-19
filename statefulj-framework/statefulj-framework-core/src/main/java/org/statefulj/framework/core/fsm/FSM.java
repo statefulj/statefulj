@@ -118,6 +118,7 @@ public class FSM<T, CT> extends org.statefulj.fsm.FSM<T> {
 		return pair.getState();
 	}
 
+
 	private void autowire(T stateful) {
 		// Autowire instantiated object
 		// TODO: Make this configurable - if using @Configurable - then this isn't necessary

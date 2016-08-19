@@ -52,7 +52,7 @@ import java.util.Random;
 import static org.statefulj.common.utils.ReflectionUtils.getReferencedField;
 
 public class MongoPersister<T>
-			extends AbstractPersister<T>
+			extends AbstractPersister<T, StateDocumentImpl>
 			implements
 				Persister<T>,
 				BeanDefinitionRegistryPostProcessor,

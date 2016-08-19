@@ -18,6 +18,7 @@
 
 package org.statefulj.persistence.jpa;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.List;
 
@@ -47,7 +48,7 @@ import org.statefulj.persistence.common.AbstractPersister;
 
 import static org.statefulj.common.utils.ReflectionUtils.*;
 
-public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T> {
+public class JPAPerister<T> extends AbstractPersister<T, Serializable> implements Persister<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(JPAPerister.class);
 
@@ -96,6 +97,14 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 		} catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public EntityManager getEntityManager() {
+		return entityManager;
+	}
+
+	public void setEntityManager(EntityManager entityManager) {
+		this.entityManager = entityManager;
 	}
 
 	/**
@@ -237,7 +246,7 @@ public class JPAPerister<T> extends AbstractPersister<T> implements Persister<T>
 
 	@Override
 	protected Field findIdField(Class<?> clazz) {
-		Field idField = null;
+		Field idField;
 		idField = getReferencedField(clazz, Id.class);
 		if (idField == null) {
 			idField = getReferencedField(clazz, EmbeddedId.class);

@@ -8,10 +8,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.statefulj.fsm.Persister;
 import org.statefulj.fsm.StaleStateException;
 import org.statefulj.fsm.model.State;
+import org.statefulj.persistence.jpa.JPAPerister;
 import org.statefulj.persistence.jpa.model.StatefulEntity;
 import org.statefulj.persistence.jpa.utils.UnitTestUtils;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.lang.reflect.Field;
 
 import static org.junit.Assert.assertEquals;
@@ -21,13 +24,16 @@ import static org.junit.Assert.assertEquals;
 public class LazyEntityJpaPersisterTest {
 
     @Resource
-    Persister<LazyOrder> lazyJpaPersister;
+    JPAPerister<LazyOrder> lazyJpaPersister;
 
     @Resource
     LazyOrderRepository lazyOrderRepo;
 
     @Resource
     JpaTransactionManager transactionManager;
+
+    @PersistenceContext
+    EntityManager entityManager;
 
     @Resource
     State<LazyOrder> stateA;
@@ -41,6 +47,7 @@ public class LazyEntityJpaPersisterTest {
     @Test
     public void testValidStateChange() throws StaleStateException, NoSuchFieldException, IllegalAccessException {
         //Setup the database
+        lazyJpaPersister.setEntityManager(entityManager);
         UnitTestUtils.startTransaction(transactionManager);
 
         LazyOrder order = new LazyOrder();
@@ -86,7 +93,7 @@ public class LazyEntityJpaPersisterTest {
         lazyChildOrder = savedParentOrder.getOrder();
         assertEquals(stateC, lazyJpaPersister.getCurrent(lazyChildOrder));
 
-        Field stateField = StatefulEntity.class.getDeclaredField("state");
+        Field stateField = LazyOrder.class.getDeclaredField("state");
         stateField.setAccessible(true);
         stateField.set(lazyChildOrder, "stateD");
 
