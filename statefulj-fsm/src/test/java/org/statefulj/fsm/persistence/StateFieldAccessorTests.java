@@ -75,40 +75,40 @@ public class StateFieldAccessorTests {
 
     @Test
     public void testStatePersisterStatefulClass1() {
-        StateFieldAccessor<StatefulClass1> statePersister = new StateFieldAccessor(
+        StateFieldAccessor<StatefulClass1> stateFieldAccessor = new StateFieldAccessor(
                 StatefulClass1.class,
                 ReflectionUtils.getFirstAnnotatedField(StatefulClass1.class, State.class));
-        assertNotNull(statePersister.getField());
-        assertEquals(null, statePersister.getGetMethod());
-        assertEquals(null, statePersister.getSetMethod());
+        assertNotNull(stateFieldAccessor.getField());
+        assertEquals(null, stateFieldAccessor.getGetMethod());
+        assertEquals(null, stateFieldAccessor.getSetMethod());
 
-        Field stateField = statePersister.getField();
+        Field stateField = stateFieldAccessor.getField();
         assertEquals("state", stateField.getName());
     }
 
     @Test
     public void testStatePersisterStatefulClass2() {
-        StateFieldAccessor<StatefulClass2> statePersister = new StateFieldAccessor(
+        StateFieldAccessor<StatefulClass2> stateFieldAccessor = new StateFieldAccessor(
                 StatefulClass2.class,
                 ReflectionUtils.getFirstAnnotatedField(StatefulClass2.class, State.class));
-        assertNotNull(statePersister.getField());
-        assertEquals("getState", statePersister.getGetMethod().getName());
-        assertEquals("setState", statePersister.getSetMethod().getName());
+        assertNotNull(stateFieldAccessor.getField());
+        assertEquals("getState", stateFieldAccessor.getGetMethod().getName());
+        assertEquals("setState", stateFieldAccessor.getSetMethod().getName());
 
-        Field stateField = statePersister.getField();
+        Field stateField = stateFieldAccessor.getField();
         assertEquals("state", stateField.getName());
     }
 
     @Test
     public void testStatePersisterStatefulClass3() {
-        StateFieldAccessor<StatefulClass3> statePersister = new StateFieldAccessor(
+        StateFieldAccessor<StatefulClass3> stateFieldAccessor = new StateFieldAccessor(
                 StatefulClass3.class,
                 ReflectionUtils.getFirstAnnotatedField(StatefulClass3.class, State.class));
-        assertNotNull(statePersister.getField());
-        assertEquals("nonBeanGetState", statePersister.getGetMethod().getName());
-        assertEquals("nonBeanSetState", statePersister.getSetMethod().getName());
+        assertNotNull(stateFieldAccessor.getField());
+        assertEquals("nonBeanGetState", stateFieldAccessor.getGetMethod().getName());
+        assertEquals("nonBeanSetState", stateFieldAccessor.getSetMethod().getName());
 
-        Field stateField = statePersister.getField();
+        Field stateField = stateFieldAccessor.getField();
         assertEquals("state", stateField.getName());
     }
 
@@ -128,57 +128,57 @@ public class StateFieldAccessorTests {
 
     @Test
     public void testGetterSetterStatefulClass1() {
-        StateFieldAccessor<StatefulClass1> statePersister = new StateFieldAccessor(
+        StateFieldAccessor<StatefulClass1> stateFieldAccessor = new StateFieldAccessor(
                 StatefulClass1.class,
                 ReflectionUtils.getFirstAnnotatedField(StatefulClass1.class, State.class));
         StatefulClass1 stateful = new StatefulClass1();
-        assertNull(statePersister.getValue(stateful));
-        statePersister.setValue(stateful, "testValue");
-        assertEquals("testValue", statePersister.getValue(stateful));
+        assertNull(stateFieldAccessor.getValue(stateful));
+        stateFieldAccessor.setValue(stateful, "testValue");
+        assertEquals("testValue", stateFieldAccessor.getValue(stateful));
     }
 
     @Test
     public void testGetterSetterStatefulClass2() {
-        StateFieldAccessor<StatefulClass2> statePersister = new StateFieldAccessor(
+        StateFieldAccessor<StatefulClass2> stateFieldAccessor = new StateFieldAccessor(
                 StatefulClass2.class,
                 ReflectionUtils.getFirstAnnotatedField(StatefulClass2.class, State.class));
         StatefulClass2 stateful = new StatefulClass2();
 
         StatefulClass2 spy = Mockito.spy(stateful);
-        assertNull(statePersister.getValue(spy));
+        assertNull(stateFieldAccessor.getValue(spy));
         Mockito.verify(spy).getState();
 
-        statePersister.setValue(spy, "testValue");
+        stateFieldAccessor.setValue(spy, "testValue");
         Mockito.verify(spy).setState("testValue");
-        assertEquals("testValue", statePersister.getValue(spy));
+        assertEquals("testValue", stateFieldAccessor.getValue(spy));
     }
 
     @Test
     public void testGetterSetterStatefulClass3() {
-        StateFieldAccessor<StatefulClass3> statePersister = new StateFieldAccessor(
+        StateFieldAccessor<StatefulClass3> stateFieldAccessor = new StateFieldAccessor(
                 StatefulClass3.class,
                 ReflectionUtils.getFirstAnnotatedField(StatefulClass3.class, State.class));
         StatefulClass3 stateful = new StatefulClass3();
 
         StatefulClass3 spy = Mockito.spy(stateful);
-        assertNull(statePersister.getValue(spy));
+        assertNull(stateFieldAccessor.getValue(spy));
         Mockito.verify(spy).nonBeanGetState();
 
-        statePersister.setValue(spy, "testValue");
+        stateFieldAccessor.setValue(spy, "testValue");
         Mockito.verify(spy).nonBeanSetState("testValue");
-        assertEquals("testValue", statePersister.getValue(spy));
+        assertEquals("testValue", stateFieldAccessor.getValue(spy));
     }
 
     @Test
     public void testStatePersisterStatefulClass6() {
-        StateFieldAccessor<StatefulClass6> statePersister = new StateFieldAccessor(
+        StateFieldAccessor<StatefulClass6> stateFieldAccessor = new StateFieldAccessor(
                 StatefulClass6.class,
                 ReflectionUtils.getFirstAnnotatedField(StatefulClass6.class, State.class));
-        assertNotNull(statePersister.getField());
-        assertEquals(null, statePersister.getGetMethod());
-        assertEquals(null, statePersister.getSetMethod());
+        assertNotNull(stateFieldAccessor.getField());
+        assertEquals(null, stateFieldAccessor.getGetMethod());
+        assertEquals(null, stateFieldAccessor.getSetMethod());
 
-        Field stateField = statePersister.getField();
+        Field stateField = stateFieldAccessor.getField();
         assertEquals("state", stateField.getName());
     }
 

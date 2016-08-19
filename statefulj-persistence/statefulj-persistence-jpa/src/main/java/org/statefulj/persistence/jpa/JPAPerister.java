@@ -123,7 +123,7 @@ public class JPAPerister<T> extends AbstractPersister<T, Serializable> implement
 		// concurrency conflicts
 		//
 		synchronized(stateful) {
-			String state = this.getState(stateful);
+			Serializable state = this.getState(stateful);
 			state = (state == null) ? getStartState().getName() : state;
 			if (state.equals(current.getName())) {
 				setState(stateful, next.getName());

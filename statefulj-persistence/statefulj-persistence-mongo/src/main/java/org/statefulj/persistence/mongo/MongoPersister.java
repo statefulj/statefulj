@@ -372,11 +372,11 @@ public class MongoPersister<T>
 	}
 
 	protected StateDocumentImpl updateStateDoc(Query query, Update update) {
-		return (StateDocumentImpl)getMongoTemplate().findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
+		return getMongoTemplate().findAndModify(query, update, RETURN_NEW, StateDocumentImpl.class);
 	}
 
 	protected StateDocumentImpl findStateDoc(String id) {
-		return (StateDocumentImpl)getMongoTemplate().findById(id, StateDocumentImpl.class);
+		return getMongoTemplate().findById(id, StateDocumentImpl.class);
 	}
 
 	@SuppressWarnings("unchecked")

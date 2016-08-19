@@ -34,10 +34,6 @@ public class MockPersister<T> extends AbstractPersister<T, String> {
 	public void setCurrent(T stateful, State<T> current, State<T> next) throws StaleStateException {
 	}
 
-	public Field getStateField() {
-		return this.getStateFieldAccessor().getField();
-	}
-
 	@Override
 	protected boolean validStateField(Field stateField) {
 		return true;

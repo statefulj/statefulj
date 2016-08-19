@@ -18,6 +18,7 @@
 
 package org.statefulj.persistence.common;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
@@ -94,7 +95,7 @@ public abstract class AbstractPersister<T, ID> implements Persister<T> {
 	public State<T> getCurrent(T stateful) {
 		State<T> state;
 		try {
-			String stateKey = this.getState(stateful);
+			Serializable stateKey = this.getState(stateful);
 			state = (stateKey == null) ? this.startState : this.states.get(stateKey);
 		} catch (NoSuchFieldException e) {
 			throw new RuntimeException(e);
@@ -186,7 +187,7 @@ public abstract class AbstractPersister<T, ID> implements Persister<T> {
 		return this.idFieldAccessor.getValue(obj);
 	}
 
-	protected String getState(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	protected Serializable getState(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		return this.stateFieldAccessor.getValue(obj);
 	}
 

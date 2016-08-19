@@ -40,7 +40,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	private final Map<String, State<T>> states = new HashMap<String, State<T>>();
 	private State<T> startState;
 	private String stateFieldName;
-	private StateFieldAccessor<T> statePersister;
+	private StateFieldAccessor<T> stateFieldAccessor;
 
 	public MemoryPersisterImpl() {}
 
@@ -109,7 +109,7 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	@Override
 	public State<T> getCurrent(T stateful) {
 		try {
-			String key = this.getStateFieldAccessor(stateful).getValue(stateful);
+			String key = (String)this.getStateFieldAccessor(stateful).getValue(stateful);
 			State<T> state = (key != null) ? states.get(key) : null;
 			return (state != null) ? state : this.startState;
 		} catch(Exception e) {
@@ -146,15 +146,15 @@ public class MemoryPersisterImpl<T> implements Persister<T> {
 	}
 
 	private StateFieldAccessor<T> getStateFieldAccessor(final T stateful) {
-		if (this.statePersister == null)
+		if (this.stateFieldAccessor == null)
 			initStateFieldAccessor(stateful);
-		return this.statePersister;
+		return this.stateFieldAccessor;
 	}
 
 	private synchronized void initStateFieldAccessor(T stateful) {
-		if (this.statePersister == null) {
+		if (this.stateFieldAccessor == null) {
 			Field stateField = locateStateField(stateful);
-			this.statePersister = new StateFieldAccessor(stateful.getClass(), stateField);
+			this.stateFieldAccessor = new StateFieldAccessor(stateful.getClass(), stateField);
 		}
 	}
 

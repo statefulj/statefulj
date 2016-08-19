@@ -1,21 +1,19 @@
 package org.statefulj.persistence;
 
 import org.statefulj.common.utils.FieldAccessor;
-import org.statefulj.common.utils.ReflectionUtils;
 import org.statefulj.persistence.annotations.State;
 
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 /**
  * Created by andrewhall on 7/24/16.
  */
-public class StateFieldAccessor<T> extends FieldAccessor<T, String> {
+public class StateFieldAccessor<T> extends FieldAccessor<T, Serializable> {
 
     public StateFieldAccessor(Class<T> clazz, Field field) {
         super(clazz, field);
