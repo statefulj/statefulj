@@ -11,6 +11,9 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 
 /**
+ * Encapsulates accessing the State Field.  It will inspect the {@link org.statefulj.persistence.annotations.State}
+ * Annotation to determine the means to access the State Field
+ *
  * Created by andrewhall on 7/24/16.
  */
 public class StateFieldAccessor<T> extends FieldAccessor<T, Serializable> {

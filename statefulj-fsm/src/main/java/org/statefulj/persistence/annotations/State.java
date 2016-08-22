@@ -25,7 +25,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the State field or getter/setter method.
+ * Indicates that the State field and the means to access the State field
  *
  * @author Andrew Hall
  *
@@ -40,10 +40,28 @@ public @interface State {
         METHOD           // Will only use a method to access the property
     }
 
+    /**
+     * Specify how to access the State Field
+     * @return
+     */
     AccessorType accessorType() default AccessorType.AUTO;
 
+    /**
+     * If the name of the set method is not a standard JavaBean setter method, then specify
+     * the name of the name of the setter method.  If accessorType is set to PROPERTY, this value is
+     * ignored
+     *
+     * @return
+     */
     String setMethodName() default "";
 
+    /**
+     * If the name of the get method is not a standard JavaBean getter method, then specify
+     * the name of the name of the getter method.  If accessorType is set to PROPERTY, this value is
+     * ignored
+     *
+     * @return
+     */
     String getMethodName() default "";
 
 }

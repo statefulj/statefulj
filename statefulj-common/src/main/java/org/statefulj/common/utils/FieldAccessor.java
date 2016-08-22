@@ -9,6 +9,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
+ * Class that encapsulates access to a field.  If the field has a getter or setter
+ * method, per JavaBean spec, the methods will be used; otherwise, the accessor will
+ * directly read or update the field via reflection
+ *
  * Created by andrewhall on 7/24/16.
  */
 public class FieldAccessor<T, V> {
@@ -18,6 +22,12 @@ public class FieldAccessor<T, V> {
     protected Method getMethod;
     protected Method setMethod;
 
+    /**
+     * Constructor for a Field Accessor.  Specify the Class and Fields
+     *
+     * @param clazz
+     * @param field
+     */
     public FieldAccessor(Class<T> clazz, Field field) {
         try {
             this.clazz = clazz;
@@ -28,12 +38,18 @@ public class FieldAccessor<T, V> {
         }
     }
 
-    public V getValue(T stateful) {
+    /**
+     * Return the value of the object
+     *
+     * @param object
+     * @return
+     */
+    public V getValue(T object) {
         try {
             if (this.getMethod != null) {
-                return (V)this.getMethod.invoke(stateful);
+                return (V)this.getMethod.invoke(object);
             } else {
-                return (V)this.field.get(stateful);
+                return (V)this.field.get(object);
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
@@ -42,12 +58,18 @@ public class FieldAccessor<T, V> {
         }
     }
 
-    public void setValue(T stateful, V value) {
+    /**
+     * Set's the value of the object
+     *
+     * @param object
+     * @param value
+     */
+    public void setValue(T object, V value) {
         try {
             if (this.setMethod != null) {
-                this.setMethod.invoke(stateful, value);
+                this.setMethod.invoke(object, value);
             } else {
-                this.field.set(stateful, value);
+                this.field.set(object, value);
             }
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
