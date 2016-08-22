@@ -15,6 +15,7 @@ org.statefulj.framework.persistence.mongo
 org.statefulj.fsm
 org.statefulj.fsm.model
 org.statefulj.fsm.model.impl
+org.statefulj.persistence
 org.statefulj.persistence.annotations
 org.statefulj.persistence.common
 org.statefulj.persistence.jpa
