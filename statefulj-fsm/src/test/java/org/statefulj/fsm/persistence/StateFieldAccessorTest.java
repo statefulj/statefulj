@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 /**
  * Created by andrewhall on 7/24/16.
  */
-public class StateFieldAccessorTests {
+public class StateFieldAccessorTest {
 
     static class StatefulClass1 {
 

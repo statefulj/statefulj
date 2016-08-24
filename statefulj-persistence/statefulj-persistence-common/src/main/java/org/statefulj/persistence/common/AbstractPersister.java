@@ -183,7 +183,7 @@ public abstract class AbstractPersister<T, ID> implements Persister<T> {
 		return clazz;
 	}
 
-	protected Object getId(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	protected ID getId(T obj) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		return this.idFieldAccessor.getValue(obj);
 	}
 

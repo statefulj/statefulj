@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 /**
  * Created by andrewhall on 8/19/16.
  */
-public class FieldAccessorTests {
+public class FieldAccessorTest {
 
     static class TestClass1 {
 
