@@ -8,6 +8,7 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 /**
@@ -24,7 +25,7 @@ public class StateFieldAccessor<T> extends FieldAccessor<T, Serializable> {
 
     @Override
     protected void init(Field field, Class<T> clazz) throws IntrospectionException {
-        State state = field.getDeclaredAnnotation(State.class);
+        State state = findStateAnnotation(field);
         State.AccessorType accessorType = (state != null) ? state.accessorType() : State.AccessorType.AUTO;
         String getMethodName = (state != null) ? state.getMethodName() : "";
         String setMethodName = (state != null) ? state.setMethodName() : "";
@@ -77,6 +78,17 @@ public class StateFieldAccessor<T> extends FieldAccessor<T, Serializable> {
         } else {
             this.field.setAccessible(true);
         }
+    }
+
+    private State findStateAnnotation(Field field) {
+        Annotation[] annotations  = field.getAnnotations();
+        for (Annotation a: annotations) {
+            if (a instanceof State) {
+                return (State) a;
+            }
+        }
+        // Should never get here
+        throw new RuntimeException(String.format("Field %s does not have a State annotiation", field.getName()));
     }
 
 }
