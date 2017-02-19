@@ -380,7 +380,7 @@ public class StatefulFactory implements BeanDefinitionRegistryPostProcessor, App
 
 		// Determine the Entity Class associated with the Repo
 		//
-		String value = (String)bf.getPropertyValues().getPropertyValue("repositoryInterface").getValue();
+		String value = (String)bf.getAttribute("factoryBeanObjectType");
 		Class<?> repoInterface = Class.forName(value);
 		Class<?> entityType = null;
 		for(Type type : repoInterface.getGenericInterfaces()) {
