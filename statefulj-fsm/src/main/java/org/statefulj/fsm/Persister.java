@@ -64,4 +64,5 @@ public interface Persister<T> {
 	 * @param startState Start State
 	 */
 	void setStartState(State<T> startState);
+        State<T> getStartState();
 }

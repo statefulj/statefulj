@@ -81,21 +81,6 @@ public class FSM<T> {
 	}
 
 	/**
-	 * FSM Constructor for entry / exist event
-	 *
-	 * @param name Name associated with the FSM
-	 * @param persister Persister responsible for setting the State on the Entity
-	 * @param stateful Stateful of the statemachine for trigger the first event
-	 */
-	public FSM(String name, Persister<T> persister, T stateful) {
-		this(name, persister, DEFAULT_RETRIES, DEFAULT_RETRY_INTERVAL);
-
-		// trigger the on entry event for the init state
-		StateImpl<T> currentState = (StateImpl<T>) this.getCurrentState(stateful);
-		currentState.sendOnEntryEvent();
-	}
-
-	/**
 	 * FSM Constructor
 	 *
 	 * @param name Name associated with the FSM
@@ -108,8 +93,12 @@ public class FSM<T> {
 		this.persister = persister;
 		this.retryAttempts = retryAttempts;
 		this.retryInterval = retryInterval;
+                
+                if (this.persister == null) { return; }
 
-
+                // trigger the on entry event for the init state
+		StateImpl<T> currentState = (StateImpl<T>) this.persister.getStartState();
+		currentState.sendOnEntryEvent();
 	}
 
 	/**
