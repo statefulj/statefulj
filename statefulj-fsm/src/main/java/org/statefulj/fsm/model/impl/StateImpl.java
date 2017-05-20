@@ -17,6 +17,7 @@
  */
 package org.statefulj.fsm.model.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +31,8 @@ public class StateImpl<T> implements State<T> {
 	private Map<String, Transition<T>> transitions = new HashMap<String, Transition<T>>();
 	boolean isEndState = false;
 	boolean isBlocking = false;
+
+	private ArrayList<OnStateChangedListener> stateChangedListeners;
 	
 	public StateImpl() {
 	}
@@ -122,5 +125,30 @@ public class StateImpl<T> implements State<T> {
 	@Override
 	public String toString() {
 		return "State[name=" + this.name + ", isEndState=" + this.isEndState + ", isBlocking=" + this.isBlocking +"]";
+	}
+
+	public void addOnStateChangedListener(OnStateChangedListener listener) {
+		if (this.stateChangedListeners == null) {
+			this.stateChangedListeners = new ArrayList<OnStateChangedListener>();
+		}
+		this.stateChangedListeners.add(listener);
+	}
+
+	public void sendOnEntryEvent() {
+		if (this.stateChangedListeners == null) {
+			return;
+		}
+		for (OnStateChangedListener listener : this.stateChangedListeners) {
+			listener.onEntry();
+		}
+	}
+
+	public void sendOnExitEvent() {
+		if (this.stateChangedListeners == null) {
+			return;
+		}
+		for (OnStateChangedListener listener : this.stateChangedListeners) {
+			listener.onExit();
+		}
 	}
 }
