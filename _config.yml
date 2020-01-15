@@ -5,7 +5,7 @@ highlighter:      rouge
 permalink:        pretty
 
 # Setup
-title:            StatefulJ
+title:            StatefulJ - State Machines made easy
 tagline:          ''
 description:      'State Machines made easy'
 url:              http://statefulj.io 
