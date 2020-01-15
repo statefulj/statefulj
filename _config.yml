@@ -9,7 +9,7 @@ title:            StatefulJ
 tagline:          ''
 description:      'State Machines made easy'
 url:              http://statefulj.io 
-baseurl:          http://statefulj.io/
+baseurl:          ''
 
 author:
   name:           'Andrew Hall'
