@@ -5,11 +5,11 @@ highlighter:      rouge
 permalink:        pretty
 
 # Setup
-title:            StatefulJ - State Machines made easy
+title:            StatefulJ
 tagline:          ''
 description:      'State Machines made easy'
 url:              http://statefulj.io 
-baseurl:          /
+baseurl:          http://statefulj.io/
 
 author:
   name:           'Andrew Hall'
