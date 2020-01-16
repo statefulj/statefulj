@@ -11,7 +11,7 @@ Features
 
 Documentation
 =============
-StatefulJ is documented in detail at http://www.statefulj.org
+StatefulJ is documented in detail at http://www.statefulj.io
 
 Demos
 =====
