@@ -338,8 +338,7 @@ public class FooController {
 	//
 	public static final String CREATE_FOO = "springmvc:post:/foo";
 	public static final String GET_FOO = "springmvc:get:/foo/{id}";
-	public static final String UPGRADE_REQUEST = 
-								"springmvc:post:/foo/{id}/upgrade";
+	public static final String UPGRADE_REQUEST = "springmvc:post:/foo/{id}/upgrade";
 	public static final String UPGRADE_APPROVED = "upgrade.approved";
 
 	@Transitions({
