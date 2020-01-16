@@ -90,7 +90,7 @@ To integrate the *StatefulJ Framework*, you define your *State Model*.  To creat
 * [Instantiate the *Stateful Factory*](#instantiate-stateful-factory)
 * [Define your *Stateful Entity*](#define-your-stateful-entity)
 * [Define your *States*](#define-your-states)
-* [Define your *StateController*] (#define-your-controller)
+* [Define your *StateController*](#define-your-controller)
 * [Define your *Events*](#define-your-events)
 * [Define your *Transitions*](#define-your-transitions)
 * [Inject the *StatefulFSM*](#inject-stateful-fsm)
