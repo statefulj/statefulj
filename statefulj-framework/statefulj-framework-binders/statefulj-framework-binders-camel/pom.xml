@@ -16,7 +16,7 @@
 
 	<properties>
 		<javax.web.api.version>6.0</javax.web.api.version>
-		<camel.version>2.13.2</camel.version>
+		<camel.version>2.24.0</camel.version>
 	</properties>
 
 	<dependencies>
